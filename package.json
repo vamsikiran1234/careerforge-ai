@@ -1,0 +1,75 @@
+{
+  "name": "careerforge-ai",
+  "version": "1.0.0",
+  "description": "AI-powered career guidance platform with chatbot, skill assessment, and mentor matching",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "node scripts/build.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:seed": "node scripts/seed.js",
+    "docker:build": "docker build -t careerforge-ai .",
+    "docker:run": "docker run -p 3000:3000 careerforge-ai",
+    "docker:dev": "docker-compose up",
+    "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
+    "deploy:setup": "bash scripts/setup-development.sh",
+    "deploy:prod": "bash scripts/deploy-production.sh"
+  },
+  "keywords": [
+    "ai",
+    "career",
+    "mentorship",
+    "nodejs",
+    "express",
+    "postgresql"
+  ],
+  "author": "CareerForge Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "@prisma/client": "^5.7.0",
+    "openai": "^4.20.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "express-rate-limit": "^7.1.5",
+    "joi": "^17.11.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "nodemon": "^3.0.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "prettier": "^3.1.1",
+    "prisma": "^5.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
