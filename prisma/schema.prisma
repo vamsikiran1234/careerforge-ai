@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  MENTOR
+  ADMIN
+}
+
+enum QuizStage {
+  SKILLS_ASSESSMENT
+  CAREER_INTERESTS
+  PERSONALITY_TRAITS
+  LEARNING_STYLE
+  CAREER_GOALS
+  COMPLETED
+}
+
+enum ExpertiseDomain {
+  WEB_DEVELOPMENT
+  DATA_SCIENCE
+  MOBILE_DEVELOPMENT
+  DEVOPS
+  CYBERSECURITY
+  AI_ML
+  BLOCKCHAIN
+  GAME_DEVELOPMENT
+  UI_UX_DESIGN
+  PRODUCT_MANAGEMENT
+  FINANCE
+  MARKETING
+  CONSULTING
+  ENTREPRENEURSHIP
+  OTHER
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+// User model - Core user information
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      UserRole @default(STUDENT)
+  avatar    String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  mentor           Mentor?
+  careerSessions   CareerSession[]
+  quizSessions     QuizSession[]
+  studentQuestions StudentQuestion[]
+
+  @@map("users")
+}
+
+// Mentor model - Extended mentor information
+model Mentor {
+  id            String            @id @default(cuid())
+  userId        String            @unique
+  expertiseTags ExpertiseDomain[]
+  experience    Int               @default(0) // Years of experience
+  hourlyRate    Float?
+  availability  String?           // JSON string for availability schedule
+  rating        Float?            @default(0.0)
+  totalSessions Int               @default(0)
+  isVerified    Boolean           @default(false)
+  linkedinUrl   String?
+  portfolioUrl  String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mentors")
+}
+
+// CareerSession model - Chat sessions with AI career mentor
+model CareerSession {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String?   @default("Career Chat Session")
+  messages  Json      @default("[]") // Array of message objects
+  summary   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  endedAt   DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("career_sessions")
+}
+
+// QuizSession model - Skill assessment and career planning sessions
+model QuizSession {
+  id           String    @id @default(cuid())
+  userId       String
+  currentStage QuizStage @default(SKILLS_ASSESSMENT)
+  answers      Json      @default("{}") // Object storing answers by stage
+  results      Json?     // Final career recommendations and analysis
+  score        Float?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizQuestions QuizQuestion[]
+
+  @@map("quiz_sessions")
+}
+
+// QuizQuestion model - Individual questions within quiz sessions
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  quizSessionId String
+  questionText  String
+  options       Json     @default("[]") // Array of option objects
+  correctAnswer String?
+  userAnswer    String?
+  stage         QuizStage
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  quizSession QuizSession @relation(fields: [quizSessionId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_questions")
+}
+
+// StudentQuestion model - Questions submitted for mentor matching
+model StudentQuestion {
+  id        String          @id @default(cuid())
+  userId    String
+  question  String
+  domain    ExpertiseDomain @default(OTHER)
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("student_questions")
+}
+
+// Indexes for better performance
+model User {
+  @@index([email])
+  @@index([role])
+}
+
+model Mentor {
+  @@index([expertiseTags])
+  @@index([isVerified])
+  @@index([rating])
+}
+
+model CareerSession {
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model QuizSession {
+  @@index([userId])
+  @@index([currentStage])
+  @@index([completedAt])
+}
+
+model StudentQuestion {
+  @@index([userId])
+  @@index([domain])
+  @@index([isActive])
+}

@@ -1,0 +1,322 @@
+const { asyncHandler, createResponse } = require('../utils/helpers');
+const { prisma } = require('../config/database');
+const aiService = require('../services/aiService');
+
+const quizController = {
+  // POST /api/v1/quiz/start
+  startQuiz: asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+
+    // Validate user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json(
+        createResponse('error', 'User not found')
+      );
+    }
+
+    // Check if user has an active quiz session
+    const existingSession = await prisma.quizSession.findFirst({
+      where: {
+        userId,
+        completedAt: null,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (existingSession) {
+      return res.status(400).json(
+        createResponse('error', 'You already have an active quiz session. Please complete it first.', {
+          existingSessionId: existingSession.id,
+          currentStage: existingSession.currentStage,
+        })
+      );
+    }
+
+    // Create new quiz session
+    const session = await prisma.quizSession.create({
+      data: {
+        userId,
+        currentStage: 'SKILLS_ASSESSMENT',
+        answers: {},
+      },
+    });
+
+    // Generate first question using AI
+    const firstQuestion = await aiService.quizNext(session.id, null);
+
+    // Create first quiz question in database
+    await prisma.quizQuestion.create({
+      data: {
+        quizSessionId: session.id,
+        questionText: firstQuestion.question,
+        options: firstQuestion.options,
+        stage: firstQuestion.stage,
+        order: 1,
+      },
+    });
+
+    res.status(201).json(
+      createResponse('success', 'Quiz session started successfully', {
+        sessionId: session.id,
+        currentStage: session.currentStage,
+        question: {
+          text: firstQuestion.question,
+          options: firstQuestion.options,
+          stage: firstQuestion.stage,
+        },
+        progress: {
+          currentStage: 1,
+          totalStages: 5,
+          percentage: 20,
+        },
+      })
+    );
+  }),
+
+  // POST /api/v1/quiz/:quizId/answer
+  submitAnswer: asyncHandler(async (req, res) => {
+    const { quizId } = req.params;
+    const { answer, questionId } = req.body;
+
+    // Get quiz session
+    const session = await prisma.quizSession.findUnique({
+      where: { id: quizId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        quizQuestions: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json(
+        createResponse('error', 'Quiz session not found')
+      );
+    }
+
+    if (session.completedAt) {
+      return res.status(400).json(
+        createResponse('error', 'Quiz session has already been completed')
+      );
+    }
+
+    // Update the specific question with user's answer
+    if (questionId) {
+      await prisma.quizQuestion.update({
+        where: { id: questionId },
+        data: { userAnswer: answer },
+      });
+    }
+
+    // Update session answers
+    const currentAnswers = session.answers || {};
+    const currentStage = session.currentStage;
+    
+    if (!currentAnswers[currentStage]) {
+      currentAnswers[currentStage] = [];
+    }
+    currentAnswers[currentStage].push(answer);
+
+    // Get next question or recommendations from AI
+    const nextStep = await aiService.quizNext(session.id, answer);
+
+    let updatedSession;
+
+    if (nextStep.isComplete) {
+      // Quiz is complete, save final results
+      updatedSession = await prisma.quizSession.update({
+        where: { id: quizId },
+        data: {
+          answers: currentAnswers,
+          results: nextStep.recommendations,
+          completedAt: new Date(),
+          currentStage: 'COMPLETED',
+        },
+      });
+
+      res.status(200).json(
+        createResponse('success', 'Quiz completed successfully!', {
+          sessionId: quizId,
+          isComplete: true,
+          results: nextStep.recommendations,
+          progress: {
+            currentStage: 5,
+            totalStages: 5,
+            percentage: 100,
+          },
+        })
+      );
+    } else {
+      // More questions to go
+      const stageOrder = ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
+      const currentStageIndex = stageOrder.indexOf(nextStep.stage);
+      
+      // Create next question in database
+      const questionCount = await prisma.quizQuestion.count({
+        where: { quizSessionId: quizId },
+      });
+
+      await prisma.quizQuestion.create({
+        data: {
+          quizSessionId: quizId,
+          questionText: nextStep.question,
+          options: nextStep.options,
+          stage: nextStep.stage,
+          order: questionCount + 1,
+        },
+      });
+
+      // Update session
+      updatedSession = await prisma.quizSession.update({
+        where: { id: quizId },
+        data: {
+          answers: currentAnswers,
+          currentStage: nextStep.stage,
+        },
+      });
+
+      res.status(200).json(
+        createResponse('success', 'Answer submitted successfully', {
+          sessionId: quizId,
+          isComplete: false,
+          nextQuestion: {
+            text: nextStep.question,
+            options: nextStep.options,
+            stage: nextStep.stage,
+          },
+          progress: {
+            currentStage: currentStageIndex + 1,
+            totalStages: 5,
+            percentage: ((currentStageIndex + 1) / 5) * 100,
+          },
+        })
+      );
+    }
+  }),
+
+  // GET /api/v1/quiz/session/:quizId
+  getQuizSession: asyncHandler(async (req, res) => {
+    const { quizId } = req.params;
+
+    const session = await prisma.quizSession.findUnique({
+      where: { id: quizId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        quizQuestions: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json(
+        createResponse('error', 'Quiz session not found')
+      );
+    }
+
+    const stageOrder = ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
+    const currentStageIndex = stageOrder.indexOf(session.currentStage);
+
+    res.status(200).json(
+      createResponse('success', 'Quiz session retrieved successfully', {
+        session: {
+          id: session.id,
+          currentStage: session.currentStage,
+          answers: session.answers,
+          results: session.results,
+          createdAt: session.createdAt,
+          completedAt: session.completedAt,
+          isComplete: !!session.completedAt,
+          user: session.user,
+          questions: session.quizQuestions,
+          progress: {
+            currentStage: currentStageIndex + 1,
+            totalStages: 5,
+            percentage: session.completedAt ? 100 : ((currentStageIndex + 1) / 5) * 100,
+          },
+        },
+      })
+    );
+  }),
+
+  // GET /api/v1/quiz/sessions/:userId
+  getUserQuizSessions: asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    const sessions = await prisma.quizSession.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        currentStage: true,
+        createdAt: true,
+        completedAt: true,
+        results: true,
+      },
+    });
+
+    const completedSessions = sessions.filter(s => s.completedAt).length;
+    const activeSessions = sessions.filter(s => !s.completedAt).length;
+
+    res.status(200).json(
+      createResponse('success', 'User quiz sessions retrieved successfully', {
+        sessions,
+        statistics: {
+          totalSessions: sessions.length,
+          completedSessions,
+          activeSessions,
+        },
+      })
+    );
+  }),
+
+  // DELETE /api/v1/quiz/:quizId
+  deleteQuizSession: asyncHandler(async (req, res) => {
+    const { quizId } = req.params;
+
+    // Check if session exists
+    const session = await prisma.quizSession.findUnique({
+      where: { id: quizId },
+    });
+
+    if (!session) {
+      return res.status(404).json(
+        createResponse('error', 'Quiz session not found')
+      );
+    }
+
+    // Delete session (will cascade delete questions)
+    await prisma.quizSession.delete({
+      where: { id: quizId },
+    });
+
+    res.status(200).json(
+      createResponse('success', 'Quiz session deleted successfully')
+    );
+  }),
+};
+
+module.exports = quizController;
