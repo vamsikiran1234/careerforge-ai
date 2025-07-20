@@ -67,6 +67,9 @@ model User {
   quizSessions     QuizSession[]
   studentQuestions StudentQuestion[]
 
+  // Indexes
+  @@index([email])
+  @@index([role])
   @@map("users")
 }
 
@@ -89,6 +92,10 @@ model Mentor {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Indexes
+  @@index([expertiseTags])
+  @@index([isVerified])
+  @@index([rating])
   @@map("mentors")
 }
 
@@ -106,6 +113,9 @@ model CareerSession {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Indexes
+  @@index([userId])
+  @@index([createdAt])
   @@map("career_sessions")
 }
 
@@ -125,6 +135,10 @@ model QuizSession {
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   quizQuestions QuizQuestion[]
 
+  // Indexes
+  @@index([userId])
+  @@index([currentStage])
+  @@index([completedAt])
   @@map("quiz_sessions")
 }
 
@@ -160,34 +174,9 @@ model StudentQuestion {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("student_questions")
-}
-
-// Indexes for better performance
-model User {
-  @@index([email])
-  @@index([role])
-}
-
-model Mentor {
-  @@index([expertiseTags])
-  @@index([isVerified])
-  @@index([rating])
-}
-
-model CareerSession {
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model QuizSession {
-  @@index([userId])
-  @@index([currentStage])
-  @@index([completedAt])
-}
-
-model StudentQuestion {
+  // Indexes
   @@index([userId])
   @@index([domain])
   @@index([isActive])
+  @@map("student_questions")
 }
