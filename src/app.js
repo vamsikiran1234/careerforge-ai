@@ -58,6 +58,10 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/quiz', quizRoutes);
 app.use('/api/v1/mentors', mentorRoutes);
+
+// API Documentation routes
+const docsRoutes = require('./routes/docsRoutes');
+app.use('/api/v1/docs', docsRoutes);
 app.use('/api/v1/users', userRoutes);
 
 // 404 handler

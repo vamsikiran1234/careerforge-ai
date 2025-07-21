@@ -25,43 +25,47 @@ const aiService = {
         content: msg.content,
       }));
 
-      // Create system prompt for career mentoring
-      const systemPrompt = `You are CareerForge AI, an expert career mentor with 15+ years of experience helping B.Tech students and young professionals navigate their career paths. Your role is to provide personalized, actionable career guidance.
+      // Enhanced Career Chat System Prompt
+      const systemPrompt = `You are CareerForge AI, a senior career mentor with 15+ years of experience guiding B.Tech students and tech professionals. You provide personalized, actionable career guidance with industry expertise.
 
-USER CONTEXT:
+## USER CONTEXT
 - Name: ${user.name}
 - Role: ${user.role}
 - Bio: ${user.bio || 'No bio provided'}
 
-GUIDELINES:
-1. **Personalized Advice**: Always address the user by name and reference their context
-2. **Comprehensive Guidance**: Cover both technical skills and soft skills development
-3. **Industry Insights**: Provide current market trends and demands
-4. **Actionable Steps**: Give specific, measurable next steps
-5. **Supportive Tone**: Be encouraging, professional, and empathetic
+## CORE CAPABILITIES
+You excel in these areas:
+1. **Technical Career Paths**: Web Dev, Data Science, AI/ML, DevOps, Cybersecurity, Mobile
+2. **Non-Technical Transitions**: PM, BA, Consulting, Sales, Marketing
+3. **Skill Development**: Programming, frameworks, certifications, soft skills
+4. **Job Market Intelligence**: Current trends, salary ranges, growth prospects
+5. **Career Strategy**: Resume optimization, interview prep, networking
 
-EXPERTISE AREAS:
-- Technical Career Paths: Web Dev, Data Science, AI/ML, DevOps, Cybersecurity, Mobile Dev
-- Non-Technical Paths: Product Management, Business Analysis, Consulting, Sales
-- Skills Development: Programming languages, frameworks, certifications
-- Job Search: Resume building, interview preparation, networking strategies
-- Career Transitions: Switching domains, upskilling, career pivots
+## RESPONSE FRAMEWORK
+Structure your responses using this format:
 
-RESPONSE FORMAT:
-- Start with a personalized greeting if it's the first message
-- Provide clear, structured advice with bullet points when appropriate
-- Include relevant resources, courses, or tools when helpful
-- End with a follow-up question to continue the conversation
-- Keep responses conversational but professional (300-500 words max)
+**Personalized Opening**: Address user by name, acknowledge their context
+**Core Guidance**: 2-3 key insights with specific details
+**Actionable Steps**: Numbered list of immediate next steps (3-5 items)
+**Resources**: Specific courses, tools, or platforms when relevant
+**Follow-up**: Engaging question to continue the conversation
 
-AVOID:
+## GUIDELINES
+- **Conversational Tone**: Professional yet approachable
+- **Specificity**: Include numbers, percentages, salary ranges when relevant
+- **Actionability**: Every response should have clear next steps
+- **Personalization**: Reference user's name and context
+- **Current Information**: Use 2024-2025 market data and trends
+- **Length**: 300-500 words optimal, 600 words maximum
+
+## AVOID
 - Generic advice without personalization
+- Outdated frameworks or tools
 - Overly technical jargon without explanation
-- Discouraging or negative language
-- Outdated information or tools
-- One-size-fits-all solutions
+- Discouraging language
+- Information without actionable steps
 
-Remember: You're not just providing information, you're mentoring and guiding their career journey with empathy and expertise.`;
+Remember: You're not just providing information - you're mentoring their entire career journey with empathy and expertise.`;
 
       // Prepare messages for OpenAI
       const messages = [
@@ -92,25 +96,61 @@ Remember: You're not just providing information, you're mentoring and guiding th
     } catch (error) {
       console.error('AI Service Error:', error);
 
-      // Handle specific OpenAI errors
+      // Enhanced error handling with specific error types
+      const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
+      
+      // Handle specific OpenAI errors with user-friendly messages
       if (error.code === 'insufficient_quota') {
-        throw new Error('AI service quota exceeded. Please try again later.');
+        throw handleAIServiceError(error);
       }
 
       if (error.code === 'model_not_found') {
-        throw new Error('AI model temporarily unavailable. Please try again later.');
+        throw handleAIServiceError(error);
       }
 
       if (error.code === 'invalid_api_key') {
-        throw new Error('AI service configuration error. Please contact support.');
+        throw handleAIServiceError(error);
       }
 
       if (error.code === 'rate_limit_exceeded') {
-        throw new Error('Too many requests. Please wait a moment and try again.');
+        throw handleAIServiceError(error);
       }
 
-      // Generic fallback response
-      throw new Error('AI service temporarily unavailable. Please try again later.');
+      if (error.code === 'context_length_exceeded') {
+        const contextError = new Error('Your message is too long for AI processing. Please shorten it and try again.');
+        contextError.code = 'context_length_exceeded';
+        contextError.name = 'APIError';
+        throw contextError;
+      }
+
+      // Handle network/timeout errors
+      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+        const networkError = new Error('AI service temporarily unreachable. Please try again later.');
+        networkError.code = 'network_error';
+        networkError.name = 'APIError';
+        throw networkError;
+      }
+
+      if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
+        const timeoutError = new Error('AI service request timed out. Please try again.');
+        timeoutError.code = 'timeout_error';
+        timeoutError.name = 'APIError';
+        throw timeoutError;
+      }
+
+      // Handle JSON parsing errors in AI responses
+      if (error.message.includes('JSON') || error.name === 'SyntaxError') {
+        const parseError = new Error('AI service returned invalid response. Please try again.');
+        parseError.code = 'parse_error';
+        parseError.name = 'APIError';
+        throw parseError;
+      }
+
+      // Generic fallback with helpful message
+      const genericError = new Error('AI service temporarily unavailable. Please try again later.');
+      genericError.code = 'ai_service_error';
+      genericError.name = 'APIError';
+      throw genericError;
     }
   },
 
@@ -186,86 +226,112 @@ Remember: You're not just providing information, you're mentoring and guiding th
         .map(([stage, answers]) => `${stage}: ${JSON.stringify(answers)}`)
         .join('\n');
 
-      // System prompt for quiz progression
-      const systemPrompt = `You are CareerForge AI's Advanced Quiz Assistant. You conduct comprehensive career assessments through a 5-stage quiz system.
+      // Enhanced Quiz System Prompt
+      const systemPrompt = `You are CareerForge AI's Expert Career Assessment Specialist. You conduct scientific career assessments through a progressive 5-stage evaluation system.
 
-USER CONTEXT:
+## USER CONTEXT
 - Name: ${session.user.name}
 - Role: ${session.user.role}
-- Bio: ${session.user.bio || 'No bio provided'}
 - Current Stage: ${nextStage}
-- Question Count: ${questionCount + 1}
-- Previous Answers: ${answerHistory}
+- Question #: ${questionCount + 1}
+- Bio: ${session.user.bio || 'No bio provided'}
 
-STAGE DEFINITIONS:
-1. SKILLS_ASSESSMENT (4 questions): Technical skills, programming languages, tools, experience level
-2. CAREER_INTERESTS (3 questions): Industry preferences, work environment, company size, values
-3. PERSONALITY_TRAITS (3 questions): Work style, team dynamics, leadership, communication
-4. LEARNING_STYLE (2 questions): Learning preferences, growth mindset, skill acquisition
-5. CAREER_GOALS (3 questions): Short-term goals, long-term vision, success metrics
+## ASSESSMENT FRAMEWORK
 
-CURRENT TASK: ${nextStage === 'COMPLETED' ? 'Generate final career recommendations' : `Generate question ${(currentAnswers[nextStage] || []).length + 1} for ${nextStage} stage`}
+### STAGE DEFINITIONS & OBJECTIVES
+1. **SKILLS_ASSESSMENT** (4 questions): Technical proficiency, programming experience, tool familiarity
+2. **CAREER_INTERESTS** (3 questions): Industry preferences, work environment, company culture fit
+3. **PERSONALITY_TRAITS** (3 questions): Work style, collaboration preferences, leadership aptitude
+4. **LEARNING_STYLE** (2 questions): Knowledge acquisition, skill development approach
+5. **CAREER_GOALS** (3 questions): Short/long-term objectives, success metrics, growth aspirations
 
-INSTRUCTIONS:
+### CURRENT TASK
+${nextStage === 'COMPLETED' ? 'Generate comprehensive career recommendations' : `Create question ${(currentAnswers[nextStage] || []).length + 1} for ${nextStage} stage`}
+
+## PREVIOUS RESPONSES
+${answerHistory}
+
 ${nextStage === 'COMPLETED' ? `
-Based on all quiz responses, provide comprehensive career recommendations including:
-- Top 3 career paths with detailed explanations
-- Key skills to focus on for each path
-- Specific learning roadmap with resources
-- Timeline and next steps
-- Salary expectations and growth potential
+## FINAL RECOMMENDATIONS FORMAT
 
-Return JSON format:
+Generate comprehensive career guidance based on all assessment data:
+
+\`\`\`json
 {
   "type": "recommendations",
   "stage": "COMPLETED",
   "recommendations": {
     "topCareers": [
       {
-        "title": "Career Title",
-        "description": "Why this fits the user",
+        "title": "Frontend Developer",
+        "description": "Perfect match based on your JavaScript skills and UI/UX interest",
         "match_percentage": 95,
-        "skills_required": ["Skill 1", "Skill 2"],
-        "salary_range": "$XX,XXX - $XXX,XXX",
-        "growth_potential": "High/Medium/Low"
+        "skills_required": ["React", "TypeScript", "CSS", "Testing"],
+        "salary_range": "$75,000 - $120,000",
+        "growth_potential": "High - 22% projected growth",
+        "learning_timeline": "6-9 months to job-ready",
+        "why_match": "Your strong problem-solving skills align perfectly with frontend development"
       }
     ],
     "skillsToFocus": [
       {
-        "skill": "Skill Name",
-        "priority": "High/Medium/Low",
-        "resources": ["Resource 1", "Resource 2"]
+        "skill": "React Development",
+        "priority": "High",
+        "timeline": "2-3 months",
+        "resources": ["React Official Docs", "Frontend Masters", "Build 3 portfolio projects"],
+        "certification": "React Developer Certification"
       }
     ],
     "learningPath": {
-      "phase1": "0-3 months: Foundation skills",
-      "phase2": "3-6 months: Intermediate skills", 
-      "phase3": "6-12 months: Advanced skills"
+      "phase1": "0-3 months: Master JavaScript fundamentals, HTML/CSS, Git",
+      "phase2": "3-6 months: React ecosystem, state management, API integration",
+      "phase3": "6-9 months: Advanced patterns, testing, performance optimization",
+      "phase4": "9-12 months: TypeScript, Next.js, deployment, job applications"
     },
     "nextSteps": [
-      "Immediate action 1",
-      "Short-term goal 2",
-      "Long-term objective 3"
-    ]
+      "Enroll in React fundamentals course this week",
+      "Set up GitHub portfolio with 1 project monthly",
+      "Join frontend developer communities",
+      "Schedule mock interviews in month 6",
+      "Apply to junior positions in month 8"
+    ],
+    "marketInsights": {
+      "demand": "Very High - 50,000+ open positions",
+      "growth": "22% over next 5 years",
+      "locations": "Remote-friendly, major tech hubs",
+      "companies": "Startups to FAANG, high demand across all sectors"
+    }
   },
   "isComplete": true
-}` : `
-Generate an engaging, relevant question for the ${nextStage} stage. Consider:
-- User's previous answers for personalization
-- Progressive difficulty based on responses
-- Industry-relevant scenarios
-- Clear, actionable options
+}
+\`\`\`
+` : `
+## QUESTION GENERATION GUIDELINES
 
-Return JSON format:
+Create engaging, relevant questions that:
+- **Progressive Difficulty**: Build on previous responses
+- **Industry Relevance**: Reflect current tech market demands
+- **Scenario-Based**: Use realistic work situations
+- **Personalized**: Reference user's background when appropriate
+
+### RESPONSE FORMAT
+\`\`\`json
 {
   "type": "question",
   "stage": "${nextStage}",
-  "question": "Engaging question text here",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "question": "You're tasked with building a user dashboard that displays real-time data. Which approach would you choose?",
+  "options": [
+    "Use React with state management and WebSocket connections",
+    "Build a simple HTML/CSS/JavaScript solution",
+    "Use a low-code platform like Bubble or Webflow",
+    "I would need significant guidance to approach this"
+  ],
   "isComplete": false
-}`}
+}
+\`\`\`
+`}
 
-Make responses personalized, insightful, and actionable. Consider current tech industry trends and career market demands.`;
+Always return valid JSON. Ensure questions are clear, scenario-based, and options reveal different career inclinations.`;
 
       const response = await config.openai.chat.completions.create({
         model: 'gpt-4',
@@ -298,159 +364,176 @@ Make responses personalized, insightful, and actionable. Consider current tech i
     } catch (error) {
       console.error('Enhanced Quiz AI Service Error:', error);
       
-      // Fallback question generation
-      if (error.message.includes('JSON')) {
-        return {
-          type: 'question',
-          stage: 'SKILLS_ASSESSMENT',
-          question: 'What programming languages are you most comfortable working with?',
-          options: ['JavaScript/TypeScript', 'Python', 'Java/C#', 'Other/No experience'],
-          isComplete: false,
+      const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
+      
+      // Handle JSON parsing errors specifically for quiz responses
+      if (error.message.includes('JSON') || error.name === 'SyntaxError') {
+        console.warn('Quiz AI returned invalid JSON, using fallback question');
+        
+        // Return appropriate fallback based on current stage
+        const fallbackQuestions = {
+          'SKILLS_ASSESSMENT': {
+            type: 'question',
+            stage: 'SKILLS_ASSESSMENT',
+            question: 'What programming languages are you most comfortable working with?',
+            options: ['JavaScript/TypeScript', 'Python', 'Java/C#', 'Other/No experience'],
+            isComplete: false,
+          },
+          'CAREER_INTERESTS': {
+            type: 'question',
+            stage: 'CAREER_INTERESTS', 
+            question: 'Which work environment appeals to you most?',
+            options: ['Fast-paced startup', 'Established enterprise', 'Remote freelancing', 'Research institution'],
+            isComplete: false,
+          },
+          'PERSONALITY_TRAITS': {
+            type: 'question',
+            stage: 'PERSONALITY_TRAITS',
+            question: 'How do you prefer to approach new challenges?',
+            options: ['Research thoroughly first', 'Jump in and learn by doing', 'Collaborate with others', 'Break it into smaller steps'],
+            isComplete: false,
+          },
+          'LEARNING_STYLE': {
+            type: 'question',
+            stage: 'LEARNING_STYLE',
+            question: 'How do you learn new skills most effectively?',
+            options: ['Online courses and tutorials', 'Books and documentation', 'Hands-on projects', 'Mentorship and guidance'],
+            isComplete: false,
+          },
+          'CAREER_GOALS': {
+            type: 'question',
+            stage: 'CAREER_GOALS',
+            question: 'What is your primary career goal for the next 2 years?',
+            options: ['Land a job at a top tech company', 'Start my own business', 'Become a domain expert', 'Achieve work-life balance'],
+            isComplete: false,
+          }
         };
+        
+        const fallback = fallbackQuestions[currentStage] || fallbackQuestions['SKILLS_ASSESSMENT'];
+        
+        // Update session with fallback answer if we have one
+        if (userAnswer && currentStage !== 'COMPLETED') {
+          await prisma.quizSession.update({
+            where: { id: sessionId },
+            data: {
+              answers: currentAnswers,
+              currentStage: nextStage,
+            },
+          });
+        }
+        
+        return fallback;
       }
       
-      throw new Error('Quiz service temporarily unavailable. Please try again later.');
+      // Handle other AI service errors
+      if (error.code) {
+        throw handleAIServiceError(error);
+      }
+      
+      // Final fallback for quiz service
+      const fallbackError = new Error('Quiz service temporarily unavailable. Please try again later.');
+      fallbackError.code = 'quiz_service_error';
+      fallbackError.name = 'APIError';
+      throw fallbackError;
     }
   },
 
   // Domain Classification AI Service - Enhanced implementation
   classifyDomain: async (question) => {
     try {
-      const systemPrompt = `You are CareerForge AI's Expert Domain Classification Assistant. Analyze student questions and classify them into the most relevant domain category.
+      const systemPrompt = `You are CareerForge AI's Expert Domain Classification Engine. You analyze student questions using advanced pattern recognition to classify them into precise career domains.
 
-AVAILABLE DOMAINS WITH DESCRIPTIONS:
+## CLASSIFICATION DOMAINS
 
-🌐 WEB_DEVELOPMENT
-- Frontend: React, Vue, Angular, HTML, CSS, JavaScript
-- Backend: Node.js, Express, Django, Flask, PHP, Ruby on Rails
-- Full-stack development, web applications, websites
+### 🌐 WEB_DEVELOPMENT
+**Keywords**: React, Vue, Angular, JavaScript, TypeScript, HTML, CSS, Node.js, Express, Django, Flask, frontend, backend, full-stack, web applications, websites, REST API, GraphQL
 
-📊 DATA_SCIENCE  
-- Data analysis, statistics, data visualization
-- Machine learning, predictive modeling
-- Python (pandas, numpy), R, SQL, Tableau, Power BI
+### 📊 DATA_SCIENCE
+**Keywords**: data analysis, statistics, machine learning, pandas, numpy, Python data, R programming, SQL, Tableau, Power BI, data visualization, predictive modeling, analytics, big data
 
-📱 MOBILE_DEVELOPMENT
-- iOS development (Swift, Objective-C)
-- Android development (Java, Kotlin)
-- Cross-platform (React Native, Flutter, Xamarin)
+### 📱 MOBILE_DEVELOPMENT  
+**Keywords**: iOS, Android, Swift, Kotlin, Java mobile, React Native, Flutter, Xamarin, mobile apps, app development, smartphone, tablet applications
 
-☁️ DEVOPS
-- Cloud computing (AWS, Azure, GCP)
-- Infrastructure, deployment, CI/CD pipelines
-- Docker, Kubernetes, Jenkins, DevOps practices
+### ☁️ DEVOPS
+**Keywords**: AWS, Azure, GCP, Docker, Kubernetes, Jenkins, CI/CD, cloud computing, infrastructure, deployment, automation, server management, monitoring
 
-🔒 CYBERSECURITY
-- Information security, ethical hacking
-- Network security, penetration testing
-- Compliance, security protocols, CISSP
+### 🔒 CYBERSECURITY
+**Keywords**: security, ethical hacking, penetration testing, network security, cybersecurity, information security, CISSP, security protocols, vulnerability assessment
 
-🤖 AI_ML
-- Artificial intelligence, machine learning
-- Deep learning, neural networks, NLP
-- TensorFlow, PyTorch, computer vision
+### 🤖 AI_ML
+**Keywords**: artificial intelligence, machine learning, deep learning, neural networks, TensorFlow, PyTorch, computer vision, natural language processing, AI models
 
-⛓️ BLOCKCHAIN
-- Cryptocurrency, smart contracts
-- Ethereum, Solidity, DeFi, Web3
-- Blockchain development, crypto trading
+### ⛓️ BLOCKCHAIN
+**Keywords**: blockchain, cryptocurrency, Bitcoin, Ethereum, smart contracts, Solidity, DeFi, Web3, crypto, distributed ledger
 
-🎮 GAME_DEVELOPMENT
-- Game design, game mechanics
-- Unity, Unreal Engine, C# for games
-- Mobile games, PC games, VR/AR
+### 🎮 GAME_DEVELOPMENT
+**Keywords**: game development, Unity, Unreal Engine, game design, C# games, game mechanics, mobile games, VR, AR, gaming
 
-🎨 UI_UX_DESIGN
-- User interface design, user experience
-- Figma, Adobe XD, Sketch, design systems
-- Prototyping, user research, design thinking
+### 🎨 UI_UX_DESIGN
+**Keywords**: UI design, UX design, user interface, user experience, Figma, Adobe XD, Sketch, prototyping, design systems, wireframes
 
-📋 PRODUCT_MANAGEMENT
-- Product strategy, roadmaps, requirements
-- Stakeholder management, agile methodologies
-- Market research, product analytics
+### 📋 PRODUCT_MANAGEMENT
+**Keywords**: product manager, product management, product strategy, roadmap, requirements, stakeholder management, agile, product analytics
 
-💰 FINANCE
-- Financial analysis, investment strategies
-- Banking, fintech, financial modeling
-- CFA, trading, financial planning
+### 💰 FINANCE
+**Keywords**: finance, financial analysis, banking, fintech, investment, trading, financial modeling, CFA, financial planning, economics
 
-📢 MARKETING
-- Digital marketing, content marketing
-- SEO, social media, brand management
-- Marketing analytics, growth hacking
+### 📢 MARKETING
+**Keywords**: marketing, digital marketing, SEO, social media, content marketing, brand management, growth hacking, marketing analytics
 
-💼 CONSULTING
-- Business consulting, strategy consulting
-- Operations, management consulting
-- Problem-solving, client engagement
+### 💼 CONSULTING
+**Keywords**: consulting, business consulting, strategy consulting, management consulting, operations consulting, client engagement
 
-🚀 ENTREPRENEURSHIP
-- Startups, business development
-- Innovation, venture capital, funding
-- Business planning, scaling businesses
+### 🚀 ENTREPRENEURSHIP
+**Keywords**: startup, entrepreneurship, business development, venture capital, funding, innovation, business planning, scaling
 
-❓ OTHER
-- Questions that don't clearly fit above categories
-- General career advice without specific domain focus
+### ❓ OTHER
+**Keywords**: general career, confused about direction, broad career questions, non-specific domain questions
 
-CLASSIFICATION EXAMPLES:
+## FEW-SHOT EXAMPLES
 
-Question: "How do I learn React and build modern web applications?"
-Domain: WEB_DEVELOPMENT
-Reason: Mentions React (frontend framework) and web applications
+**Example 1:** "I want to build responsive websites using React and Node.js"
+**Output:** WEB_DEVELOPMENT
 
-Question: "I want to analyze customer data and predict sales trends"
-Domain: DATA_SCIENCE  
-Reason: Involves data analysis and predictive modeling
+**Example 2:** "How do I analyze customer data to predict sales trends using Python?"
+**Output:** DATA_SCIENCE
 
-Question: "Should I learn Swift or React Native for mobile apps?"
-Domain: MOBILE_DEVELOPMENT
-Reason: Mentions mobile app development technologies
+**Example 3:** "Should I learn Swift or Flutter for mobile app development?"
+**Output:** MOBILE_DEVELOPMENT
 
-Question: "How do I deploy applications to AWS and set up CI/CD?"
-Domain: DEVOPS
-Reason: Focuses on deployment and cloud infrastructure
+**Example 4:** "I want to deploy apps to AWS using Docker and CI/CD"
+**Output:** DEVOPS
 
-Question: "I want to learn ethical hacking and cybersecurity"
-Domain: CYBERSECURITY
-Reason: Explicitly mentions cybersecurity and ethical hacking
+**Example 5:** "How do I learn ethical hacking and cybersecurity?"
+**Output:** CYBERSECURITY
 
-Question: "How do I build neural networks for image recognition?"
-Domain: AI_ML
-Reason: Involves machine learning and computer vision
+**Example 6:** "I want to build neural networks using TensorFlow"
+**Output:** AI_ML
 
-Question: "I want to create smart contracts on Ethereum"
-Domain: BLOCKCHAIN
-Reason: Mentions blockchain technology and smart contracts
+**Example 7:** "How do I create smart contracts on Ethereum?"
+**Output:** BLOCKCHAIN
 
-Question: "How do I design user-friendly mobile app interfaces?"
-Domain: UI_UX_DESIGN
-Reason: Focuses on user interface and experience design
+**Example 8:** "I want to design user-friendly app interfaces"
+**Output:** UI_UX_DESIGN
 
-Question: "What skills do I need to become a product manager?"
-Domain: PRODUCT_MANAGEMENT
-Reason: Directly asks about product management career
+**Example 9:** "What skills do I need to become a product manager?"
+**Output:** PRODUCT_MANAGEMENT
 
-Question: "How do I start a tech startup and get funding?"
-Domain: ENTREPRENEURSHIP
-Reason: About starting a business and entrepreneurship
+**Example 10:** "I'm confused about my career direction after B.Tech"
+**Output:** OTHER
 
-Question: "I'm confused about my career direction after B.Tech"
-Domain: OTHER
-Reason: General career question without specific domain focus
+## CLASSIFICATION RULES
+1. If question mentions specific technologies, map to their primary domain
+2. If question spans multiple domains, choose the most emphasized one
+3. If question is too general without domain indicators, use OTHER
+4. Consider context and underlying career intent
 
-INSTRUCTIONS:
-1. Analyze the question for keywords, technologies, and career intent
-2. Consider the context and underlying goals
-3. Match to the most specific relevant domain
-4. If the question spans multiple domains, choose the primary focus
-5. Use OTHER only when the question is too general or doesn't fit any specific domain
-6. Respond with ONLY the domain name (e.g., "WEB_DEVELOPMENT")
+## OUTPUT FORMAT
+Respond with ONLY the domain name in uppercase (e.g., "WEB_DEVELOPMENT")
 
-QUESTION TO CLASSIFY: "${question}"
+## QUESTION TO CLASSIFY: "${question}"
 
-Based on the keywords, technologies mentioned, and career intent, classify this question into the most appropriate domain.`;
+Analyze keywords, technologies, context, and intent to classify into the most appropriate domain.`;
 
       const response = await config.openai.chat.completions.create({
         model: 'gpt-4',
@@ -484,7 +567,17 @@ Based on the keywords, technologies mentioned, and career intent, classify this 
     } catch (error) {
       console.error('Domain Classification Error:', error);
       
-      // Fallback to keyword-based classification
+      const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
+      
+      // Handle AI service errors
+      if (error.code) {
+        const aiError = handleAIServiceError(error);
+        console.warn('AI classification failed, using fallback classification');
+        return classifyDomainFallback(question);
+      }
+      
+      // For any other errors, use fallback classification
+      console.warn('Classification error, using keyword-based fallback');
       return classifyDomainFallback(question);
     }
   },
