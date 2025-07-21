@@ -1,0 +1,93 @@
+# Health Check Endpoint
+
+health:
+  get:
+    tags:
+      - Health
+    summary: API health check
+    description: |
+      Check the health and status of the CareerForge AI API. This endpoint provides information about system status, version, and service availability.
+      
+      **Features:**
+      - System health status
+      - Service availability checks
+      - Performance metrics
+      - Version information
+      
+      **No Authentication Required**
+    operationId: healthCheck
+    responses:
+      '200':
+        description: API is healthy and operational
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/HealthCheck'
+            examples:
+              healthy_system:
+                summary: Healthy system status
+                value:
+                  status: "healthy"
+                  timestamp: "2025-07-21T05:30:00Z"
+                  version: "1.0.0"
+                  services:
+                    database:
+                      status: "up"
+                      responseTime: 45
+                    ai_service:
+                      status: "up"
+                      model: "gpt-4"
+                    cache:
+                      status: "up"
+                  metrics:
+                    uptime: 86400
+                    activeConnections: 42
+                    memoryUsage:
+                      used: 256
+                      total: 1024
+              degraded_system:
+                summary: System with some issues
+                value:
+                  status: "degraded"
+                  timestamp: "2025-07-21T05:30:00Z"
+                  version: "1.0.0"
+                  services:
+                    database:
+                      status: "up"
+                      responseTime: 120
+                    ai_service:
+                      status: "down"
+                      model: "gpt-4"
+                    cache:
+                      status: "up"
+                  metrics:
+                    uptime: 86400
+                    activeConnections: 156
+                    memoryUsage:
+                      used: 512
+                      total: 1024
+      '503':
+        description: Service temporarily unavailable
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/HealthCheck'
+            example:
+              status: "unhealthy"
+              timestamp: "2025-07-21T05:30:00Z"
+              version: "1.0.0"
+              services:
+                database:
+                  status: "down"
+                  responseTime: null
+                ai_service:
+                  status: "down"
+                  model: "gpt-4"
+                cache:
+                  status: "up"
+              metrics:
+                uptime: 86400
+                activeConnections: 0
+                memoryUsage:
+                  used: 128
+                  total: 1024

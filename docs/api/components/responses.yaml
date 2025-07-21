@@ -1,0 +1,256 @@
+# Standard HTTP Response Templates
+
+BadRequest:
+  description: Invalid request parameters or malformed request body
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      examples:
+        validation_error:
+          summary: Validation error
+          value:
+            status: error
+            message: User ID is required
+            data:
+              errorCode: VALIDATION_ERROR
+              errors:
+                - field: userId
+                  message: User ID is required
+                  value: ""
+        invalid_format:
+          summary: Invalid data format
+          value:
+            status: error
+            message: Invalid JSON format
+            data:
+              errorCode: INVALID_FORMAT
+              details:
+                line: 5
+                column: 12
+
+Unauthorized:
+  description: Authentication required or invalid credentials
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      example:
+        status: error
+        message: Authentication required
+        data:
+          errorCode: UNAUTHORIZED
+          suggestions:
+            - "Include valid authentication token"
+            - "Check token expiration"
+
+Forbidden:
+  description: Access denied or insufficient permissions
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      example:
+        status: error
+        message: Access denied
+        data:
+          errorCode: FORBIDDEN
+          details:
+            requiredRole: ADMIN
+            userRole: USER
+
+NotFound:
+  description: Requested resource not found
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      examples:
+        user_not_found:
+          summary: User not found
+          value:
+            status: error
+            message: User not found
+            data:
+              errorCode: USER_NOT_FOUND
+        session_not_found:
+          summary: Session not found
+          value:
+            status: error
+            message: Session not found
+            data:
+              errorCode: SESSION_NOT_FOUND
+
+Conflict:
+  description: Request conflicts with current state
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      example:
+        status: error
+        message: Resource already exists
+        data:
+          errorCode: DUPLICATE_ENTRY
+          details:
+            field: email
+            value: "user@example.com"
+
+PayloadTooLarge:
+  description: Request payload exceeds size limits
+  headers:
+    Content-Length:
+      description: Maximum allowed payload size
+      schema:
+        type: integer
+        example: 51200
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      example:
+        status: error
+        message: Request too large. Maximum size is 51200 bytes
+        data:
+          errorCode: PAYLOAD_TOO_LARGE
+          details:
+            maxSize: 51200
+            receivedSize: 65536
+
+RateLimited:
+  description: Rate limit exceeded
+  headers:
+    X-RateLimit-Limit:
+      description: Request limit per time window
+      schema:
+        type: integer
+        example: 100
+    X-RateLimit-Remaining:
+      description: Number of requests remaining in current window
+      schema:
+        type: integer
+        example: 0
+    X-RateLimit-Reset:
+      description: Time when rate limit resets (Unix timestamp)
+      schema:
+        type: integer
+        example: 1642781400
+    Retry-After:
+      description: Seconds to wait before retry
+      schema:
+        type: integer
+        example: 900
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      examples:
+        general_rate_limit:
+          summary: General API rate limit
+          value:
+            status: error
+            message: Too many requests from this IP, please try again later
+            data:
+              errorCode: RATE_LIMITED
+              retryAfter: 900
+              suggestions:
+                - "Wait 15 minutes before making more requests"
+                - "Consider upgrading to a higher rate limit plan"
+        chat_rate_limit:
+          summary: Chat-specific rate limit
+          value:
+            status: error
+            message: Chat rate limit exceeded. Maximum 10 messages per minute
+            data:
+              errorCode: CHAT_RATE_LIMITED
+              retryAfter: 60
+              details:
+                limit: 10
+                window: "1 minute"
+
+InternalServerError:
+  description: Internal server error
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      examples:
+        general_error:
+          summary: General server error
+          value:
+            status: error
+            message: Internal server error
+            data:
+              errorCode: INTERNAL_ERROR
+              suggestions:
+                - "Try again in a few moments"
+                - "Contact support if the problem persists"
+        ai_service_error:
+          summary: AI service unavailable
+          value:
+            status: error
+            message: AI service temporarily unavailable
+            data:
+              errorCode: AI_SERVICE_ERROR
+              retryAfter: 30
+              suggestions:
+                - "Try again in 30 seconds"
+                - "The AI service is experiencing high demand"
+        database_error:
+          summary: Database connection error
+          value:
+            status: error
+            message: Database temporarily unavailable
+            data:
+              errorCode: DATABASE_ERROR
+              suggestions:
+                - "Try again in a few moments"
+                - "Data integrity is maintained"
+
+ServiceUnavailable:
+  description: Service temporarily unavailable
+  headers:
+    Retry-After:
+      description: Seconds to wait before retry
+      schema:
+        type: integer
+        example: 60
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ErrorResponse'
+      example:
+        status: error
+        message: Service temporarily unavailable
+        data:
+          errorCode: SERVICE_UNAVAILABLE
+          retryAfter: 60
+          details:
+            reason: "Scheduled maintenance"
+            estimatedDuration: 300
+
+# Success Response Templates
+
+Created:
+  description: Resource created successfully
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ApiResponse'
+
+Updated:
+  description: Resource updated successfully
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ApiResponse'
+
+Deleted:
+  description: Resource deleted successfully
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/ApiResponse'
+
+NoContent:
+  description: Request processed successfully, no content to return

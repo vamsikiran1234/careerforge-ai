@@ -1,0 +1,269 @@
+# Reusable Parameter Definitions
+
+# Common Path Parameters
+userId:
+  name: userId
+  in: path
+  required: true
+  description: Unique user identifier
+  schema:
+    type: string
+    pattern: '^[a-zA-Z0-9_-]+$'
+    minLength: 1
+    maxLength: 100
+  example: "user_12345"
+
+sessionId:
+  name: sessionId
+  in: path
+  required: true
+  description: Unique session identifier
+  schema:
+    type: string
+    pattern: '^[a-zA-Z0-9_-]+$'
+    minLength: 1
+    maxLength: 100
+  example: "session_abc123"
+
+quizId:
+  name: quizId
+  in: path
+  required: true
+  description: Unique quiz session identifier
+  schema:
+    type: string
+    pattern: '^[a-zA-Z0-9_-]+$'
+    minLength: 1
+    maxLength: 100
+  example: "quiz_abc123"
+
+mentorId:
+  name: mentorId
+  in: path
+  required: true
+  description: Unique mentor identifier
+  schema:
+    type: string
+    pattern: '^[a-zA-Z0-9_-]+$'
+    minLength: 1
+    maxLength: 100
+  example: "mentor_12345"
+
+# Common Query Parameters
+page:
+  name: page
+  in: query
+  description: Page number for pagination (1-based)
+  schema:
+    type: integer
+    minimum: 1
+    default: 1
+  example: 1
+
+limit:
+  name: limit
+  in: query
+  description: Number of items per page
+  schema:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 20
+  example: 20
+
+sortBy:
+  name: sortBy
+  in: query
+  description: Field to sort results by
+  schema:
+    type: string
+  example: "createdAt"
+
+sortOrder:
+  name: sortOrder
+  in: query
+  description: Sort order direction
+  schema:
+    type: string
+    enum: [asc, desc]
+    default: desc
+  example: "desc"
+
+# Domain-specific parameters
+domain:
+  name: domain
+  in: query
+  description: Filter by expertise domain
+  schema:
+    type: string
+    enum: [TECHNOLOGY, HEALTHCARE, BUSINESS, CREATIVE, EDUCATION, OTHER]
+  example: "TECHNOLOGY"
+
+skills:
+  name: skills
+  in: query
+  description: Comma-separated list of skills
+  schema:
+    type: string
+    pattern: '^[a-zA-Z0-9, ._+-]+$'
+  example: "JavaScript,React,Node.js"
+
+experienceLevel:
+  name: experienceLevel
+  in: query
+  description: Experience level filter
+  schema:
+    type: string
+    enum: [beginner, intermediate, advanced, junior, mid, senior, lead, executive]
+  example: "senior"
+
+availability:
+  name: availability
+  in: query
+  description: Availability status filter
+  schema:
+    type: string
+    enum: [available, limited, unavailable]
+  example: "available"
+
+location:
+  name: location
+  in: query
+  description: Location or timezone filter
+  schema:
+    type: string
+    maxLength: 100
+  example: "San Francisco, CA"
+
+rating:
+  name: rating
+  in: query
+  description: Minimum rating filter (0-5)
+  schema:
+    type: number
+    format: float
+    minimum: 0
+    maximum: 5
+  example: 4.0
+
+# Date range parameters
+startDate:
+  name: startDate
+  in: query
+  description: Start date for filtering (ISO 8601 format)
+  schema:
+    type: string
+    format: date
+  example: "2025-07-01"
+
+endDate:
+  name: endDate
+  in: query
+  description: End date for filtering (ISO 8601 format)
+  schema:
+    type: string
+    format: date
+  example: "2025-07-31"
+
+# Boolean filters
+active:
+  name: active
+  in: query
+  description: Filter by active status
+  schema:
+    type: boolean
+  example: true
+
+completed:
+  name: completed
+  in: query
+  description: Filter by completion status
+  schema:
+    type: boolean
+  example: true
+
+verified:
+  name: verified
+  in: query
+  description: Filter by verification status
+  schema:
+    type: boolean
+  example: true
+
+# Search parameters
+query:
+  name: query
+  in: query
+  description: Search query string
+  schema:
+    type: string
+    minLength: 1
+    maxLength: 200
+  example: "software engineer"
+
+category:
+  name: category
+  in: query
+  description: Category filter
+  schema:
+    type: string
+    enum: [career_advice, skill_development, interview_prep, career_change, leadership]
+  example: "career_advice"
+
+# Time-based parameters
+timeRange:
+  name: timeRange
+  in: query
+  description: Predefined time range filter
+  schema:
+    type: string
+    enum: [today, week, month, quarter, year]
+  example: "month"
+
+timezone:
+  name: timezone
+  in: query
+  description: Timezone for time-based filters
+  schema:
+    type: string
+  example: "America/Los_Angeles"
+
+# Feature flags
+includeMetadata:
+  name: includeMetadata
+  in: query
+  description: Include additional metadata in response
+  schema:
+    type: boolean
+    default: false
+  example: true
+
+includeStats:
+  name: includeStats
+  in: query
+  description: Include statistical information
+  schema:
+    type: boolean
+    default: false
+  example: true
+
+# Language and localization
+language:
+  name: language
+  in: query
+  description: Response language preference
+  schema:
+    type: string
+    enum: [en, es, fr, de, ja, zh]
+    default: en
+  example: "en"
+
+currency:
+  name: currency
+  in: query
+  description: Currency preference for pricing
+  schema:
+    type: string
+    enum: [USD, EUR, GBP, JPY, CAD]
+    default: USD
+  example: "USD"

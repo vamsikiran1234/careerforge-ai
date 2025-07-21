@@ -1,0 +1,335 @@
+# Chat API Endpoints
+
+chat:
+  post:
+    tags:
+      - Chat
+    summary: Send message to AI career advisor
+    description: |
+      Send a career-related question or message to the AI career advisor. This endpoint will either create a new chat session or continue an existing one.
+      
+      **Features:**
+      - Intelligent career guidance using GPT-4
+      - Context-aware responses based on conversation history
+      - Domain-specific expertise in various career fields
+      - Follow-up question suggestions
+      
+      **Rate Limiting:** 10 messages per minute per user
+    operationId: sendChatMessage
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/ChatRequest'
+          examples:
+            new_conversation:
+              summary: Starting a new conversation
+              value:
+                userId: "user_12345"
+                message: "I want to become a software engineer. What skills should I focus on?"
+            continue_conversation:
+              summary: Continuing an existing conversation
+              value:
+                userId: "user_12345"
+                message: "What about Python vs JavaScript for beginners?"
+                sessionId: "session_abc123"
+            career_transition:
+              summary: Career transition question
+              value:
+                userId: "user_12345"
+                message: "I'm currently in marketing but want to transition to UX design. How should I start?"
+    responses:
+      '200':
+        description: Message processed successfully
+        headers:
+          X-RateLimit-Remaining:
+            description: Number of requests remaining in current window
+            schema:
+              type: integer
+              example: 9
+          X-RateLimit-Reset:
+            description: Time when rate limit resets (Unix timestamp)
+            schema:
+              type: integer
+              example: 1642781400
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/ChatResponse'
+            examples:
+              successful_response:
+                summary: Successful AI response
+                value:
+                  status: success
+                  message: Chat message processed successfully
+                  data:
+                    sessionId: "session_abc123"
+                    reply: "Software engineering is an excellent career choice! To get started, I recommend focusing on these key areas: 1) Programming fundamentals (start with Python or JavaScript), 2) Problem-solving skills, 3) Understanding of data structures and algorithms, 4) Version control (Git), and 5) Basic web development concepts. Would you like me to elaborate on any of these areas?"
+                    messageCount: 1
+                    suggestions:
+                      - "Which programming language should I learn first?"
+                      - "How long does it take to become job-ready?"
+                      - "What projects should I build as a beginner?"
+                  timestamp: "2025-07-21T05:30:00Z"
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '404':
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/ErrorResponse'
+            example:
+              status: error
+              message: User not found
+              data:
+                errorCode: USER_NOT_FOUND
+      '413':
+        $ref: '../components/responses.yaml#/PayloadTooLarge'
+      '429':
+        $ref: '../components/responses.yaml#/RateLimited'
+      '500':
+        $ref: '../components/responses.yaml#/InternalServerError'
+
+userSessions:
+  get:
+    tags:
+      - Chat
+    summary: Get user's chat sessions
+    description: |
+      Retrieve all chat sessions for a specific user, including session metadata and message counts.
+      
+      **Features:**
+      - Paginated results for performance
+      - Session metadata including creation time and message count
+      - Active session indicators
+    operationId: getUserChatSessions
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: Unique user identifier
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+        example: "user_12345"
+      - name: page
+        in: query
+        description: Page number for pagination (1-based)
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        example: 1
+      - name: limit
+        in: query
+        description: Number of sessions per page
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+        example: 10
+      - name: active
+        in: query
+        description: Filter by active sessions only
+        schema:
+          type: boolean
+        example: true
+    responses:
+      '200':
+        description: Sessions retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        sessions:
+                          type: array
+                          items:
+                            $ref: '../components/schemas.yaml#/ChatSession'
+                        pagination:
+                          type: object
+                          properties:
+                            page:
+                              type: integer
+                              example: 1
+                            limit:
+                              type: integer
+                              example: 10
+                            totalPages:
+                              type: integer
+                              example: 3
+                            totalSessions:
+                              type: integer
+                              example: 25
+            example:
+              status: success
+              message: Sessions retrieved successfully
+              data:
+                sessions:
+                  - id: "session_abc123"
+                    userId: "user_12345"
+                    title: "Career Chat - 7/21/2025"
+                    messageCount: 5
+                    isActive: true
+                    createdAt: "2025-07-21T05:30:00Z"
+                    updatedAt: "2025-07-21T05:35:00Z"
+                  - id: "session_def456"
+                    userId: "user_12345"
+                    title: "Career Chat - 7/20/2025"
+                    messageCount: 8
+                    isActive: false
+                    createdAt: "2025-07-20T14:15:00Z"
+                    updatedAt: "2025-07-20T14:30:00Z"
+                pagination:
+                  page: 1
+                  limit: 10
+                  totalPages: 3
+                  totalSessions: 25
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '404':
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/ErrorResponse'
+            example:
+              status: error
+              message: User not found
+              data:
+                errorCode: USER_NOT_FOUND
+      '500':
+        $ref: '../components/responses.yaml#/InternalServerError'
+
+sessionMessages:
+  get:
+    tags:
+      - Chat
+    summary: Get messages from a specific chat session
+    description: |
+      Retrieve all messages from a specific chat session, including both user messages and AI responses.
+      
+      **Features:**
+      - Complete conversation history
+      - Message timestamps and roles
+      - Chronological ordering
+    operationId: getSessionMessages
+    parameters:
+      - name: sessionId
+        in: path
+        required: true
+        description: Unique session identifier
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+        example: "session_abc123"
+    responses:
+      '200':
+        description: Session messages retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        session:
+                          $ref: '../components/schemas.yaml#/ChatSession'
+            example:
+              status: success
+              message: Session messages retrieved successfully
+              data:
+                session:
+                  id: "session_abc123"
+                  userId: "user_12345"
+                  title: "Career Chat - 7/21/2025"
+                  messages:
+                    - role: "user"
+                      content: "I want to become a software engineer. What skills should I focus on?"
+                      timestamp: "2025-07-21T05:30:00Z"
+                    - role: "assistant"
+                      content: "Software engineering is an excellent career choice! To get started, I recommend focusing on these key areas..."
+                      timestamp: "2025-07-21T05:30:15Z"
+                    - role: "user"
+                      content: "Which programming language should I learn first?"
+                      timestamp: "2025-07-21T05:31:00Z"
+                  createdAt: "2025-07-21T05:30:00Z"
+                  updatedAt: "2025-07-21T05:35:00Z"
+                  isActive: true
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '404':
+        description: Session not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/ErrorResponse'
+            example:
+              status: error
+              message: Session not found
+              data:
+                errorCode: SESSION_NOT_FOUND
+      '500':
+        $ref: '../components/responses.yaml#/InternalServerError'
+
+endSession:
+  put:
+    tags:
+      - Chat
+    summary: End a chat session
+    description: |
+      Mark a chat session as ended/inactive. This helps organize user's chat history and can be used for analytics.
+      
+      **Features:**
+      - Marks session as inactive
+      - Preserves all message history
+      - Allows starting fresh conversations
+    operationId: endChatSession
+    parameters:
+      - name: sessionId
+        in: path
+        required: true
+        description: Unique session identifier
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+        example: "session_abc123"
+    responses:
+      '200':
+        description: Session ended successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/ApiResponse'
+            example:
+              status: success
+              message: Session ended successfully
+              data:
+                sessionId: "session_abc123"
+                endedAt: "2025-07-21T05:45:00Z"
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '404':
+        description: Session not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/ErrorResponse'
+            example:
+              status: error
+              message: Session not found
+              data:
+                errorCode: SESSION_NOT_FOUND
+      '500':
+        $ref: '../components/responses.yaml#/InternalServerError'
