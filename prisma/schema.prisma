@@ -6,48 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-// Enums
-enum UserRole {
-  STUDENT
-  MENTOR
-  ADMIN
-}
-
-enum QuizStage {
-  SKILLS_ASSESSMENT
-  CAREER_INTERESTS
-  PERSONALITY_TRAITS
-  LEARNING_STYLE
-  CAREER_GOALS
-  COMPLETED
-}
-
-enum ExpertiseDomain {
-  WEB_DEVELOPMENT
-  DATA_SCIENCE
-  MOBILE_DEVELOPMENT
-  DEVOPS
-  CYBERSECURITY
-  AI_ML
-  BLOCKCHAIN
-  GAME_DEVELOPMENT
-  UI_UX_DESIGN
-  PRODUCT_MANAGEMENT
-  FINANCE
-  MARKETING
-  CONSULTING
-  ENTREPRENEURSHIP
-  OTHER
-}
-
-enum MessageRole {
-  USER
-  ASSISTANT
-  SYSTEM
 }
 
 // User model - Core user information
@@ -55,7 +15,8 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
-  role      UserRole @default(STUDENT)
+  password  String   // Add password field for authentication
+  role      String   @default("STUDENT") // STUDENT, MENTOR, ADMIN
   avatar    String?
   bio       String?
   createdAt DateTime @default(now())
@@ -67,35 +28,28 @@ model User {
   quizSessions     QuizSession[]
   studentQuestions StudentQuestion[]
 
-  // Indexes
-  @@index([email])
-  @@index([role])
   @@map("users")
 }
 
 // Mentor model - Extended mentor information
 model Mentor {
-  id            String            @id @default(cuid())
-  userId        String            @unique
-  expertiseTags ExpertiseDomain[]
-  experience    Int               @default(0) // Years of experience
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  expertiseTags String? // JSON string for expertise domains array
+  experience    Int     @default(0) // Years of experience
   hourlyRate    Float?
-  availability  String?           // JSON string for availability schedule
-  rating        Float?            @default(0.0)
-  totalSessions Int               @default(0)
-  isVerified    Boolean           @default(false)
+  availability  String? // JSON string for availability schedule
+  rating        Float?  @default(0.0)
+  totalSessions Int     @default(0)
+  isVerified    Boolean @default(false)
   linkedinUrl   String?
   portfolioUrl  String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Indexes
-  @@index([expertiseTags])
-  @@index([isVerified])
-  @@index([rating])
   @@map("mentors")
 }
 
@@ -104,7 +58,7 @@ model CareerSession {
   id        String    @id @default(cuid())
   userId    String
   title     String?   @default("Career Chat Session")
-  messages  Json      @default("[]") // Array of message objects
+  messages  String    @default("[]") // JSON string of message objects
   summary   String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -113,9 +67,6 @@ model CareerSession {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Indexes
-  @@index([userId])
-  @@index([createdAt])
   @@map("career_sessions")
 }
 
@@ -123,9 +74,9 @@ model CareerSession {
 model QuizSession {
   id           String    @id @default(cuid())
   userId       String
-  currentStage QuizStage @default(SKILLS_ASSESSMENT)
-  answers      Json      @default("{}") // Object storing answers by stage
-  results      Json?     // Final career recommendations and analysis
+  currentStage String    @default("SKILLS_ASSESSMENT") // SKILLS_ASSESSMENT, CAREER_INTERESTS, etc.
+  answers      String    @default("{}") // JSON string storing answers by stage
+  results      String?   // JSON string for final career recommendations and analysis
   score        Float?
   completedAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -135,10 +86,6 @@ model QuizSession {
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   quizQuestions QuizQuestion[]
 
-  // Indexes
-  @@index([userId])
-  @@index([currentStage])
-  @@index([completedAt])
   @@map("quiz_sessions")
 }
 
@@ -147,10 +94,10 @@ model QuizQuestion {
   id            String   @id @default(cuid())
   quizSessionId String
   questionText  String
-  options       Json     @default("[]") // Array of option objects
+  options       String   @default("[]") // JSON string of option objects
   correctAnswer String?
   userAnswer    String?
-  stage         QuizStage
+  stage         String   // Stage this question belongs to
   order         Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -163,20 +110,16 @@ model QuizQuestion {
 
 // StudentQuestion model - Questions submitted for mentor matching
 model StudentQuestion {
-  id        String          @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
   question  String
-  domain    ExpertiseDomain @default(OTHER)
-  isActive  Boolean         @default(true)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  domain    String   @default("OTHER") // WEB_DEVELOPMENT, DATA_SCIENCE, etc.
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Indexes
-  @@index([userId])
-  @@index([domain])
-  @@index([isActive])
   @@map("student_questions")
 }

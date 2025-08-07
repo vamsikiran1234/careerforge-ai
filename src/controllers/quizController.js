@@ -43,7 +43,7 @@ const quizController = {
       data: {
         userId,
         currentStage: 'SKILLS_ASSESSMENT',
-        answers: {},
+        answers: JSON.stringify({}),
       },
     });
 
@@ -55,7 +55,7 @@ const quizController = {
       data: {
         quizSessionId: session.id,
         questionText: firstQuestion.question,
-        options: firstQuestion.options,
+        options: JSON.stringify(firstQuestion.options), // Store as JSON string
         stage: firstQuestion.stage,
         order: 1,
       },
@@ -123,8 +123,10 @@ const quizController = {
       });
     }
 
-    // Update session answers
-    const currentAnswers = session.answers || {};
+    // Update session answers - parse from JSON string
+    const currentAnswers = typeof session.answers === 'string' 
+      ? JSON.parse(session.answers || '{}') 
+      : (session.answers || {});
     const currentStage = session.currentStage;
     
     if (!currentAnswers[currentStage]) {
@@ -138,12 +140,12 @@ const quizController = {
     let updatedSession;
 
     if (nextStep.isComplete) {
-      // Quiz is complete, save final results
+      // Quiz is complete, save final results - store as JSON strings
       updatedSession = await prisma.quizSession.update({
         where: { id: quizId },
         data: {
-          answers: currentAnswers,
-          results: nextStep.recommendations,
+          answers: JSON.stringify(currentAnswers),
+          results: JSON.stringify(nextStep.recommendations),
           completedAt: new Date(),
           currentStage: 'COMPLETED',
         },
@@ -175,17 +177,17 @@ const quizController = {
         data: {
           quizSessionId: quizId,
           questionText: nextStep.question,
-          options: nextStep.options,
+          options: JSON.stringify(nextStep.options), // Store as JSON string
           stage: nextStep.stage,
           order: questionCount + 1,
         },
       });
 
-      // Update session
+      // Update session - store answers as JSON string
       updatedSession = await prisma.quizSession.update({
         where: { id: quizId },
         data: {
-          answers: currentAnswers,
+          answers: JSON.stringify(currentAnswers),
           currentStage: nextStep.stage,
         },
       });
@@ -245,13 +247,22 @@ const quizController = {
         session: {
           id: session.id,
           currentStage: session.currentStage,
-          answers: session.answers,
-          results: session.results,
+          answers: typeof session.answers === 'string' 
+            ? JSON.parse(session.answers || '{}') 
+            : (session.answers || {}),
+          results: typeof session.results === 'string' 
+            ? JSON.parse(session.results || 'null') 
+            : session.results,
           createdAt: session.createdAt,
           completedAt: session.completedAt,
           isComplete: !!session.completedAt,
           user: session.user,
-          questions: session.quizQuestions,
+          questions: session.quizQuestions.map(q => ({
+            ...q,
+            options: typeof q.options === 'string' 
+              ? JSON.parse(q.options || '[]') 
+              : (q.options || [])
+          })),
           progress: {
             currentStage: currentStageIndex + 1,
             totalStages: 5,
@@ -283,7 +294,12 @@ const quizController = {
 
     res.status(200).json(
       createResponse('success', 'User quiz sessions retrieved successfully', {
-        sessions,
+        sessions: sessions.map(session => ({
+          ...session,
+          results: typeof session.results === 'string' 
+            ? JSON.parse(session.results || 'null') 
+            : session.results
+        })),
         statistics: {
           totalSessions: sessions.length,
           completedSessions,

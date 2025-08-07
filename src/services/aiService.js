@@ -1,5 +1,6 @@
 const config = require('../config');
 const { prisma } = require('../config/database');
+const { getRandomResponse } = require('./mockAI');
 
 const aiService = {
   // Career Chat AI Service
@@ -76,7 +77,7 @@ Remember: You're not just providing information - you're mentoring their entire 
 
       // Call OpenAI API
       const response = await config.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         messages,
         max_tokens: 800,
         temperature: 0.7,
@@ -99,21 +100,17 @@ Remember: You're not just providing information - you're mentoring their entire 
       // Enhanced error handling with specific error types
       const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
       
-      // Handle specific OpenAI errors with user-friendly messages
-      if (error.code === 'insufficient_quota') {
-        throw handleAIServiceError(error);
-      }
-
-      if (error.code === 'model_not_found') {
-        throw handleAIServiceError(error);
-      }
-
-      if (error.code === 'invalid_api_key') {
-        throw handleAIServiceError(error);
+      // Handle specific OpenAI errors - Use mock responses for quota/auth issues
+      if (error.code === 'insufficient_quota' || error.code === 'invalid_api_key' || error.code === 'model_not_found') {
+        console.log('OpenAI unavailable, using mock response for:', { userId, message: message.substring(0, 50) });
+        const mockResponse = getRandomResponse('careerAdvice');
+        return `${mockResponse}\n\n*Note: This is a demo response as OpenAI is temporarily unavailable.*`;
       }
 
       if (error.code === 'rate_limit_exceeded') {
-        throw handleAIServiceError(error);
+        console.log('Rate limit hit, using mock response');
+        const mockResponse = getRandomResponse('careerAdvice');
+        return `${mockResponse}\n\n*Note: This is a demo response due to rate limiting.*`;
       }
 
       if (error.code === 'context_length_exceeded') {
@@ -334,7 +331,7 @@ Create engaging, relevant questions that:
 Always return valid JSON. Ensure questions are clear, scenario-based, and options reveal different career inclinations.`;
 
       const response = await config.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         messages: [
           { role: 'system', content: systemPrompt },
           { 
@@ -423,6 +420,13 @@ Always return valid JSON. Ensure questions are clear, scenario-based, and option
         }
         
         return fallback;
+      }
+      
+      // Handle OpenAI quota/auth errors with mock responses
+      if (error.code === 'insufficient_quota' || error.code === 'invalid_api_key' || error.code === 'model_not_found') {
+        console.log('OpenAI unavailable, using mock quiz response');
+        const { getMockQuizQuestion } = require('./mockAI');
+        return getMockQuizQuestion(currentStage);
       }
       
       // Handle other AI service errors
@@ -536,7 +540,7 @@ Respond with ONLY the domain name in uppercase (e.g., "WEB_DEVELOPMENT")
 Analyze keywords, technologies, context, and intent to classify into the most appropriate domain.`;
 
       const response = await config.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Classify this question: "${question}"` },
@@ -586,7 +590,7 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
   generateResponse: async (systemPrompt, userMessage, options = {}) => {
     try {
       const defaultOptions = {
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         max_tokens: 500,
         temperature: 0.7,
         top_p: 1,
@@ -615,7 +619,7 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
   validateApiKey: async () => {
     try {
       const response = await config.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: 'Hello' }],
         max_tokens: 5,
       });
