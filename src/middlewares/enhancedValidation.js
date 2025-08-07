@@ -60,20 +60,8 @@ const sanitizeInput = (obj) => {
   return sanitized;
 };
 
-// Enhanced chat validation schema
+// Enhanced chat validation schema (updated to work with auth middleware)
 const chatSchema = Joi.object({
-  userId: Joi.string()
-    .min(1)
-    .max(100)
-    .pattern(/^[a-zA-Z0-9_-]+$/)
-    .required()
-    .messages({
-      'string.empty': 'User ID is required',
-      'string.min': 'User ID must be at least 1 character',
-      'string.max': 'User ID cannot exceed 100 characters', 
-      'string.pattern.base': 'User ID contains invalid characters',
-      'any.required': 'User ID is required',
-    }),
   message: Joi.string()
     .min(1)
     .max(1000)

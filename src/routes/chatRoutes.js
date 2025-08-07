@@ -4,8 +4,12 @@ const { validate, chatSchema } = require('../middlewares/enhancedValidation');
 const { validateId, validateRequestSize } = require('../middlewares/enhancedValidation');
 const { rateLimiters, preventConcurrentOperations, suspiciousRequestDetection } = require('../middlewares/securityMiddleware');
 const { asyncHandler } = require('../middlewares/enhancedErrorHandling');
+const { authenticateToken } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
+
+// Apply authentication middleware to all chat routes
+router.use(authenticateToken);
 
 // Apply security middleware to all chat routes
 router.use(suspiciousRequestDetection());
@@ -19,9 +23,8 @@ router.post('/',
   asyncHandler(chatController.createChatSession)
 );
 
-// GET /api/v1/chat/sessions/:userId - Get user's chat sessions  
-router.get('/sessions/:userId', 
-  validateId('userId'),
+// GET /api/v1/chat/sessions - Get user's chat sessions (from authenticated user)
+router.get('/sessions', 
   asyncHandler(chatController.getUserSessions)
 );
 

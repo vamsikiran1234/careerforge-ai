@@ -1,8 +1,21 @@
 const OpenAI = require('openai');
 
-const openai = new OpenAI({
+// Create OpenAI client with organization and project configuration
+const openaiConfig = {
   apiKey: process.env.OPENAI_API_KEY,
-});
+};
+
+// Add organization ID if provided
+if (process.env.OPENAI_ORGANIZATION_ID) {
+  openaiConfig.organization = process.env.OPENAI_ORGANIZATION_ID;
+}
+
+// Add project ID if provided
+if (process.env.OPENAI_PROJECT_ID) {
+  openaiConfig.project = process.env.OPENAI_PROJECT_ID;
+}
+
+const openai = new OpenAI(openaiConfig);
 
 const config = {
   openai,

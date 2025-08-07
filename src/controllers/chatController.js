@@ -5,23 +5,28 @@ const aiService = require('../services/aiService');
 const chatController = {
   // POST /api/v1/chat
   createChatSession: asyncHandler(async (req, res) => {
-    const { userId, message } = req.body;
+    const { message } = req.body;
+    const userEmail = req.user.email || req.user.userEmail; // Get email from JWT
 
-    // Validate user exists
+    console.log('Chat request - User:', req.user, 'Email:', userEmail);
+
+    // Find user by email since in-memory auth uses different ID format
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { email: userEmail },
     });
 
     if (!user) {
       return res.status(404).json(
-        createResponse('error', 'User not found')
+        createResponse('error', 'User not found in database')
       );
     }
+
+    console.log('Found user in database:', user.id);
 
     // Get or create active career session
     let session = await prisma.careerSession.findFirst({
       where: {
-        userId,
+        userId: user.id,
         endedAt: null,
       },
       orderBy: {
@@ -32,15 +37,17 @@ const chatController = {
     if (!session) {
       session = await prisma.careerSession.create({
         data: {
-          userId,
+          userId: user.id,
           title: `Career Chat - ${new Date().toLocaleDateString()}`,
-          messages: [],
+          messages: JSON.stringify([]),
         },
       });
     }
 
-    // Get current messages
-    const currentMessages = Array.isArray(session.messages) ? session.messages : [];
+    // Get current messages - parse from JSON string
+    const currentMessages = Array.isArray(session.messages) 
+      ? session.messages 
+      : JSON.parse(session.messages || '[]');
 
     // Add user message to history
     const userMessage = {
@@ -53,7 +60,7 @@ const chatController = {
     currentMessages.push(userMessage);
 
     // Get AI response
-    const aiReply = await aiService.chatReply(userId, message, currentMessages);
+    const aiReply = await aiService.chatReply(user.id, message, currentMessages);
 
     // Add AI response to history
     const assistantMessage = {
@@ -65,11 +72,11 @@ const chatController = {
 
     currentMessages.push(assistantMessage);
 
-    // Update session with new messages
+    // Update session with new messages - store as JSON string
     const updatedSession = await prisma.careerSession.update({
       where: { id: session.id },
       data: {
-        messages: currentMessages,
+        messages: JSON.stringify(currentMessages),
         updatedAt: new Date(),
       },
     });
@@ -84,12 +91,23 @@ const chatController = {
     );
   }),
 
-  // GET /api/v1/chat/sessions/:userId
+  // GET /api/v1/chat/sessions
   getUserSessions: asyncHandler(async (req, res) => {
-    const { userId } = req.params;
+    const userEmail = req.user.email || req.user.userEmail; // Get email from JWT
+
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      return res.status(404).json(
+        createResponse('error', 'User not found in database')
+      );
+    }
 
     const sessions = await prisma.careerSession.findMany({
-      where: { userId },
+      where: { userId: user.id },
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true,
@@ -136,7 +154,7 @@ const chatController = {
         session: {
           id: session.id,
           title: session.title,
-          messages: session.messages,
+          messages: JSON.parse(session.messages || '[]'), // Parse JSON string
           createdAt: session.createdAt,
           updatedAt: session.updatedAt,
           user: session.user,

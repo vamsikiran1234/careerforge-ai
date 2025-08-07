@@ -12,15 +12,16 @@ const chatRoutes = require('./routes/chatRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 const mentorRoutes = require('./routes/mentorRoutes');
 const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration - updated to include Vite dev server
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -55,6 +56,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/quiz', quizRoutes);
 app.use('/api/v1/mentors', mentorRoutes);
