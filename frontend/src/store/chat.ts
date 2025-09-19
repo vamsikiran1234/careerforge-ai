@@ -137,8 +137,17 @@ export const useChatStore = create<ChatState>()(
           const response = await apiClient.get<SessionsResponse>('/chat/sessions');
           
           if (response.status === 'success' && response.data) {
+            // Ensure all sessions have properly initialized messages arrays
+            const validatedSessions = (response.data.sessions || []).map(session => ({
+              ...session,
+              messages: Array.isArray(session.messages) ? session.messages : [],
+              title: session.title || 'Untitled Session',
+              createdAt: session.createdAt || new Date().toISOString(),
+              updatedAt: session.updatedAt || new Date().toISOString(),
+            }));
+
             set({
-              sessions: response.data.sessions || [],
+              sessions: validatedSessions,
               isLoading: false,
             });
           } else {
@@ -147,6 +156,7 @@ export const useChatStore = create<ChatState>()(
         } catch (error: any) {
           console.error('Load sessions error:', error);
           set({
+            sessions: [], // Ensure sessions is always an array
             isLoading: false,
             error: error.response?.data?.message || 'Failed to load chat sessions',
           });
@@ -213,8 +223,18 @@ export const useChatStore = create<ChatState>()(
           const response = await apiClient.get<SessionResponse>(`/chat/session/${sessionId}`);
           
           if (response.status === 'success' && response.data) {
+            // Validate and normalize the session data
+            const session = response.data.session;
+            const validatedSession: ChatSession = {
+              ...session,
+              messages: Array.isArray(session.messages) ? session.messages : [],
+              title: session.title || 'Untitled Session',
+              createdAt: session.createdAt || new Date().toISOString(),
+              updatedAt: session.updatedAt || new Date().toISOString(),
+            };
+
             set({
-              currentSession: response.data.session,
+              currentSession: validatedSession,
               isLoading: false,
             });
           } else {

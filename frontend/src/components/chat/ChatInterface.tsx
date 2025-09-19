@@ -4,6 +4,7 @@ import { MessageInput } from './MessageInput';
 import { ChatSidebar } from './ChatSidebar';
 import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
 
 export const ChatInterface: React.FC = () => {
@@ -83,14 +84,16 @@ export const ChatInterface: React.FC = () => {
   return (
     <div className="h-full flex bg-white">
       {/* Sidebar */}
-      <ChatSidebar
-        sessions={sessions}
-        currentSessionId={currentSession?.id}
-        onSelectSession={handleSelectSession}
-        onNewSession={handleNewSession}
-        onDeleteSession={handleDeleteSession}
-        isLoading={isLoading && !currentSession}
-      />
+      <ErrorBoundary>
+        <ChatSidebar
+          sessions={sessions || []}
+          currentSessionId={currentSession?.id}
+          onSelectSession={handleSelectSession}
+          onNewSession={handleNewSession}
+          onDeleteSession={handleDeleteSession}
+          isLoading={isLoading && !currentSession}
+        />
+      </ErrorBoundary>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">

@@ -12,6 +12,8 @@ interface AuthStore extends AuthState {
   // Actions
   login: (credentials: LoginForm) => Promise<boolean>;
   register: (userData: RegisterForm) => Promise<boolean>;
+  forgotPassword: (email: string) => Promise<{ success: boolean; previewUrl?: string }>;
+  resetPassword: (token: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
   checkAuth: () => Promise<boolean>;
@@ -170,6 +172,76 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           console.error('Auth check error:', error);
           get().logout();
+          return false;
+        }
+      },
+
+      forgotPassword: async (email: string) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          const response = await apiClient.post('/auth/forgot-password', { email });
+          
+          if (response.status === 'success') {
+            set({ isLoading: false, error: null });
+            return { 
+              success: true, 
+              previewUrl: response.data && typeof response.data === 'object' && 'previewUrl' in response.data 
+                ? (response.data as any).previewUrl 
+                : undefined 
+            };
+          } else {
+            const errorMessage = response.message || 'Failed to send password reset email';
+            set({ isLoading: false, error: errorMessage });
+            return { success: false };
+          }
+        } catch (error: any) {
+          console.error('Forgot password error:', error);
+          
+          let errorMessage = 'Failed to send password reset email. Please try again.';
+          
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          set({ isLoading: false, error: errorMessage });
+          return { success: false };
+        }
+      },
+
+      resetPassword: async (token: string, password: string) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          const response = await apiClient.post('/auth/reset-password', { token, password });
+          
+          if (response.status === 'success') {
+            set({ isLoading: false, error: null });
+            return true;
+          } else {
+            const errorMessage = response.message || 'Failed to reset password';
+            set({ isLoading: false, error: errorMessage });
+            return false;
+          }
+        } catch (error: any) {
+          console.error('Reset password error:', error);
+          
+          let errorMessage = 'Failed to reset password. Please try again.';
+          
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error.response?.data?.errors?.length > 0) {
+            const validationErrors = error.response.data.errors
+              .map((err: any) => err.message)
+              .join(', ');
+            errorMessage = validationErrors;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          set({ isLoading: false, error: errorMessage });
           return false;
         }
       },
