@@ -49,7 +49,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
             <p className="text-sm text-gray-500">Loading sessions...</p>
           </div>
-        ) : sessions.length === 0 ? (
+        ) : !sessions || sessions.length === 0 ? (
           <div className="p-4 text-center">
             <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-sm text-gray-500 mb-2">No chat sessions yet</p>
@@ -97,9 +97,11 @@ const SessionItem: React.FC<SessionItemProps> = ({
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   
-  const lastMessage = session.messages[session.messages.length - 1];
+  // Safe access to messages with fallback
+  const messages = session?.messages || [];
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
   const preview = lastMessage?.content?.slice(0, 60) + 
-    (lastMessage?.content?.length > 60 ? '...' : '') || 'No messages';
+    (lastMessage?.content && lastMessage.content.length > 60 ? '...' : '') || 'No messages yet';
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -132,9 +134,9 @@ const SessionItem: React.FC<SessionItemProps> = ({
               text-sm font-medium truncate
               ${isActive ? 'text-blue-900' : 'text-gray-900'}
             `}>
-              {session.title}
+              {session?.title || 'Untitled Session'}
             </h3>
-            {session.endedAt && (
+            {session?.endedAt && (
               <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
             )}
           </div>
@@ -153,13 +155,13 @@ const SessionItem: React.FC<SessionItemProps> = ({
               text-xs
               ${isActive ? 'text-blue-600' : 'text-gray-500'}
             `}>
-              {formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true })}
+              {session?.updatedAt ? formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true }) : 'Unknown time'}
             </span>
             <span className={`
               text-xs
               ${isActive ? 'text-blue-600' : 'text-gray-500'}
             `}>
-              {session.messages.length} messages
+              {messages.length} messages
             </span>
           </div>
         </div>

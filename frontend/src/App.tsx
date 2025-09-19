@@ -1,16 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { RegisterPage } from '@/components/auth/RegisterPage';
+import { ForgotPasswordPage } from '@/components/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/components/auth/ResetPasswordPage';
 import AuthDebugPage from '@/components/auth/AuthDebugPage';
 import EnvDebugPage from '@/components/debug/EnvDebugPage';
-import { DashboardPage } from '@/components/DashboardPage';
-import { ChatPage } from './components/chat/ChatPage';
-import QuizPageComponent from './components/quiz/QuizPage';
+import { ToastProvider } from '@/components/ui/Toast';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { LoadingPage } from '@/components/ui/Loading';
+
+// Lazy load components for better performance
+const DashboardPage = React.lazy(() => import('@/components/DashboardPage').then(module => ({ default: module.DashboardPage })));
+const ChatPage = React.lazy(() => import('./components/chat/ChatPage').then(module => ({ default: module.ChatPage })));
+const QuizPageComponent = React.lazy(() => import('./components/quiz/QuizPage'));
+const MentorsPage = React.lazy(() => import('./components/mentors/MentorsPage').then(module => ({ default: module.MentorsPage })));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -56,14 +63,6 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   return <>{children}</>;
 };
 
-// Temporary placeholder components
-const MentorsPage: React.FC = () => (
-  <div className="text-center py-12">
-    <h1 className="text-2xl font-bold text-gray-900 mb-4">Find Mentors</h1>
-    <p className="text-gray-600">Mentor discovery coming soon...</p>
-  </div>
-);
-
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
 
@@ -78,49 +77,97 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Public Routes */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <LoginPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <PublicRoute>
-                  <RegisterPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/debug-auth"
-              element={<AuthDebugPage />}
-            />
-            <Route
-              path="/debug-env"
-              element={<EnvDebugPage />}
-            />
+      <ToastProvider>
+        <ErrorBoundary>
+          <Router>
+            <div className="App">
+              <Routes>
+                {/* Public Routes */}
+                <Route
+                  path="/login"
+                  element={
+                    <PublicRoute>
+                      <LoginPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    <PublicRoute>
+                      <RegisterPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <PublicRoute>
+                      <ForgotPasswordPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/reset-password"
+                  element={
+                    <PublicRoute>
+                      <ResetPasswordPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/debug-auth"
+                  element={<AuthDebugPage />}
+                />
+                <Route
+                  path="/debug-env"
+                  element={<EnvDebugPage />}
+                />
 
-            {/* Protected Routes */}
-            <Route path="/" element={<ProtectedRoute />}>
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="chat" element={<ChatPage />} />
-              <Route path="quiz" element={<QuizPageComponent />} />
-              <Route path="mentors" element={<MentorsPage />} />
-              <Route index element={<Navigate to="/dashboard" replace />} />
-            </Route>
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </div>
-      </Router>
+                {/* Protected Routes */}
+                <Route path="/" element={<ProtectedRoute />}>
+                  <Route 
+                    path="dashboard" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Dashboard..." />}>
+                        <DashboardPage />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="chat" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Chat..." />}>
+                        <ChatPage />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="quiz" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Quiz..." />}>
+                        <QuizPageComponent />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="mentors" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Mentors..." />}>
+                        <MentorsPage />
+                      </Suspense>
+                    } 
+                  />
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                </Route>
+                
+                {/* Catch-all route */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </div>
+          </Router>
+        </ErrorBoundary>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

@@ -1,11 +1,72 @@
 import React from 'react';
 import { useAuthStore } from '@/store/auth';
-import { MessageSquare, BookOpen, Users } from 'lucide-react';
+import { MessageSquare, BookOpen, Users, TrendingUp, Clock, Award, Target, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { createSEO } from '@/components/common/SEO';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from 'recharts';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuthStore();
+
+  // Mock data for analytics (in real app, this would come from API)
+  const progressData = [
+    { name: 'Mon', sessions: 2, quizzes: 1 },
+    { name: 'Tue', sessions: 3, quizzes: 0 },
+    { name: 'Wed', sessions: 1, quizzes: 2 },
+    { name: 'Thu', sessions: 4, quizzes: 1 },
+    { name: 'Fri', sessions: 2, quizzes: 3 },
+    { name: 'Sat', sessions: 1, quizzes: 0 },
+    { name: 'Sun', sessions: 0, quizzes: 1 },
+  ];
+
+  const skillsData = [
+    { name: 'Technical Skills', value: 75, color: '#3B82F6' },
+    { name: 'Soft Skills', value: 60, color: '#10B981' },
+    { name: 'Leadership', value: 45, color: '#F59E0B' },
+    { name: 'Communication', value: 80, color: '#EF4444' },
+  ];
+
+  const careerInterests = [
+    { name: 'Software Development', value: 85 },
+    { name: 'Data Science', value: 70 },
+    { name: 'Product Management', value: 55 },
+    { name: 'UX Design', value: 40 },
+  ];
+
+  const achievements = [
+    {
+      title: 'First Quiz Completed',
+      description: 'Completed your first career assessment',
+      icon: Award,
+      date: 'Today',
+      completed: false,
+    },
+    {
+      title: 'Chat Expert',
+      description: 'Had 10 conversations with AI assistant',
+      icon: MessageSquare,
+      date: '2 days ago',
+      completed: false,
+    },
+    {
+      title: 'Profile Complete',
+      description: 'Added all profile information',
+      icon: Target,
+      date: '1 week ago',
+      completed: true,
+    },
+  ];
 
   const features = [
     {
@@ -30,12 +91,14 @@ export const DashboardPage: React.FC = () => {
       icon: Users,
       link: '/mentors',
       color: 'bg-purple-500',
-      available: false,
+      available: true,
     },
   ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {createSEO.dashboard()}
+      
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
@@ -47,7 +110,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -56,7 +119,11 @@ export const DashboardPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Chat Sessions</p>
-                <p className="text-2xl font-semibold text-gray-900">0</p>
+                <p className="text-2xl font-semibold text-gray-900">12</p>
+                <p className="text-xs text-green-600 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +3 this week
+                </p>
               </div>
             </div>
           </CardContent>
@@ -70,7 +137,11 @@ export const DashboardPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Quizzes Taken</p>
-                <p className="text-2xl font-semibold text-gray-900">0</p>
+                <p className="text-2xl font-semibold text-gray-900">5</p>
+                <p className="text-xs text-green-600 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +2 this week
+                </p>
               </div>
             </div>
           </CardContent>
@@ -84,8 +155,152 @@ export const DashboardPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Mentor Connections</p>
-                <p className="text-2xl font-semibold text-gray-900">0</p>
+                <p className="text-2xl font-semibold text-gray-900">2</p>
+                <p className="text-xs text-blue-600 flex items-center">
+                  <Clock className="h-3 w-3 mr-1" />
+                  1 upcoming meeting
+                </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <BarChart3 className="h-8 w-8 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Progress Score</p>
+                <p className="text-2xl font-semibold text-gray-900">78%</p>
+                <p className="text-xs text-green-600">Excellent progress!</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Activity Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Activity</CardTitle>
+            <CardDescription>Your chat sessions and quiz completions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={progressData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="sessions" 
+                  stroke="#3B82F6" 
+                  strokeWidth={2}
+                  name="Chat Sessions"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="quizzes" 
+                  stroke="#10B981" 
+                  strokeWidth={2}
+                  name="Quizzes"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Skills Assessment */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Skills Assessment</CardTitle>
+            <CardDescription>Your current skill levels</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={skillsData} layout="horizontal">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" domain={[0, 100]} />
+                <YAxis dataKey="name" type="category" width={100} />
+                <Tooltip />
+                <Bar dataKey="value" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Career Interests & Recent Achievements */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Career Interests */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Career Interests</CardTitle>
+            <CardDescription>Based on your quiz results and activities</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {careerInterests.map((interest, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">{interest.name}</span>
+                    <span className="text-sm text-gray-500">{interest.value}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${interest.value}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Achievements */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Achievements</CardTitle>
+            <CardDescription>Your milestones and accomplishments</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {achievements.map((achievement, index) => {
+                const IconComponent = achievement.icon;
+                return (
+                  <div key={index} className="flex items-start space-x-3">
+                    <div className={`p-2 rounded-full ${
+                      achievement.completed ? 'bg-green-100' : 'bg-gray-100'
+                    }`}>
+                      <IconComponent className={`h-4 w-4 ${
+                        achievement.completed ? 'text-green-600' : 'text-gray-400'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        {achievement.title}
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {achievement.description}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {achievement.date}
+                      </p>
+                    </div>
+                    {achievement.completed && (
+                      <div className="text-green-500">
+                        <Award className="h-4 w-4" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

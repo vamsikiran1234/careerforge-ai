@@ -12,15 +12,17 @@ datasource db {
 
 // User model - Core user information
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String   // Add password field for authentication
-  role      String   @default("STUDENT") // STUDENT, MENTOR, ADMIN
-  avatar    String?
-  bio       String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  email                  String   @unique
+  name                   String
+  password               String   // Add password field for authentication
+  role                   String   @default("STUDENT") // STUDENT, MENTOR, ADMIN
+  avatar                 String?
+  bio                    String?
+  resetPasswordToken     String?  // Token for password reset
+  resetPasswordExpires   DateTime? // Expiry date for reset token
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   // Relations
   mentor           Mentor?
