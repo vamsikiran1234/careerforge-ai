@@ -795,7 +795,7 @@ const getMyConnections = async (req, res) => {
       });
 
       // Add student info and parse expertiseAreas
-      for (let connection of connections) {
+      for (const connection of connections) {
         const student = await prisma.user.findUnique({
           where: { id: connection.studentId },
           select: {

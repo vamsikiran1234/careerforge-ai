@@ -17,11 +17,11 @@ const notFound = (req, res, next) => {
 };
 
 // Enhanced error handler with comprehensive error categorization
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res) => {
   let statusCode = err.status || res.statusCode === 200 ? 500 : res.statusCode;
   let message = err.message || 'Internal server error';
   let errorCode = 'INTERNAL_ERROR';
-  let details = {};
+  const details = {};
 
   // Database/Prisma errors
   if (err.code) {

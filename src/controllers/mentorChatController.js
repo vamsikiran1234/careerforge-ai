@@ -216,7 +216,7 @@ const sendMessage = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { roomId } = req.params;
-    const { content, messageType = 'TEXT', fileUrl, fileName } = req.body;
+    const { content, messageType = 'TEXT', fileUrl } = req.body;
 
     if (!content && !fileUrl) {
       return res.status(400).json({

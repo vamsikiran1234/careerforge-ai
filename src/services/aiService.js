@@ -1,4 +1,3 @@
-const config = require('../config');
 const { prisma } = require('../config/database');
 const { getRandomResponse } = require('./mockAI');
 const { chatWithAI, getAvailableModels } = require('./multiAiService');
@@ -199,9 +198,6 @@ Remember: You're not just providing information - you're mentoring their entire 
     } catch (error) {
       console.error('AI Service Error:', error);
 
-      // Enhanced error handling with specific error types
-      const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
-      
       // Handle specific Groq errors - Use mock responses for quota/auth issues
       if (error.code === 'insufficient_quota' || error.code === 'invalid_api_key' || error.code === 'model_not_found') {
         console.log('Groq API unavailable, using mock response for:', { userId, message: message.substring(0, 50) });
@@ -472,8 +468,6 @@ Always return valid JSON. Ensure questions are clear, scenario-based, and option
     } catch (error) {
       console.error('Enhanced Quiz AI Service Error:', error);
       
-      const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
-      
       // Handle JSON parsing errors specifically for quiz responses
       if (error.message.includes('JSON') || error.name === 'SyntaxError') {
         console.warn('Quiz AI returned invalid JSON, using fallback question');
@@ -540,9 +534,11 @@ Always return valid JSON. Ensure questions are clear, scenario-based, and option
         return getMockQuizQuestion(currentStage);
       }
       
-      // Handle other AI service errors
+      // Handle other AI service errors - throw generic error
       if (error.code) {
-        throw handleAIServiceError(error);
+        const serviceError = new Error('AI service error');
+        serviceError.code = error.code;
+        throw serviceError;
       }
       
       // Final fallback for quiz service
@@ -682,11 +678,8 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
     } catch (error) {
       console.error('Domain Classification Error:', error);
       
-      const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
-      
       // Handle AI service errors
       if (error.code) {
-        const aiError = handleAIServiceError(error);
         console.warn('AI classification failed, using fallback classification');
         return classifyDomainFallback(question);
       }
@@ -908,6 +901,8 @@ function classifyDomainFallback(question) {
   return bestMatch && bestMatch[1] > 0 ? bestMatch[0] : 'OTHER';
 }
 
+// Unused helper functions - kept for future use
+/* 
 // Domain classification with confidence score
 async function classifyDomainWithConfidence(question) {
   try {
@@ -1062,5 +1057,6 @@ function getDomainInfo(domain) {
 
   return domainDetails[domain] || domainDetails.OTHER;
 }
+*/
 
 module.exports = aiService;

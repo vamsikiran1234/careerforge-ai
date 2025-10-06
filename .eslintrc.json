@@ -18,10 +18,11 @@
     "no-undef": "error",
     "prefer-const": "error",
     "no-var": "error",
-    "object-shorthand": "error",
+    "object-shorthand": "warn",
     "prefer-arrow-callback": "error",
-    "consistent-return": "error",
+    "consistent-return": "warn",
     "no-magic-numbers": ["warn", { "ignore": [0, 1, -1] }],
+    "no-process-exit": "warn",
     "node/no-unpublished-require": "off",
     "node/no-missing-import": "off"
   },

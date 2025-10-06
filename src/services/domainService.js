@@ -130,7 +130,7 @@ const domainService = {
   },
 
   // Suggest career transition paths
-  suggestTransitions: (fromDomain, interests = []) => {
+  suggestTransitions: (fromDomain) => {
     const transitionPaths = {
       WEB_DEVELOPMENT: {
         'Full-Stack to Mobile': 'MOBILE_DEVELOPMENT',

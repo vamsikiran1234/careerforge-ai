@@ -11,7 +11,7 @@ const server = app.listen(PORT, () => {
 });
 
 // Initialize Socket.io
-const io = initializeSocket(server);
+initializeSocket(server);
 console.log(`🔌 Socket.io initialized and ready for real-time connections`);
 
 // Graceful shutdown
