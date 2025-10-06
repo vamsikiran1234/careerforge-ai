@@ -120,7 +120,10 @@ const quizUtils = {
       return null;
     }
 
-    const answers = session.answers || {};
+    // Parse answers from JSON string
+    const answers = typeof session.answers === 'string' 
+      ? JSON.parse(session.answers || '{}')
+      : (session.answers || {});
     const totalAnswers = Object.values(answers).flat().length;
     const expectedAnswers = 15; // Total questions across all stages
 

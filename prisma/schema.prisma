@@ -16,7 +16,7 @@ model User {
   email                  String   @unique
   name                   String
   password               String   // Add password field for authentication
-  role                   String   @default("STUDENT") // STUDENT, MENTOR, ADMIN
+  roles                  String   @default("[\"STUDENT\"]") // JSON array: ["STUDENT"], ["ADMIN"], ["STUDENT","ADMIN"]
   avatar                 String?
   bio                    String?
   resetPasswordToken     String?  // Token for password reset
@@ -25,34 +25,266 @@ model User {
   updatedAt              DateTime @updatedAt
 
   // Relations
-  mentor           Mentor?
-  careerSessions   CareerSession[]
-  quizSessions     QuizSession[]
-  studentQuestions StudentQuestion[]
+  mentorProfile       MentorProfile?
+  careerSessions      CareerSession[]
+  quizSessions        QuizSession[]
+  studentQuestions    StudentQuestion[]
+  messageReactions    MessageReaction[]
+  sharedConversations SharedConversation[]
 
   @@map("users")
 }
 
-// Mentor model - Extended mentor information
-model Mentor {
-  id            String  @id @default(cuid())
-  userId        String  @unique
-  expertiseTags String? // JSON string for expertise domains array
-  experience    Int     @default(0) // Years of experience
-  hourlyRate    Float?
-  availability  String? // JSON string for availability schedule
-  rating        Float?  @default(0.0)
-  totalSessions Int     @default(0)
-  isVerified    Boolean @default(false)
-  linkedinUrl   String?
-  portfolioUrl  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// ========================================
+// NEW MENTORSHIP PLATFORM MODELS
+// ========================================
+
+// MentorProfile model - Alumni who sign up as mentors
+model MentorProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  
+  // Professional Information
+  company             String
+  jobTitle            String
+  industry            String
+  yearsOfExperience   Int
+  
+  // Educational Background
+  collegeName         String
+  degree              String
+  graduationYear      Int
+  major               String?
+  
+  // Mentorship Details
+  expertiseAreas      String   // JSON array: ["Web Development", "AI/ML", etc.]
+  bio                 String   // 500 chars max
+  linkedinUrl         String?
+  portfolioUrl        String?
+  
+  // Availability
+  availableHoursPerWeek Int    @default(5)
+  preferredMeetingType  String @default("VIDEO") // VIDEO, CHAT, BOTH
+  timezone              String @default("UTC")
+  
+  // Status & Verification
+  isVerified          Boolean  @default(false)
+  verificationToken   String?
+  verificationExpiry  DateTime?
+  status              String   @default("PENDING") // PENDING, ACTIVE, INACTIVE, SUSPENDED
+  
+  // Stats
+  totalConnections    Int      @default(0)
+  activeConnections   Int      @default(0) // Current active mentees (max 3)
+  totalSessions       Int      @default(0)
+  averageRating       Float?   @default(0.0)
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connectionsAsMentor MentorConnection[]    @relation("MentorConnections")
+  chatRoomsAsMentor   ChatRoom[]            @relation("MentorChatRooms")
+  sessionsAsMentor    MentorSession[]       @relation("MentorSessions")
+  receivedReviews     MentorReview[]        @relation("MentorReviews")
 
-  @@map("mentors")
+  @@map("mentor_profiles")
+}
+
+// MentorConnection model - Connection requests and relationships
+model MentorConnection {
+  id          String   @id @default(cuid())
+  mentorId    String
+  studentId   String
+  
+  // Connection Details
+  status      String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, COMPLETED
+  message     String?  // Student's message when requesting connection
+  
+  // Match Information
+  matchScore  Float?   // 0-100 based on quiz results and mentor expertise
+  matchReason String?  // JSON: {"commonInterests": [...], "expertiseMatch": [...]}
+  
+  // Connection Management
+  acceptedAt  DateTime?
+  rejectedAt  DateTime?
+  completedAt DateTime? // When mentorship relationship ends
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  mentor      MentorProfile @relation("MentorConnections", fields: [mentorId], references: [id], onDelete: Cascade)
+  chatRoom    ChatRoom?     @relation("ConnectionChatRoom")
+
+  @@unique([mentorId, studentId])
+  @@map("mentor_connections")
+}
+
+// ChatRoom model - Private chat rooms between mentor and student
+model ChatRoom {
+  id           String   @id @default(cuid())
+  connectionId String   @unique
+  mentorId     String
+  studentId    String
+  
+  // Chat Status
+  isActive     Boolean  @default(true)
+  lastActivity DateTime @default(now())
+  
+  // Metadata
+  unreadCountMentor  Int @default(0)
+  unreadCountStudent Int @default(0)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  connection   MentorConnection @relation("ConnectionChatRoom", fields: [connectionId], references: [id], onDelete: Cascade)
+  mentor       MentorProfile    @relation("MentorChatRooms", fields: [mentorId], references: [id], onDelete: Cascade)
+  messages     ChatMessage[]
+
+  @@map("chat_rooms")
+}
+
+// ChatMessage model - Individual messages in chat rooms
+model ChatMessage {
+  id         String   @id @default(cuid())
+  roomId     String
+  senderId   String   // User ID (could be mentor or student)
+  
+  // Message Content
+  content    String
+  messageType String  @default("TEXT") // TEXT, FILE, SYSTEM
+  
+  // Message Status
+  isRead     Boolean  @default(false)
+  readAt     DateTime?
+  isEdited   Boolean  @default(false)
+  editedAt   DateTime?
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  chatRoom   ChatRoom             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  attachments MessageAttachment[]
+
+  @@map("chat_messages")
+}
+
+// MessageAttachment model - File attachments in chat messages
+model MessageAttachment {
+  id          String   @id @default(cuid())
+  messageId   String
+  
+  // File Information
+  fileName    String
+  fileUrl     String
+  fileType    String   // image/png, application/pdf, etc.
+  fileSize    Int      // Size in bytes
+  
+  createdAt   DateTime @default(now())
+
+  // Relations
+  message     ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_attachments")
+}
+
+// MentorSession model - Scheduled video/call sessions
+model MentorSession {
+  id            String    @id @default(cuid())
+  mentorId      String
+  studentId     String
+  
+  // Session Details
+  title         String
+  description   String?
+  sessionType   String    @default("VIDEO") // VIDEO, VOICE, IN_PERSON
+  
+  // Scheduling
+  scheduledAt   DateTime
+  duration      Int       @default(60) // Duration in minutes
+  timezone      String
+  
+  // Meeting Details
+  meetingLink   String?   // Jitsi or other video platform link
+  meetingRoom   String?   // Jitsi room name
+  
+  // Session Status
+  status        String    @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED, NO_SHOW
+  startedAt     DateTime?
+  endedAt       DateTime?
+  cancelledAt   DateTime?
+  cancellationReason String?
+  
+  // Notes
+  agendaNotes   String?   // Pre-session agenda
+  sessionNotes  String?   // Post-session notes by mentor
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  mentor        MentorProfile @relation("MentorSessions", fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@map("mentor_sessions")
+}
+
+// MentorReview model - Student reviews for mentors after sessions
+model MentorReview {
+  id              String   @id @default(cuid())
+  mentorId        String
+  studentId       String
+  sessionId       String?  // Optional: link to specific session
+  
+  // Rating Details
+  overallRating   Int      // 1-5 stars
+  communicationRating Int? // 1-5 stars
+  knowledgeRating Int?     // 1-5 stars
+  helpfulnessRating Int?   // 1-5 stars
+  
+  // Feedback
+  comment         String?
+  isPublic        Boolean  @default(true) // Show on mentor profile
+  
+  // Response
+  mentorResponse  String?
+  respondedAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  mentor          MentorProfile @relation("MentorReviews", fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@unique([mentorId, studentId, sessionId])
+  @@map("mentor_reviews")
+}
+
+// Notification model - System notifications for users
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  // Notification Content
+  type        String   // CONNECTION_REQUEST, CONNECTION_ACCEPTED, NEW_MESSAGE, SESSION_REMINDER, etc.
+  title       String
+  message     String
+  
+  // Metadata
+  data        String?  // JSON: additional data like connectionId, messageId, etc.
+  actionUrl   String?  // Deep link to relevant page
+  
+  // Status
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+
+  @@map("notifications")
 }
 
 // CareerSession model - Chat sessions with AI career mentor
@@ -62,12 +294,16 @@ model CareerSession {
   title     String?   @default("Career Chat Session")
   messages  String    @default("[]") // JSON string of message objects
   summary   String?
+  activeBranchId String? // ID of currently active branch (null for main thread)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   endedAt   DateTime?
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageReactions     MessageReaction[]
+  branches             ConversationBranch[]
+  sharedConversations  SharedConversation[]
 
   @@map("career_sessions")
 }
@@ -124,4 +360,67 @@ model StudentQuestion {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("student_questions")
+}
+
+// ConversationBranch model - Alternate conversation paths from branching points
+model ConversationBranch {
+  id             String   @id @default(cuid())
+  sessionId      String
+  branchFromId   String   // Message ID where this branch starts
+  branchName     String?  // Optional name for the branch
+  messages       String   @default("[]") // JSON string of messages in this branch
+  isActive       Boolean  @default(true) // Whether this branch is currently active
+  branchOrder    Int      @default(0) // Order of branch creation
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  careerSession CareerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_branches")
+}
+
+// MessageReaction model - User feedback on AI responses
+model MessageReaction {
+  id           String   @id @default(cuid())
+  sessionId    String
+  messageId    String
+  userId       String
+  reactionType String   // 'THUMBS_UP', 'THUMBS_DOWN', 'BOOKMARK', 'STAR'
+  feedback     String?  // Optional text feedback
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerSession  CareerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // Unique constraint to prevent duplicate reactions from same user on same message
+  @@unique([userId, sessionId, messageId, reactionType])
+  @@map("message_reactions")
+}
+
+// SharedConversation model - Shared conversation links for public access
+model SharedConversation {
+  id             String   @id @default(cuid())
+  sessionId      String
+  shareCode      String   @unique
+  shareUrl       String
+  title          String
+  description    String?  // Optional description for the shared conversation
+  isPublic       Boolean  @default(true)
+  allowComments  Boolean  @default(false)
+  allowScroll    Boolean  @default(false)
+  password       String?  // Optional password protection
+  expiresAt      DateTime? // Optional expiry date
+  viewCount      Int      @default(0)
+  createdById    String   // User who created the share
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  createdBy     User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  careerSession CareerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("shared_conversations")
 }

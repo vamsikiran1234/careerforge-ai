@@ -120,7 +120,7 @@ describe('Chat API Endpoints', () => {
     });
 
     test('should return 400 for message too long', async () => {
-      const longMessage = 'a'.repeat(1001);
+      const longMessage = 'a'.repeat(50001);
       
       const response = await request(app)
         .post('/api/v1/chat')
@@ -128,7 +128,7 @@ describe('Chat API Endpoints', () => {
         .expect(400);
 
       expect(response.body.status).toBe('error');
-      expect(response.body.message).toContain('cannot exceed 1000 characters');
+      expect(response.body.message).toContain('cannot exceed 50,000 characters');
     });
 
     test('should continue existing session', async () => {

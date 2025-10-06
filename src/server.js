@@ -1,4 +1,5 @@
 const app = require('./app');
+const { initializeSocket } = require('./config/socket');
 
 const PORT = process.env.PORT || 3000;
 
@@ -6,7 +7,12 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 CareerForge AI server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔄 Backend server running on port ${PORT}`);
 });
+
+// Initialize Socket.io
+const io = initializeSocket(server);
+console.log(`🔌 Socket.io initialized and ready for real-time connections`);
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

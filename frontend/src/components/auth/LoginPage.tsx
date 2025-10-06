@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { LogoSimple } from '@/components/ui/Logo';
 import { isValidEmail } from '@/utils';
 import type { LoginForm } from '@/types';
 
@@ -22,12 +23,15 @@ export const LoginPage: React.FC = () => {
 
   // Check for success message from registration
   useEffect(() => {
+    console.log('🚀 LoginPage component mounted');
+    console.log('Current auth state:', { isLoading, error, isAuthenticated: useAuthStore.getState().isAuthenticated });
+    
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
       // Clear the state to prevent showing message on refresh
       window.history.replaceState({}, document.title);
     }
-  }, [location.state]);
+  }, [location.state, isLoading, error]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginForm> = {};
@@ -49,15 +53,20 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    console.log('=== LOGIN FORM SUBMITTED ===');
 
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
 
     try {
       console.log('Attempting login with:', formData.email);
+      console.log('Current auth state before login:', { isAuthenticated: useAuthStore.getState().isAuthenticated });
+      
       const success = await login(formData);
       console.log('Login result:', success);
+      console.log('Auth state after login:', { isAuthenticated: useAuthStore.getState().isAuthenticated, user: useAuthStore.getState().user });
       
       if (success) {
         console.log('Login successful, navigating to dashboard...');
@@ -65,10 +74,12 @@ export const LoginPage: React.FC = () => {
         
         // Small delay to show success message
         setTimeout(() => {
+          console.log('Navigating to dashboard...');
           navigate('/dashboard');
         }, 1000);
       } else {
         console.log('Login failed - auth store should have error');
+        console.log('Error from auth store:', error);
       }
       // Error handling is now done in the auth store
     } catch (error) {
@@ -101,8 +112,8 @@ export const LoginPage: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-primary-600">
-            <span className="text-lg font-bold text-white">CF</span>
+          <div className="flex justify-center">
+            <LogoSimple size={48} />
           </div>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
             Sign in to your account
@@ -176,6 +187,7 @@ export const LoginPage: React.FC = () => {
                 className="w-full"
                 isLoading={isLoading}
                 disabled={isLoading}
+
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>

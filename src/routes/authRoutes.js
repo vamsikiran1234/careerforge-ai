@@ -7,10 +7,18 @@ const { createResponse } = require('../utils/helpers');
 const router = express.Router();
 
 // Helper function to generate JWT token
-const generateToken = (userId, email) => {
-  return jwt.sign({ userId, email }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  });
+const generateToken = (userId, email, roles) => {
+  return jwt.sign(
+    { 
+      userId, 
+      email,
+      roles: roles || ['STUDENT'] // Default to STUDENT if no roles provided
+    }, 
+    process.env.JWT_SECRET, 
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    }
+  );
 };
 
 // Register endpoint
@@ -67,10 +75,14 @@ router.post('/register', [
     console.log('User registered successfully:', email, 'User ID:', newUser.id);
 
     // Return user data (without password)
+    const userRoles = JSON.parse(newUser.roles); // Parse JSON string to array
     const userResponse = {
       id: newUser.id,
       name: newUser.name,
       email: newUser.email,
+      roles: userRoles, // Include roles in response
+      avatar: newUser.avatar,
+      bio: newUser.bio,
       createdAt: newUser.createdAt,
       updatedAt: newUser.updatedAt,
     };
@@ -137,14 +149,18 @@ router.post('/login', [
       );
     }
 
-    // Generate token
-    const token = generateToken(user.id, user.email);
+    // Generate token with user roles
+    const userRoles = JSON.parse(user.roles); // Parse JSON string to array
+    const token = generateToken(user.id, user.email, userRoles);
 
     // Return user data (without password)
     const userResponse = {
       id: user.id,
       name: user.name,
       email: user.email,
+      roles: userRoles, // Include roles in response
+      avatar: user.avatar,
+      bio: user.bio,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -190,10 +206,14 @@ router.get('/me', async (req, res) => {
     }
 
     // Return user data (without password)
+    const userRoles = JSON.parse(user.roles); // Parse JSON string to array
     const userResponse = {
       id: user.id,
       name: user.name,
       email: user.email,
+      roles: userRoles, // Include roles in response
+      avatar: user.avatar,
+      bio: user.bio,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

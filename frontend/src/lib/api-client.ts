@@ -51,37 +51,65 @@ class ApiClient {
 
   async get<T>(url: string, params?: any): Promise<ApiResponse<T>> {
     try {
-      const response = await this.client.get(url, { params });
+      console.log('🔵 [API] GET Request:', {
+        url: `${this.client.defaults.baseURL}${url}`,
+        params,
+      });
+      
+      const response = await this.client.get(url, { 
+        params,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      });
+      
+      console.log('🔵 [API] GET Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        headers: response.headers,
+      });
+      
       return response.data;
     } catch (error: any) {
+      console.error('🔴 [API] GET Error:', {
+        url: `${this.client.defaults.baseURL}${url}`,
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       return this.handleError(error);
     }
   }
 
   async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
     try {
-      console.log('API POST Request:', {
+      console.log('🔵 [API] POST Request:', {
         url: `${this.client.defaults.baseURL}${url}`,
         data,
-        headers: this.client.defaults.headers
       });
       
       const response = await this.client.post(url, data);
       
-      console.log('API POST Response:', {
+      console.log('🔵 [API] POST Response:', {
         status: response.status,
-        data: response.data
+        statusText: response.statusText,
+        data: response.data,
+        fullResponse: response
       });
       
       return response.data;
     } catch (error: any) {
-      console.error('API POST Error:', {
+      console.error('🔴 [API] POST Error:', {
         url: `${this.client.defaults.baseURL}${url}`,
         error: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
+        fullError: error
       });
-      return this.handleError(error);
+      throw error; // Re-throw so quiz.ts can catch it properly
     }
   }
 
@@ -118,21 +146,21 @@ class ApiClient {
     if (error.response) {
       // Server responded with error status
       return {
-        success: false,
+        status: 'error',
         message: error.response.data?.message || 'Server error occurred',
         errors: error.response.data?.errors || [],
       };
     } else if (error.request) {
       // Network error
       return {
-        success: false,
+        status: 'error',
         message: 'Network error. Please check your connection.',
         errors: ['NETWORK_ERROR'],
       };
     } else {
       // Other error
       return {
-        success: false,
+        status: 'error',
         message: 'An unexpected error occurred',
         errors: ['UNKNOWN_ERROR'],
       };

@@ -34,9 +34,11 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       login: async (credentials: LoginForm) => {
+        console.log('=== AUTH STORE LOGIN STARTED ===');
         set({ isLoading: true, error: null });
         
         try {
+          console.log('Making API call to /auth/login with:', { email: credentials.email });
           const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
           console.log('Auth store - API response:', response);
           
@@ -44,8 +46,9 @@ export const useAuthStore = create<AuthStore>()(
             const { user, token } = response.data;
             console.log('Auth store - Login successful, setting state:', { user, token: token.substring(0, 20) + '...' });
             
-            // Store token in API client
+            // CRITICAL: Store token in both API client AND localStorage for consistency
             apiClient.setAuthToken(token);
+            localStorage.setItem('token', token); // For backward compatibility
             
             set({
               user,
@@ -55,16 +58,22 @@ export const useAuthStore = create<AuthStore>()(
               error: null,
             });
             
-            console.log('Auth store - State updated, returning true');
+            console.log('Auth store - State updated successfully');
+            console.log('Auth store - Final state:', { 
+              isAuthenticated: get().isAuthenticated, 
+              user: get().user?.email,
+              hasToken: !!get().token 
+            });
             return true;
           } else {
-            console.log('Auth store - Login failed:', response);
+            console.log('Auth store - Login failed with response:', response);
             const errorMessage = response.message || 'Login failed';
             set({ isLoading: false, error: errorMessage });
             return false;
           }
         } catch (error: any) {
-          console.error('Login error:', error);
+          console.error('Auth store - Login error:', error);
+          console.error('Auth store - Error response:', error.response?.data);
           
           let errorMessage = 'Login failed. Please try again.';
           
@@ -123,8 +132,9 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        // Clear token from API client
+        // Clear token from API client and localStorage
         apiClient.clearAuthToken();
+        localStorage.removeItem('token'); // For backward compatibility
         
         set({
           user: null,
@@ -145,18 +155,25 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       checkAuth: async () => {
-        const { token } = get();
+        console.log('=== CHECK AUTH STARTED ===');
+        const { token, isAuthenticated } = get();
+        
+        console.log('CheckAuth - Current state:', { hasToken: !!token, isAuthenticated });
         
         if (!token) {
+          console.log('CheckAuth - No token found, returning false');
           return false;
         }
 
+        console.log('CheckAuth - Token found, verifying with backend...');
         set({ isLoading: true });
         
         try {
           const response = await apiClient.get<User>('/auth/me');
+          console.log('CheckAuth - Backend response:', response);
           
           if (response.status === 'success' && response.data) {
+            console.log('CheckAuth - Token valid, updating state');
             set({
               user: response.data,
               isAuthenticated: true,
@@ -166,11 +183,13 @@ export const useAuthStore = create<AuthStore>()(
             return true;
           } else {
             // Token is invalid, clear auth state
+            console.log('CheckAuth - Token invalid, clearing auth state');
             get().logout();
             return false;
           }
         } catch (error) {
-          console.error('Auth check error:', error);
+          console.error('CheckAuth - Error occurred:', error);
+          console.log('CheckAuth - Clearing auth state due to error');
           get().logout();
           return false;
         }
@@ -265,6 +284,14 @@ export const useAuthStore = create<AuthStore>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Sync token from persisted state to localStorage and API client after hydration
+        if (state?.token) {
+          console.log('🔄 Rehydrating auth state - syncing token to localStorage and API client');
+          localStorage.setItem('token', state.token);
+          apiClient.setAuthToken(state.token);
+        }
+      },
     }
   )
 );

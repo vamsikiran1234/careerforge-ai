@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const { validationResult } = require('express-validator');
 
 const validate = schema => (req, res, next) => {
   const { error } = schema.validate(req.body);
@@ -11,15 +12,28 @@ const validate = schema => (req, res, next) => {
   next();
 };
 
+// Middleware to handle express-validator results
+const validateRequest = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      status: 'error',
+      message: errors.array()[0].msg,
+      errors: errors.array(),
+    });
+  }
+  next();
+};
+
 const chatSchema = Joi.object({
   userId: Joi.string().required().messages({
     'string.empty': 'User ID is required',
     'any.required': 'User ID is required',
   }),
-  message: Joi.string().min(1).max(1000).required().messages({
+  message: Joi.string().min(1).max(50000).required().messages({
     'string.empty': 'Message cannot be empty',
     'string.min': 'Message must be at least 1 character long',
-    'string.max': 'Message cannot exceed 1000 characters',
+    'string.max': 'Message cannot exceed 50,000 characters',
     'any.required': 'Message is required',
   }),
 });
@@ -79,6 +93,7 @@ const userSchema = Joi.object({
 
 module.exports = {
   validate,
+  validateRequest,
   chatSchema,
   quizAnswerSchema,
   userIdSchema,

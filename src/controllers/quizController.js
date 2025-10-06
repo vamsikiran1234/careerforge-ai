@@ -7,6 +7,13 @@ const quizController = {
   startQuiz: asyncHandler(async (req, res) => {
     const { userId } = req.body;
 
+    // Validate userId is provided
+    if (!userId) {
+      return res.status(400).json(
+        createResponse('error', 'User ID is required')
+      );
+    }
+
     // Validate user exists
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -27,56 +34,127 @@ const quizController = {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        quizQuestions: {
+          orderBy: {
+            order: 'desc',
+          },
+          take: 1,
+        },
+      },
     });
 
     if (existingSession) {
-      return res.status(400).json(
-        createResponse('error', 'You already have an active quiz session. Please complete it first.', {
-          existingSessionId: existingSession.id,
-          currentStage: existingSession.currentStage,
-        })
-      );
+      try {
+        // Return the existing session instead of error
+        let lastQuestion = existingSession.quizQuestions[0];
+        
+        // If there's no question yet, generate one
+        if (!lastQuestion) {
+          console.log('No existing question found, generating new one...');
+          const firstQuestion = await aiService.quizNext(existingSession.id, null);
+          
+          if (!firstQuestion || !firstQuestion.question) {
+            throw new Error('Failed to generate question from AI service');
+          }
+          
+          // Create first quiz question in database
+          lastQuestion = await prisma.quizQuestion.create({
+            data: {
+              quizSessionId: existingSession.id,
+              questionText: firstQuestion.question,
+              options: JSON.stringify(firstQuestion.options || []),
+              stage: firstQuestion.stage || existingSession.currentStage,
+              order: 1,
+            },
+          });
+        }
+      
+        // Parse answers to calculate progress
+        const answers = JSON.parse(existingSession.answers || '{}');
+        const answeredCount = Object.keys(answers).length;
+        const stageOrder = ['SKILLS_ASSESSMENT', 'INTEREST_ANALYSIS', 'PERSONALITY_TEST', 'VALUES_ALIGNMENT', 'CAREER_MATCHING'];
+        const currentStageIndex = stageOrder.indexOf(existingSession.currentStage);
+        const percentage = Math.round(((currentStageIndex) / stageOrder.length) * 100);
+        
+        return res.status(200).json(
+          createResponse('success', 'Resuming existing quiz session', {
+            sessionId: existingSession.id,
+            currentStage: existingSession.currentStage,
+            question: {
+              text: lastQuestion.questionText,
+              options: JSON.parse(lastQuestion.options),
+              stage: lastQuestion.stage,
+            },
+            progress: {
+              currentStage: currentStageIndex + 1,
+              totalStages: stageOrder.length,
+              percentage,
+            },
+          })
+        );
+      } catch (error) {
+        console.error('Error resuming existing session:', error);
+        return res.status(500).json(
+          createResponse('error', `Failed to resume quiz session: ${error.message}`)
+        );
+      }
     }
 
     // Create new quiz session
-    const session = await prisma.quizSession.create({
-      data: {
-        userId,
-        currentStage: 'SKILLS_ASSESSMENT',
-        answers: JSON.stringify({}),
-      },
-    });
-
-    // Generate first question using AI
-    const firstQuestion = await aiService.quizNext(session.id, null);
-
-    // Create first quiz question in database
-    await prisma.quizQuestion.create({
-      data: {
-        quizSessionId: session.id,
-        questionText: firstQuestion.question,
-        options: JSON.stringify(firstQuestion.options), // Store as JSON string
-        stage: firstQuestion.stage,
-        order: 1,
-      },
-    });
-
-    res.status(201).json(
-      createResponse('success', 'Quiz session started successfully', {
-        sessionId: session.id,
-        currentStage: session.currentStage,
-        question: {
-          text: firstQuestion.question,
-          options: firstQuestion.options,
-          stage: firstQuestion.stage,
+    try {
+      const session = await prisma.quizSession.create({
+        data: {
+          userId,
+          currentStage: 'SKILLS_ASSESSMENT',
+          answers: JSON.stringify({}),
         },
-        progress: {
-          currentStage: 1,
-          totalStages: 5,
-          percentage: 20,
+      });
+
+      console.log('Created new quiz session:', session.id);
+
+      // Generate first question using AI
+      const firstQuestion = await aiService.quizNext(session.id, null);
+
+      if (!firstQuestion || !firstQuestion.question) {
+        throw new Error('Failed to generate first question from AI service');
+      }
+
+      console.log('Generated first question:', firstQuestion.question.substring(0, 50) + '...');
+
+      // Create first quiz question in database
+      await prisma.quizQuestion.create({
+        data: {
+          quizSessionId: session.id,
+          questionText: firstQuestion.question,
+          options: JSON.stringify(firstQuestion.options || []), // Store as JSON string
+          stage: firstQuestion.stage || 'SKILLS_ASSESSMENT',
+          order: 1,
         },
-      })
-    );
+      });
+
+      res.status(201).json(
+        createResponse('success', 'Quiz session started successfully', {
+          sessionId: session.id,
+          currentStage: session.currentStage,
+          question: {
+            text: firstQuestion.question,
+            options: firstQuestion.options,
+            stage: firstQuestion.stage,
+          },
+          progress: {
+            currentStage: 1,
+            totalStages: 5,
+            percentage: 20,
+          },
+        })
+      );
+    } catch (error) {
+      console.error('Error creating new quiz session:', error);
+      return res.status(500).json(
+        createResponse('error', `Failed to start quiz: ${error.message}`)
+      );
+    }
   }),
 
   // POST /api/v1/quiz/:quizId/answer
@@ -277,36 +355,45 @@ const quizController = {
   getUserQuizSessions: asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
-    const sessions = await prisma.quizSession.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        currentStage: true,
-        createdAt: true,
-        completedAt: true,
-        results: true,
-      },
-    });
+    console.log('📊 Fetching quiz sessions for user:', userId);
 
-    const completedSessions = sessions.filter(s => s.completedAt).length;
-    const activeSessions = sessions.filter(s => !s.completedAt).length;
-
-    res.status(200).json(
-      createResponse('success', 'User quiz sessions retrieved successfully', {
-        sessions: sessions.map(session => ({
-          ...session,
-          results: typeof session.results === 'string' 
-            ? JSON.parse(session.results || 'null') 
-            : session.results
-        })),
-        statistics: {
-          totalSessions: sessions.length,
-          completedSessions,
-          activeSessions,
+    try {
+      const sessions = await prisma.quizSession.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          currentStage: true,
+          createdAt: true,
+          completedAt: true,
+          results: true,
         },
-      })
-    );
+      });
+
+      console.log('✅ Found', sessions.length, 'sessions for user:', userId);
+
+      const completedSessions = sessions.filter(s => s.completedAt).length;
+      const activeSessions = sessions.filter(s => !s.completedAt).length;
+
+      res.status(200).json(
+        createResponse('success', 'User quiz sessions retrieved successfully', {
+          sessions: sessions.map(session => ({
+            ...session,
+            results: typeof session.results === 'string' 
+              ? JSON.parse(session.results || 'null') 
+              : session.results
+          })),
+          statistics: {
+            totalSessions: sessions.length,
+            completedSessions,
+            activeSessions,
+          },
+        })
+      );
+    } catch (error) {
+      console.error('❌ Error fetching quiz sessions:', error);
+      throw error;
+    }
   }),
 
   // DELETE /api/v1/quiz/:quizId

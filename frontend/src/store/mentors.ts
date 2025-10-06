@@ -1,288 +1,248 @@
 import { create } from 'zustand';
+import axios from 'axios';
 
-export interface Mentor {
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+
+export interface MentorProfile {
   id: string;
-  name: string;
-  title: string;
+  userId: string;
   company: string;
-  avatar: string;
-  expertise: string[];
-  experience: number;
-  rating: number;
-  totalReviews: number;
-  hourlyRate: number;
+  jobTitle: string;
+  industry: string;
+  yearsOfExperience: number;
+  collegeName: string;
+  degree: string;
+  graduationYear: number;
+  major: string | null;
+  expertiseAreas: string[];
   bio: string;
-  availability: 'available' | 'busy' | 'offline';
-  languages: string[];
+  linkedinUrl: string | null;
+  portfolioUrl: string | null;
+  availableHoursPerWeek: number;
+  preferredMeetingType: string;
   timezone: string;
-  responseTime: string;
-  sessions: number;
+  isVerified: boolean;
+  status: string;
+  totalConnections: number;
+  activeConnections: number;
+  totalSessions: number;
+  averageRating: number | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    name: string;
+    avatar: string | null;
+  };
+  receivedReviews?: MentorReview[];
 }
 
-export interface MentorSession {
+export interface MentorReview {
   id: string;
-  mentorId: string;
-  userId: string;
-  date: string;
-  time: string;
-  duration: number;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  topic: string;
-  notes?: string;
-  rating?: number;
-  feedback?: string;
-}
-
-export interface Review {
-  id: string;
-  mentorId: string;
-  userId: string;
-  userName: string;
   rating: number;
-  comment: string;
-  date: string;
-  session: string;
+  feedback: string;
+  isPublic: boolean;
+  createdAt: string;
 }
 
-interface MentorState {
-  mentors: Mentor[];
-  sessions: MentorSession[];
-  reviews: Review[];
-  selectedMentor: Mentor | null;
+export interface MentorFilters {
+  expertise: string[];
+  industry: string;
+  company: string;
+  minExperience: number;
+  maxExperience: number;
+  rating: number;
+  page: number;
+  limit: number;
+}
+
+interface MentorStore {
+  // State
+  mentors: MentorProfile[];
+  selectedMentor: MentorProfile | null;
   loading: boolean;
   error: string | null;
-  filters: {
-    expertise: string[];
-    experience: string;
-    rating: number;
-    priceRange: [number, number];
-    availability: string;
+  filters: MentorFilters;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
   };
-  
+
   // Actions
   fetchMentors: () => Promise<void>;
-  selectMentor: (mentor: Mentor) => void;
-  bookSession: (session: Omit<MentorSession, 'id'>) => Promise<void>;
-  cancelSession: (sessionId: string) => Promise<void>;
-  submitReview: (review: Omit<Review, 'id' | 'date'>) => Promise<void>;
-  updateFilters: (filters: Partial<MentorState['filters']>) => void;
-  clearFilters: () => void;
+  fetchMentorById: (id: string) => Promise<void>;
+  selectMentor: (mentor: MentorProfile | null) => void;
+  updateFilters: (filters: Partial<MentorFilters>) => void;
+  resetFilters: () => void;
+  setPage: (page: number) => void;
 }
 
-// Mock data for development
-const mockMentors: Mentor[] = [
-  {
-    id: '1',
-    name: 'Sarah Chen',
-    title: 'Senior Software Engineer',
-    company: 'Google',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-    expertise: ['Software Engineering', 'Career Growth', 'Technical Leadership', 'System Design'],
-    experience: 8,
-    rating: 4.9,
-    totalReviews: 127,
-    hourlyRate: 85,
-    bio: 'Passionate software engineer with 8+ years of experience at top tech companies. I help developers advance their careers, improve technical skills, and navigate the tech industry.',
-    availability: 'available',
-    languages: ['English', 'Mandarin'],
-    timezone: 'PST',
-    responseTime: '< 2 hours',
-    sessions: 234,
-  },
-  {
-    id: '2',
-    name: 'Marcus Johnson',
-    title: 'Product Manager',
-    company: 'Microsoft',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-    expertise: ['Product Management', 'Strategy', 'Leadership', 'Data Analysis'],
-    experience: 12,
-    rating: 4.8,
-    totalReviews: 89,
-    hourlyRate: 120,
-    bio: 'Experienced product manager with a track record of launching successful products. I mentor aspiring PMs and help professionals transition into product roles.',
-    availability: 'available',
-    languages: ['English', 'Spanish'],
-    timezone: 'EST',
-    responseTime: '< 1 hour',
-    sessions: 156,
-  },
-  {
-    id: '3',
-    name: 'Priya Patel',
-    title: 'UX Design Director',
-    company: 'Airbnb',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-    expertise: ['UX Design', 'Design Leadership', 'User Research', 'Design Systems'],
-    experience: 10,
-    rating: 4.9,
-    totalReviews: 203,
-    hourlyRate: 95,
-    bio: 'Creative UX leader passionate about creating user-centered experiences. I help designers grow their skills and advance to senior and leadership roles.',
-    availability: 'busy',
-    languages: ['English', 'Hindi'],
-    timezone: 'PST',
-    responseTime: '< 3 hours',
-    sessions: 187,
-  },
-  {
-    id: '4',
-    name: 'David Kim',
-    title: 'Data Science Manager',
-    company: 'Netflix',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-    expertise: ['Data Science', 'Machine Learning', 'Analytics', 'Team Management'],
-    experience: 9,
-    rating: 4.7,
-    totalReviews: 156,
-    hourlyRate: 110,
-    bio: 'Data science leader with experience building ML systems at scale. I mentor data scientists and help professionals break into the field.',
-    availability: 'available',
-    languages: ['English', 'Korean'],
-    timezone: 'PST',
-    responseTime: '< 2 hours',
-    sessions: 143,
-  },
-  {
-    id: '5',
-    name: 'Emily Rodriguez',
-    title: 'Marketing Director',
-    company: 'Spotify',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
-    expertise: ['Digital Marketing', 'Brand Strategy', 'Growth Marketing', 'Content Strategy'],
-    experience: 7,
-    rating: 4.8,
-    totalReviews: 92,
-    hourlyRate: 75,
-    bio: 'Marketing professional with expertise in digital marketing and brand building. I help marketers develop strategic thinking and advance their careers.',
-    availability: 'available',
-    languages: ['English', 'Spanish'],
-    timezone: 'EST',
-    responseTime: '< 1 hour',
-    sessions: 108,
-  },
-];
+const defaultFilters: MentorFilters = {
+  expertise: [],
+  industry: '',
+  company: '',
+  minExperience: 0,
+  maxExperience: 50,
+  rating: 0,
+  page: 1,
+  limit: 12,
+};
 
-const mockSessions: MentorSession[] = [
-  {
-    id: '1',
-    mentorId: '1',
-    userId: 'current-user',
-    date: '2024-01-15',
-    time: '14:00',
-    duration: 60,
-    status: 'scheduled',
-    topic: 'Career Growth Strategy',
-  },
-  {
-    id: '2',
-    mentorId: '2',
-    userId: 'current-user',
-    date: '2024-01-10',
-    time: '16:30',
-    duration: 45,
-    status: 'completed',
-    topic: 'Product Management Transition',
-    notes: 'Discussed roadmap planning and stakeholder management',
-    rating: 5,
-    feedback: 'Excellent session with actionable insights!',
-  },
-];
-
-export const useMentorStore = create<MentorState>((set) => ({
-  mentors: mockMentors,
-  sessions: mockSessions,
-  reviews: [],
+export const useMentorStore = create<MentorStore>((set, get) => ({
+  // Initial state
+  mentors: [],
   selectedMentor: null,
   loading: false,
   error: null,
-  filters: {
-    expertise: [],
-    experience: '',
-    rating: 0,
-    priceRange: [0, 200],
-    availability: '',
+  filters: defaultFilters,
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 12,
+    pages: 0,
   },
 
+  // Fetch all mentors with current filters
   fetchMentors: async () => {
     set({ loading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      set({ mentors: mockMentors, loading: false });
-    } catch (error) {
-      set({ error: 'Failed to fetch mentors', loading: false });
+      const { filters } = get();
+      
+      // Get token from auth-storage (Zustand persist)
+      let token = localStorage.getItem('token');
+      if (!token) {
+        const authStorage = localStorage.getItem('auth-storage');
+        if (authStorage) {
+          try {
+            const parsed = JSON.parse(authStorage);
+            token = parsed.state?.token;
+          } catch (e) {
+            console.error('Failed to parse auth-storage:', e);
+          }
+        }
+      }
+
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      // Build query params
+      const params: Record<string, string> = {
+        page: filters.page.toString(),
+        limit: filters.limit.toString(),
+      };
+
+      if (filters.expertise.length > 0) {
+        params.expertise = filters.expertise.join(',');
+      }
+      if (filters.industry) {
+        params.industry = filters.industry;
+      }
+      if (filters.company) {
+        params.company = filters.company;
+      }
+      if (filters.minExperience > 0) {
+        params.minExperience = filters.minExperience.toString();
+      }
+      if (filters.maxExperience < 50) {
+        params.maxExperience = filters.maxExperience.toString();
+      }
+
+      const response = await axios.get(`${API_URL}/mentorship/mentors`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params,
+      });
+
+      if (response.data.success) {
+        set({
+          mentors: response.data.data,
+          pagination: response.data.pagination,
+          loading: false,
+        });
+      } else {
+        throw new Error(response.data.message || 'Failed to fetch mentors');
+      }
+    } catch (error: any) {
+      console.error('Error fetching mentors:', error);
+      set({
+        error: error.response?.data?.message || error.message || 'Failed to fetch mentors',
+        loading: false,
+        mentors: [],
+      });
     }
   },
 
-  selectMentor: (mentor) => {
+  // Fetch mentor by ID with full details
+  fetchMentorById: async (id: string) => {
+    set({ loading: true, error: null });
+    try {
+      // Get token from auth-storage (Zustand persist)
+      let token = localStorage.getItem('token');
+      if (!token) {
+        const authStorage = localStorage.getItem('auth-storage');
+        if (authStorage) {
+          try {
+            const parsed = JSON.parse(authStorage);
+            token = parsed.state?.token;
+          } catch (e) {
+            console.error('Failed to parse auth-storage:', e);
+          }
+        }
+      }
+
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await axios.get(`${API_URL}/mentorship/mentors/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        set({
+          selectedMentor: response.data.data,
+          loading: false,
+        });
+      } else {
+        throw new Error(response.data.message || 'Failed to fetch mentor details');
+      }
+    } catch (error: any) {
+      console.error('Error fetching mentor:', error);
+      set({
+        error: error.response?.data?.message || error.message || 'Failed to fetch mentor',
+        loading: false,
+      });
+    }
+  },
+
+  // Select a mentor (for viewing profile)
+  selectMentor: (mentor: MentorProfile | null) => {
     set({ selectedMentor: mentor });
   },
 
-  bookSession: async (session) => {
-    set({ loading: true });
-    try {
-      const newSession: MentorSession = {
-        ...session,
-        id: Date.now().toString(),
-      };
-      set(state => ({
-        sessions: [...state.sessions, newSession],
-        loading: false,
-      }));
-    } catch (error) {
-      set({ error: 'Failed to book session', loading: false });
-    }
+  // Update filters and refetch
+  updateFilters: (newFilters: Partial<MentorFilters>) => {
+    const currentFilters = get().filters;
+    const updatedFilters = { ...currentFilters, ...newFilters, page: 1 }; // Reset to page 1 on filter change
+    set({ filters: updatedFilters });
+    get().fetchMentors();
   },
 
-  cancelSession: async (sessionId) => {
-    set({ loading: true });
-    try {
-      set(state => ({
-        sessions: state.sessions.map(session =>
-          session.id === sessionId
-            ? { ...session, status: 'cancelled' as const }
-            : session
-        ),
-        loading: false,
-      }));
-    } catch (error) {
-      set({ error: 'Failed to cancel session', loading: false });
-    }
+  // Reset all filters
+  resetFilters: () => {
+    set({ filters: defaultFilters });
+    get().fetchMentors();
   },
 
-  submitReview: async (review) => {
-    set({ loading: true });
-    try {
-      const newReview: Review = {
-        ...review,
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-      };
-      set(state => ({
-        reviews: [...state.reviews, newReview],
-        loading: false,
-      }));
-    } catch (error) {
-      set({ error: 'Failed to submit review', loading: false });
-    }
-  },
-
-  updateFilters: (filters) => {
-    set(state => ({
-      filters: { ...state.filters, ...filters },
-    }));
-  },
-
-  clearFilters: () => {
-    set({
-      filters: {
-        expertise: [],
-        experience: '',
-        rating: 0,
-        priceRange: [0, 200],
-        availability: '',
-      },
-    });
+  // Change page
+  setPage: (page: number) => {
+    set({ filters: { ...get().filters, page } });
+    get().fetchMentors();
   },
 }));
