@@ -1,6 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Constants
+const DAYS_IN_ANALYTICS_PERIOD = 30; // Days to look back for growth metrics
+const HTTP_STATUS_OK = 200;
+const PERCENTAGE_MULTIPLIER = 100;
+
 /**
  * Get platform overview statistics
  * @route GET /api/v1/analytics/platform
@@ -59,13 +64,13 @@ const getPlatformStats = async (req, res) => {
     });
 
     // Get user growth over last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - DAYS_IN_ANALYTICS_PERIOD);
 
     const newUsers = await prisma.user.count({
       where: {
         createdAt: {
-          gte: thirtyDaysAgo
+          gte: daysAgo
         }
       }
     });
@@ -74,7 +79,7 @@ const getPlatformStats = async (req, res) => {
       where: {
         isVerified: true, // Only count verified mentors
         createdAt: {
-          gte: thirtyDaysAgo
+          gte: daysAgo
         }
       }
     });
@@ -89,16 +94,16 @@ const getPlatformStats = async (req, res) => {
 
     // Calculate completion rate
     const completionRate = totalSessions > 0 
-      ? ((completedSessions / totalSessions) * 100).toFixed(1) 
+      ? ((completedSessions / totalSessions) * PERCENTAGE_MULTIPLIER).toFixed(1) 
       : 0;
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS_OK).json({
       success: true,
       stats: {
         users: {
           total: totalUsers,
           newLast30Days: newUsers,
-          growth: totalUsers > 0 ? ((newUsers / totalUsers) * 100).toFixed(1) : 0
+          growth: totalUsers > 0 ? ((newUsers / totalUsers) * PERCENTAGE_MULTIPLIER).toFixed(1) : 0
         },
         mentors: {
           total: totalMentors,
@@ -124,6 +129,7 @@ const getPlatformStats = async (req, res) => {
       }
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching platform stats:', error);
     return res.status(500).json({
       success: false,

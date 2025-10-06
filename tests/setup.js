@@ -1,6 +1,6 @@
 // Jest test setup
 process.env.NODE_ENV = 'test';
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_careerforge';
+process.env.DATABASE_URL = 'file:./test.db';
 process.env.OPENAI_API_KEY = 'test-openai-key-for-testing';
 process.env.JWT_SECRET = 'test-secret-key-for-jwt-tokens-in-testing';
 
