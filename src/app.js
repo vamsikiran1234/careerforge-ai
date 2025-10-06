@@ -7,6 +7,11 @@ require('dotenv').config();
 
 const { errorHandler, notFound } = require('./middlewares/errorMiddleware');
 
+// Constants
+const RATE_LIMIT_WINDOW_MS = 900000; // 15 minutes
+const RATE_LIMIT_MAX_REQUESTS = 100; // Maximum requests per window
+const HTTP_STATUS_OK = 200;
+
 // Import routes
 const chatRoutes = require('./routes/chatRoutes');
 const quizRoutes = require('./routes/quizRoutes');
@@ -37,8 +42,8 @@ app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || RATE_LIMIT_WINDOW_MS,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || RATE_LIMIT_MAX_REQUESTS,
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api', limiter);
@@ -56,7 +61,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({
+  res.status(HTTP_STATUS_OK).json({
     status: 'success',
     message: 'CareerForge AI API is running',
     timestamp: new Date().toISOString(),

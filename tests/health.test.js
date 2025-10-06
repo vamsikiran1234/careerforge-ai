@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
+const { generateTestToken } = require('./testUtils');
 
 // Get mock prisma from global setup
 const mockPrisma = global.mockPrisma;
@@ -8,6 +9,13 @@ const mockPrisma = global.mockPrisma;
 const aiService = require('../src/services/aiService');
 
 describe('Chat API Endpoints', () => {
+  let authToken;
+
+  beforeAll(() => {
+    // Generate auth token for tests
+    authToken = generateTestToken();
+  });
+
   describe('POST /api/v1/chat', () => {
     const validChatRequest = {
       userId: 'user123',
@@ -66,6 +74,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/chat')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validChatRequest)
         .expect(200);
 
@@ -92,6 +101,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/chat')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validChatRequest)
         .expect(404);
 
@@ -102,6 +112,7 @@ describe('Chat API Endpoints', () => {
     test('should return 400 for missing userId', async () => {
       const response = await request(app)
         .post('/api/v1/chat')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ message: 'Test message' })
         .expect(400);
 
@@ -112,6 +123,7 @@ describe('Chat API Endpoints', () => {
     test('should return 400 for missing message', async () => {
       const response = await request(app)
         .post('/api/v1/chat')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: 'user123' })
         .expect(400);
 
@@ -124,6 +136,7 @@ describe('Chat API Endpoints', () => {
       
       const response = await request(app)
         .post('/api/v1/chat')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: 'user123', message: longMessage })
         .expect(400);
 
@@ -181,6 +194,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/chat')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: 'user123', message: 'Follow up question' })
         .expect(200);
 
@@ -207,6 +221,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/chat')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validChatRequest)
         .expect(500);
 
@@ -238,6 +253,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .get('/api/v1/chat/sessions/user123')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.status).toBe('success');
@@ -278,6 +294,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .get('/api/v1/chat/session/session123')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.status).toBe('success');
@@ -290,6 +307,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .get('/api/v1/chat/session/nonexistent')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
       expect(response.body.status).toBe('error');
@@ -308,6 +326,7 @@ describe('Chat API Endpoints', () => {
 
       const response = await request(app)
         .put('/api/v1/chat/session/session123/end')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.status).toBe('success');

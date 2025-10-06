@@ -47,7 +47,9 @@ const quizController = {
     if (existingSession) {
       try {
         // Return the existing session instead of error
-        let lastQuestion = existingSession.quizQuestions[0];
+        let lastQuestion = existingSession.quizQuestions && existingSession.quizQuestions.length > 0 
+          ? existingSession.quizQuestions[0]
+          : null;
         
         // If there's no question yet, generate one
         if (!lastQuestion) {
@@ -75,13 +77,23 @@ const quizController = {
         const currentStageIndex = stageOrder.indexOf(existingSession.currentStage);
         const percentage = Math.round(((currentStageIndex) / stageOrder.length) * 100);
         
+        // Parse options safely
+        let questionOptions;
+        try {
+          questionOptions = typeof lastQuestion.options === 'string' 
+            ? JSON.parse(lastQuestion.options) 
+            : lastQuestion.options || [];
+        } catch (parseError) {
+          questionOptions = [];
+        }
+
         return res.status(200).json(
           createResponse('success', 'Resuming existing quiz session', {
             sessionId: existingSession.id,
             currentStage: existingSession.currentStage,
             question: {
               text: lastQuestion.questionText,
-              options: JSON.parse(lastQuestion.options),
+              options: questionOptions,
               stage: lastQuestion.stage,
             },
             progress: {
