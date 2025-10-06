@@ -1,5 +1,5 @@
 ﻿import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { MessageSquare, Plus, Trash2, Share2, Download, FileText, Maximize2, Minimize2, Briefcase, Target, Users, Award, TrendingUp, BookOpen, Lightbulb, Moon, Sun, Infinity } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Share2, Download, FileText, Maximize2, Minimize2, Briefcase, Target, Users, Award, TrendingUp, BookOpen, Lightbulb, Moon, Sun, Infinity as InfinityIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CareerForgeAvatar } from '@/components/ui/CareerForgeAvatar';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -382,7 +382,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       <div className={`flex items-center gap-2 text-xs ${
                         session.id === currentSessionId ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'
                       }`}>
-                        <Infinity className="w-4 h-4" />
+                        <InfinityIcon className="w-4 h-4" />
                         <span>Always</span>
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${

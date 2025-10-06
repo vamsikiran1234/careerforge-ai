@@ -11,11 +11,10 @@ import { CareerForgeAvatar } from '@/components/ui/CareerForgeAvatar';
 
 interface MessageItemProps {
   message: ChatMessage;
-  isLast?: boolean;
   onEdit?: (messageId: string, newContent: string) => void;
 }
 
-export const MessageItem: React.FC<MessageItemProps> = ({ message, isLast, onEdit }) => {
+export const MessageItem: React.FC<MessageItemProps> = ({ message, onEdit }) => {
   const { currentSession, createBranch } = useChatStore();
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

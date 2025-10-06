@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown, Star, Bookmark, MessageSquare, X } from 'lucide-react';
 import { useChatStore } from '@/store/chat';
-import type { MessageReaction } from '@/store/chat';
 
 interface MessageReactionsProps {
   messageId: string;

@@ -1,5 +1,5 @@
 ﻿import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Send, Mic, Paperclip, X, Target, Rocket, Brain, Star } from 'lucide-react';
+import { Send, Mic, Paperclip, X } from 'lucide-react';
 import { CareerForgeAvatar } from '@/components/ui/CareerForgeAvatar';
 import { Button } from '@/components/ui/Button';
 import SlashCommandDropdown from './SlashCommandDropdown';
@@ -213,16 +213,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       };
 
       recognition.onresult = (event: any) => {
-        let interimTranscript = '';
         let finalTranscript = '';
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
           }
+          // Interim results ignored for simplicity
         }
 
         // Update message with final transcript
@@ -408,12 +406,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     return URL.createObjectURL(file);
   };
 
-  const quickPrompts = [
-    { icon: Target, text: "Set career goals", prompt: "Help me set clear and achievable career goals for the next 2 years" },
-    { icon: Rocket, text: "Resume review", prompt: "Please review my resume and suggest improvements" },
-    { icon: Brain, text: "Skill gaps", prompt: "What skills should I develop to advance in my career?" },
-    { icon: Star, text: "Interview prep", prompt: "Help me prepare for upcoming job interviews" },
-  ];
+  // Quick prompts for future feature
+  // const quickPrompts = [
+  //   { icon: Target, text: "Set career goals", prompt: "Help me set clear and achievable career goals for the next 2 years" },
+  //   { icon: Rocket, text: "Resume review", prompt: "Please review my resume and suggest improvements" },
+  //   { icon: Brain, text: "Skill gaps", prompt: "What skills should I develop to advance in my career?" },
+  //   { icon: Star, text: "Interview prep", prompt: "Help me prepare for upcoming job interviews" },
+  // ];
 
   return (
     <div className="bg-gradient-to-r from-white/90 via-blue-50/50 to-indigo-50/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border-t border-indigo-100/50 dark:border-slate-700">

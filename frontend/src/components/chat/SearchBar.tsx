@@ -17,11 +17,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelectSession }) => {
   
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const [showResults, setShowResults] = useState(false);
-  const [filters, setFilters] = useState({
-    dateRange: 'all', // all, today, week, month
-    messageType: 'all', // all, user, ai
-    hasFiles: false,
-  });
+  // Filters can be implemented later
+  // const [filters, setFilters] = useState({
+  //   dateRange: 'all',
+  //   messageType: 'all',
+  //   hasFiles: false,
+  // });
 
   // Debounced search
   useEffect(() => {
