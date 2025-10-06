@@ -338,7 +338,7 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onBack, onViewResults }) => {
                       if (typeof results === 'string') {
                         try {
                           results = JSON.parse(results);
-                        } catch (e) {
+                        } catch {
                           return null;
                         }
                       }

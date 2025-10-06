@@ -36,7 +36,7 @@ class PerformanceMonitor {
       
       try {
         lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-      } catch (e) {
+      } catch {
         // LCP not supported in this browser
       }
 
@@ -50,7 +50,7 @@ class PerformanceMonitor {
       
       try {
         fidObserver.observe({ type: 'first-input', buffered: true });
-      } catch (e) {
+      } catch {
         // FID not supported in this browser
       }
 
@@ -68,7 +68,7 @@ class PerformanceMonitor {
       
       try {
         clsObserver.observe({ type: 'layout-shift', buffered: true });
-      } catch (e) {
+      } catch {
         // CLS not supported in this browser
       }
     }

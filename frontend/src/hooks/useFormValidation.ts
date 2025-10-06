@@ -209,7 +209,7 @@ export const commonRules = {
   },
   phone: {
     required: true,
-    pattern: /^\+?[\d\s\-\(\)]+$/,
+    pattern: /^\+?[\d\s\-()]+$/,
   },
 };
 

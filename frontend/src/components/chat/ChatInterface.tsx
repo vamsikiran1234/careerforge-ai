@@ -8,7 +8,7 @@ import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { apiClient } from '@/lib/api-client';
-import { AlertCircle, Shield, X, Maximize2, Minimize2, GitBranch, Share2 } from 'lucide-react';
+import { AlertCircle, Shield, X, GitBranch } from 'lucide-react';
 import { CareerForgeAvatar } from '@/components/ui/CareerForgeAvatar';
 
 interface ChatResponse {
@@ -35,7 +35,6 @@ export const ChatInterface: React.FC = () => {
     loadSessions,
     createNewSession,
     loadSession,
-    endSession,
     deleteSession,
     clearError,
     loadMessageReactions,
@@ -46,7 +45,6 @@ export const ChatInterface: React.FC = () => {
     switchBranch,
     renameBranch,
     deleteBranch,
-    openBranchNavigator,
     closeBranchNavigator,
     showShareDialog,
     openShareDialog,
@@ -176,7 +174,7 @@ export const ChatInterface: React.FC = () => {
             e.preventDefault();
             handleNewSession();
             break;
-          case 'k':
+          case 'k': {
             e.preventDefault();
             // Focus search bar
             const searchInput = document.querySelector('input[placeholder*="search"]') as HTMLInputElement;
@@ -184,6 +182,7 @@ export const ChatInterface: React.FC = () => {
               searchInput.focus();
             }
             break;
+          }
           case 't':
             e.preventDefault();
             openTemplateSelector();

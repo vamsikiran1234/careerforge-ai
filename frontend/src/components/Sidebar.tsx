@@ -80,7 +80,7 @@ export const Sidebar: React.FC = () => {
       } else {
         setIsMentor(false);
       }
-    } catch (error) {
+    } catch {
       // If 404, user is not a mentor
       setIsMentor(false);
     }
