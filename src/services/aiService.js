@@ -1,9 +1,10 @@
 const config = require('../config');
 const { prisma } = require('../config/database');
 const { getRandomResponse } = require('./mockAI');
+const { chatWithAI, getAvailableModels } = require('./multiAiService');
 const Groq = require('groq-sdk');
 
-// Initialize Groq client
+// Initialize Groq client for backward compatibility
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 });
@@ -34,47 +35,25 @@ const aiService = {
         content: msg.content,
       }));
 
-      // Enhanced Career Chat System Prompt for Groq
-      const systemPrompt = `You are CareerForge AI, a senior career mentor with 15+ years of experience guiding B.Tech students and tech professionals. You provide personalized, actionable career guidance with industry expertise.
+      // Enhanced Career Chat System Prompt for Groq - Optimized for Token Limits
+      const systemPrompt = `You are CareerForge AI, a senior career mentor providing personalized guidance to tech professionals and students.
 
-## USER CONTEXT
-- Name: ${user.name}
-- Role: ${user.role}
-- Bio: ${user.bio || 'No bio provided'}
+USER: ${user.name} (${user.role}) - ${user.bio || 'No bio provided'}
 
-## CORE CAPABILITIES
-You excel in these areas:
-1. **Technical Career Paths**: Web Dev, Data Science, AI/ML, DevOps, Cybersecurity, Mobile
-2. **Non-Technical Transitions**: PM, BA, Consulting, Sales, Marketing
-3. **Skill Development**: Programming, frameworks, certifications, soft skills
-4. **Job Market Intelligence**: Current trends, salary ranges, growth prospects
-5. **Career Strategy**: Resume optimization, interview prep, networking
+EXPERTISE: Technical careers, skill development, job market insights, resume optimization, interview prep.
 
-## RESPONSE FRAMEWORK
-Structure your responses using this format:
+RESPONSE STYLE:
+- Professional yet approachable
+- Start with user's name
+- Provide 2-3 key insights with actionable steps
+- Include specific resources/recommendations
+- End with engaging follow-up question
+- Use clean formatting (no asterisks or markdown)
+- Keep responses 300-500 words
 
-**Personalized Opening**: Address user by name, acknowledge their context
-**Core Guidance**: 2-3 key insights with specific details
-**Actionable Steps**: Numbered list of immediate next steps (3-5 items)
-**Resources**: Specific courses, tools, or platforms when relevant
-**Follow-up**: Engaging question to continue the conversation
+BRANDING: When asked about development - "I'm CareerForge AI, developed by Vamsi Kiran to democratize career mentorship through AI technology."
 
-## GUIDELINES
-- **Conversational Tone**: Professional yet approachable
-- **Specificity**: Include numbers, percentages, salary ranges when relevant
-- **Actionability**: Every response should have clear next steps
-- **Personalization**: Reference user's name and context
-- **Current Information**: Use 2024-2025 market data and trends
-- **Length**: 300-500 words optimal, 600 words maximum
-
-## AVOID
-- Generic advice without personalization
-- Outdated frameworks or tools
-- Overly technical jargon without explanation
-- Discouraging language
-- Information without actionable steps
-
-Remember: You're not just providing information - you're mentoring their entire career journey with empathy and expertise.`;
+Focus on practical, personalized career advice with current market insights.`;
 
       // Prepare messages for Groq
       const messages = [
@@ -126,7 +105,7 @@ Remember: You're not just providing information - you're mentoring their entire 
     }
   },
 
-  // Legacy OpenAI implementation (kept for reference)
+  // Legacy function name kept for backward compatibility (now uses Groq)
   chatReplyOpenAI: async (userId, message, messageHistory = []) => {
     try {
       // Get user information for personalized responses
@@ -198,9 +177,9 @@ Remember: You're not just providing information - you're mentoring their entire 
         { role: 'user', content: message },
       ];
 
-      // Call OpenAI API
-      const response = await config.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      // Call Groq API
+      const response = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
         messages,
         max_tokens: 800,
         temperature: 0.7,
@@ -223,11 +202,11 @@ Remember: You're not just providing information - you're mentoring their entire 
       // Enhanced error handling with specific error types
       const { handleAIServiceError } = require('../middlewares/enhancedErrorHandling');
       
-      // Handle specific OpenAI errors - Use mock responses for quota/auth issues
+      // Handle specific Groq errors - Use mock responses for quota/auth issues
       if (error.code === 'insufficient_quota' || error.code === 'invalid_api_key' || error.code === 'model_not_found') {
-        console.log('OpenAI unavailable, using mock response for:', { userId, message: message.substring(0, 50) });
+        console.log('Groq API unavailable, using mock response for:', { userId, message: message.substring(0, 50) });
         const mockResponse = getRandomResponse('careerAdvice');
-        return `${mockResponse}\n\n*Note: This is a demo response as OpenAI is temporarily unavailable.*`;
+        return `${mockResponse}\n\n*Note: This is a demo response as the AI service is temporarily unavailable.*`;
       }
 
       if (error.code === 'rate_limit_exceeded') {
@@ -276,9 +255,15 @@ Remember: You're not just providing information - you're mentoring their entire 
 
   // Quiz AI Service - Enhanced implementation
   quizNext: async (sessionId, userAnswer) => {
+    // Declare variables outside try block so catch block can access them
+    let session = null;
+    let currentStage = 'SKILLS_ASSESSMENT'; // Default stage
+    let currentAnswers = {};
+    let nextStage = 'SKILLS_ASSESSMENT';
+    
     try {
       // Get quiz session with complete context
-      const session = await prisma.quizSession.findUnique({
+      session = await prisma.quizSession.findUnique({
         where: { id: sessionId },
         include: {
           user: {
@@ -300,8 +285,11 @@ Remember: You're not just providing information - you're mentoring their entire 
         throw new Error('Quiz session not found');
       }
 
-      const currentAnswers = session.answers || {};
-      const currentStage = session.currentStage;
+      // Parse answers from JSON string (stored as string in database)
+      currentAnswers = typeof session.answers === 'string' 
+        ? JSON.parse(session.answers || '{}')
+        : (session.answers || {});
+      currentStage = session.currentStage;
       const questionCount = session.quizQuestions.length;
 
       // Stage progression logic
@@ -334,7 +322,7 @@ Remember: You're not just providing information - you're mentoring their entire 
       const isCurrentStageComplete = currentStageAnswers.length >= questionsPerStage[currentStage];
 
       // Determine next stage or completion
-      let nextStage = currentStage;
+      nextStage = currentStage; // Update the outer variable
       if (isCurrentStageComplete && currentStageIndex < stageOrder.length - 1) {
         nextStage = stageOrder[currentStageIndex + 1];
       } else if (isCurrentStageComplete && currentStageIndex === stageOrder.length - 1) {
@@ -453,8 +441,8 @@ Create engaging, relevant questions that:
 
 Always return valid JSON. Ensure questions are clear, scenario-based, and options reveal different career inclinations.`;
 
-      const response = await config.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const response = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile', // Groq's recommended model (replaces decommissioned 3.1)
         messages: [
           { role: 'system', content: systemPrompt },
           { 
@@ -475,7 +463,7 @@ Always return valid JSON. Ensure questions are clear, scenario-based, and option
       await prisma.quizSession.update({
         where: { id: sessionId },
         data: {
-          answers: currentAnswers,
+          answers: JSON.stringify(currentAnswers), // Convert to JSON string for database
           currentStage: nextStage,
         },
       });
@@ -536,7 +524,7 @@ Always return valid JSON. Ensure questions are clear, scenario-based, and option
           await prisma.quizSession.update({
             where: { id: sessionId },
             data: {
-              answers: currentAnswers,
+              answers: JSON.stringify(currentAnswers), // Convert to JSON string for database
               currentStage: nextStage,
             },
           });
@@ -545,9 +533,9 @@ Always return valid JSON. Ensure questions are clear, scenario-based, and option
         return fallback;
       }
       
-      // Handle OpenAI quota/auth errors with mock responses
+      // Handle Groq quota/auth errors with mock responses
       if (error.code === 'insufficient_quota' || error.code === 'invalid_api_key' || error.code === 'model_not_found') {
-        console.log('OpenAI unavailable, using mock quiz response');
+        console.log('Groq API unavailable, using mock quiz response');
         const { getMockQuizQuestion } = require('./mockAI');
         return getMockQuizQuestion(currentStage);
       }
@@ -662,8 +650,8 @@ Respond with ONLY the domain name in uppercase (e.g., "WEB_DEVELOPMENT")
 
 Analyze keywords, technologies, context, and intent to classify into the most appropriate domain.`;
 
-      const response = await config.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const response = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Classify this question: "${question}"` },
@@ -723,8 +711,9 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
 
       const apiOptions = { ...defaultOptions, ...options };
 
-      const response = await config.openai.chat.completions.create({
+      const response = await groq.chat.completions.create({
         ...apiOptions,
+        model: apiOptions.model || 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
@@ -738,11 +727,11 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
     }
   },
 
-  // Validate OpenAI API key
+  // Validate Groq API key
   validateApiKey: async () => {
     try {
-      const response = await config.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const response = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: 'Hello' }],
         max_tokens: 5,
       });
@@ -751,6 +740,82 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
     } catch (error) {
       console.error('API Key Validation Error:', error);
       return false;
+    }
+  },
+
+  // Get available AI models
+  getAvailableAIModels: () => {
+    try {
+      return getAvailableModels();
+    } catch (error) {
+      console.error('Error getting available models:', error);
+      return [];
+    }
+  },
+
+  // Enhanced chat with model selection
+  chatWithMultipleProviders: async (userId, message, messageHistory = [], preferredModel = null) => {
+    try {
+      console.log('🚀 Starting multi-provider AI chat...');
+      
+      // Get user information for personalized responses
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          name: true,
+          email: true,
+          role: true,
+          bio: true,
+        },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Enhanced Career Chat System Prompt
+      const systemPrompt = `You are CareerForge AI, a senior career mentor providing personalized guidance to tech professionals and students.
+
+USER: ${user.name} (${user.role}) - ${user.bio || 'No bio provided'}
+
+EXPERTISE: Technical careers, skill development, job market insights, resume optimization, interview prep.
+
+RESPONSE STYLE:
+- Professional yet approachable
+- Start with user's name when appropriate
+- Provide 2-3 key insights with actionable steps
+- Include specific resources/recommendations when helpful
+- Use clean formatting (bullet points, numbered lists)
+- Keep responses focused and practical
+
+Respond helpfully to the user's career question.`;
+
+      // Determine task type for model selection
+      const taskType = message.length > 500 || message.includes('document') || message.includes('analyze') 
+        ? 'document' 
+        : 'general';
+
+      // Use multi-provider AI service
+      const aiResult = await chatWithAI(message, messageHistory, {
+        taskType,
+        preferredModel,
+        systemPrompt
+      });
+
+      console.log(`✅ AI response generated using ${aiResult.modelUsed}`);
+      return aiResult.response;
+
+    } catch (error) {
+      console.error('Multi-provider AI Error:', error);
+      
+      // Fallback to original Groq service
+      console.log('Falling back to original Groq service...');
+      try {
+        return await aiService.chatReply(userId, message, messageHistory);
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        throw new Error('All AI services are currently unavailable. Please try again later.');
+      }
     }
   },
 };

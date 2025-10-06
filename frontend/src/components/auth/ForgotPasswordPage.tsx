@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { LogoSimple } from '@/components/ui/Logo';
 import { isValidEmail } from '@/utils';
 import { apiClient } from '@/lib/api-client';
 import { ArrowLeft, Mail, CheckCircle, AlertCircle } from 'lucide-react';
@@ -164,8 +165,8 @@ export const ForgotPasswordPage: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-primary-600">
-            <span className="text-lg font-bold text-white">CF</span>
+          <div className="flex justify-center">
+            <LogoSimple size={48} />
           </div>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
             Forgot your password?

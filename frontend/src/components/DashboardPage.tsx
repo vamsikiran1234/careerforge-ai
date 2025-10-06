@@ -101,10 +101,10 @@ export const DashboardPage: React.FC = () => {
       
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Welcome back, {user?.name}! 👋
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
           Ready to advance your career? Choose from the options below to get started.
         </p>
       </div>
@@ -115,12 +115,12 @@ export const DashboardPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <MessageSquare className="h-8 w-8 text-blue-600" />
+                <MessageSquare className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Chat Sessions</p>
-                <p className="text-2xl font-semibold text-gray-900">12</p>
-                <p className="text-xs text-green-600 flex items-center">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Chat Sessions</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">12</p>
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   +3 this week
                 </p>
@@ -133,12 +133,12 @@ export const DashboardPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <BookOpen className="h-8 w-8 text-green-600" />
+                <BookOpen className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Quizzes Taken</p>
-                <p className="text-2xl font-semibold text-gray-900">5</p>
-                <p className="text-xs text-green-600 flex items-center">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Quizzes Taken</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">5</p>
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   +2 this week
                 </p>
@@ -151,12 +151,12 @@ export const DashboardPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Users className="h-8 w-8 text-purple-600" />
+                <Users className="h-8 w-8 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Mentor Connections</p>
-                <p className="text-2xl font-semibold text-gray-900">2</p>
-                <p className="text-xs text-blue-600 flex items-center">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Mentor Connections</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">2</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
                   1 upcoming meeting
                 </p>
@@ -169,12 +169,12 @@ export const DashboardPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <BarChart3 className="h-8 w-8 text-orange-600" />
+                <BarChart3 className="h-8 w-8 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Progress Score</p>
-                <p className="text-2xl font-semibold text-gray-900">78%</p>
-                <p className="text-xs text-green-600">Excellent progress!</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Progress Score</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">78%</p>
+                <p className="text-xs text-green-600 dark:text-green-400">Excellent progress!</p>
               </div>
             </div>
           </CardContent>
@@ -248,12 +248,12 @@ export const DashboardPage: React.FC = () => {
               {careerInterests.map((interest, index) => (
                 <div key={index} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">{interest.name}</span>
-                    <span className="text-sm text-gray-500">{interest.value}%</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{interest.name}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{interest.value}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${interest.value}%` }}
                     />
                   </div>
@@ -276,25 +276,25 @@ export const DashboardPage: React.FC = () => {
                 return (
                   <div key={index} className="flex items-start space-x-3">
                     <div className={`p-2 rounded-full ${
-                      achievement.completed ? 'bg-green-100' : 'bg-gray-100'
+                      achievement.completed ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700'
                     }`}>
                       <IconComponent className={`h-4 w-4 ${
-                        achievement.completed ? 'text-green-600' : 'text-gray-400'
+                        achievement.completed ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
                       }`} />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-sm font-medium text-gray-900">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                         {achievement.title}
                       </h4>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {achievement.description}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                         {achievement.date}
                       </p>
                     </div>
                     {achievement.completed && (
-                      <div className="text-green-500">
+                      <div className="text-green-500 dark:text-green-400">
                         <Award className="h-4 w-4" />
                       </div>
                     )}
@@ -321,7 +321,7 @@ export const DashboardPage: React.FC = () => {
                     </div>
                     <div className="ml-3">
                       <CardTitle className="text-lg">{feature.title}</CardTitle>
-                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-1 rounded-full">
                         Coming Soon
                       </span>
                     </div>
@@ -344,7 +344,7 @@ export const DashboardPage: React.FC = () => {
                     </div>
                     <div className="ml-3">
                       <CardTitle className="text-lg">{feature.title}</CardTitle>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 px-2 py-1 rounded-full">
                         Available
                       </span>
                     </div>
@@ -353,7 +353,7 @@ export const DashboardPage: React.FC = () => {
                 <CardContent>
                   <CardDescription>{feature.description}</CardDescription>
                   <div className="mt-4">
-                    <span className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
                       Get Started →
                     </span>
                   </div>
@@ -375,29 +375,29 @@ export const DashboardPage: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">1. Start with AI Chat</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">1. Start with AI Chat</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Begin your journey by chatting with our AI assistant. Ask about career paths, 
                 skill development, or any career-related questions.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">2. Take Career Assessments</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">2. Take Career Assessments</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Complete our adaptive quizzes to discover your strengths, interests, 
                 and ideal career paths based on your profile.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">3. Connect with Mentors</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">3. Connect with Mentors</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Find and connect with industry professionals who can guide you 
                 through your career development journey.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">4. Track Your Progress</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">4. Track Your Progress</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Monitor your learning progress, completed assessments, and mentor 
                 interactions all from your dashboard.
               </p>

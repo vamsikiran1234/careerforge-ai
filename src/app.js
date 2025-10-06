@@ -10,9 +10,18 @@ const { errorHandler, notFound } = require('./middlewares/errorMiddleware');
 // Import routes
 const chatRoutes = require('./routes/chatRoutes');
 const quizRoutes = require('./routes/quizRoutes');
-const mentorRoutes = require('./routes/mentorRoutes');
+// const mentorRoutes = require('./routes/mentorRoutes'); // OLD SYSTEM - REMOVED
+const mentorshipRoutes = require('./routes/mentorshipRoutes'); // NEW MENTORSHIP PLATFORM
+const mentorChatRoutes = require('./routes/mentorChatRoutes'); // MENTOR CHAT SYSTEM (Phase 3)
+const mentorSessionRoutes = require('./routes/mentorSessionRoutes'); // MENTOR SESSION BOOKING (Phase 4)
+const reviewRoutes = require('./routes/reviewRoutes'); // MENTOR REVIEW SYSTEM (Phase 5)
+const notificationRoutes = require('./routes/notificationRoutes'); // NOTIFICATION SYSTEM (Phase 6)
+const analyticsRoutes = require('./routes/analyticsRoutes'); // ANALYTICS SYSTEM (Phase 7)
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
+const reactionRoutes = require('./routes/reactionRoutes');
+const shareRoutes = require('./routes/shareRoutes');
+const testRoutes = require('./routes/testRoutes');
 
 const app = express();
 
@@ -59,7 +68,16 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/quiz', quizRoutes);
-app.use('/api/v1/mentors', mentorRoutes);
+// app.use('/api/v1/mentors', mentorRoutes); // OLD SYSTEM - REMOVED (will be replaced with new system)
+app.use('/api/v1/mentorship', mentorshipRoutes); // NEW MENTORSHIP PLATFORM
+app.use('/api/v1/mentor-chat', mentorChatRoutes); // MENTOR CHAT SYSTEM (Phase 3)
+app.use('/api/v1/sessions', mentorSessionRoutes); // MENTOR SESSION BOOKING (Phase 4)
+app.use('/api/v1/reviews', reviewRoutes); // MENTOR REVIEW SYSTEM (Phase 5)
+app.use('/api/v1/notifications', notificationRoutes); // NOTIFICATION SYSTEM (Phase 6)
+app.use('/api/v1/analytics', analyticsRoutes); // ANALYTICS SYSTEM (Phase 7)
+app.use('/api/v1/reactions', reactionRoutes);
+app.use('/api/v1/share', shareRoutes);
+app.use('/api/v1/test', testRoutes);
 
 // API Documentation routes
 const docsRoutes = require('./routes/docsRoutes');

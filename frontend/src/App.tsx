@@ -2,6 +2,7 @@ import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
+import { useChatStore } from '@/store/chat';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { RegisterPage } from '@/components/auth/RegisterPage';
@@ -12,12 +13,38 @@ import EnvDebugPage from '@/components/debug/EnvDebugPage';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { LoadingPage } from '@/components/ui/Loading';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { RoleProvider } from '@/contexts/RoleContext';
+import { MentorPortalLayout } from '@/layouts/MentorPortalLayout';
+import { ProtectedMentorRoute } from '@/components/ProtectedMentorRoute';
 
 // Lazy load components for better performance
 const DashboardPage = React.lazy(() => import('@/components/DashboardPage').then(module => ({ default: module.DashboardPage })));
 const ChatPage = React.lazy(() => import('./components/chat/ChatPage').then(module => ({ default: module.ChatPage })));
+const ChatList = React.lazy(() => import('./components/chat/ChatList').then(module => ({ default: module.ChatList })));
 const QuizPageComponent = React.lazy(() => import('./components/quiz/QuizPage'));
 const MentorsPage = React.lazy(() => import('./components/mentors/MentorsPage').then(module => ({ default: module.MentorsPage })));
+const MentorRegistrationPage = React.lazy(() => import('./components/mentorship/MentorRegistrationPage').then(module => ({ default: module.MentorRegistrationPage })));
+const MentorVerificationPage = React.lazy(() => import('./components/mentorship/MentorVerificationPage').then(module => ({ default: module.MentorVerificationPage })));
+const MyConnections = React.lazy(() => import('./components/connections/MyConnections').then(module => ({ default: module.MyConnections })));
+const MentorConnections = React.lazy(() => import('./components/connections/MentorConnections').then(module => ({ default: module.MentorConnections })));
+const MySessionsPage = React.lazy(() => import('./components/sessions/MySessionsPage').then(module => ({ default: module.default })));
+const SessionBooking = React.lazy(() => import('./components/sessions/SessionBooking').then(module => ({ default: module.default })));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
+const SharedConversationView = React.lazy(() => import('./components/chat/SharedConversationView'));
+
+// Admin Components
+const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
+const AdminMentorVerification = React.lazy(() => import('./components/admin/AdminMentorVerification').then(module => ({ default: module.AdminMentorVerification })));
+
+// Mentor Portal Components
+const MentorDashboard = React.lazy(() => import('./pages/mentor/MentorDashboard').then(module => ({ default: module.MentorDashboard })));
+const MentorMentees = React.lazy(() => import('./pages/mentor/MentorMentees').then(module => ({ default: module.MentorMentees })));
+const MentorSessions = React.lazy(() => import('./pages/mentor/MentorSessions').then(module => ({ default: module.MentorSessions })));
+const MentorAvailability = React.lazy(() => import('./pages/mentor/MentorAvailability').then(module => ({ default: module.MentorAvailability })));
+const MentorEarnings = React.lazy(() => import('./pages/mentor/MentorEarnings').then(module => ({ default: module.MentorEarnings })));
+const MentorProfile = React.lazy(() => import('./pages/mentor/MentorProfile').then(module => ({ default: module.MentorProfile })));
+
 
 // Create a client
 const queryClient = new QueryClient({
@@ -64,12 +91,29 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
 };
 
 function App() {
-  const { checkAuth, isLoading } = useAuthStore();
+  const { checkAuth, isLoading, token } = useAuthStore();
+  const { clearAllSessions } = useChatStore();
 
   useEffect(() => {
-    // Check if user is authenticated on app start
-    checkAuth();
-  }, [checkAuth]);
+    // Only check auth if we have a token in localStorage
+    const hasStoredToken = !!token;
+    if (hasStoredToken) {
+      checkAuth();
+    }
+
+    // Expose clear function globally for easy access in console
+    if (typeof window !== 'undefined') {
+      (window as any).__clearChatStorage = () => {
+        clearAllSessions();
+        console.log('✅ Chat storage cleared!');
+        console.log('🔄 Reloading page...');
+        window.location.reload();
+      };
+      
+      console.log('💡 CareerForge AI Developer Tools:');
+      console.log('   Run: __clearChatStorage()  - to clear all chat data');
+    }
+  }, [checkAuth, clearAllSessions]);
 
   if (isLoading) {
     return <LoadingPage message="Initializing CareerForge AI..." />;
@@ -77,11 +121,13 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ErrorBoundary>
-          <Router>
-            <div className="App">
-              <Routes>
+      <ThemeProvider>
+        <ToastProvider>
+          <ErrorBoundary>
+            <Router>
+              <RoleProvider>
+                <div className="App">
+                  <Routes>
                 {/* Public Routes */}
                 <Route
                   path="/login"
@@ -123,6 +169,16 @@ function App() {
                   path="/debug-env"
                   element={<EnvDebugPage />}
                 />
+                
+                {/* Public mentor verification route */}
+                <Route
+                  path="/mentorship/verify/:token"
+                  element={
+                    <Suspense fallback={<LoadingPage message="Verifying email..." />}>
+                      <MentorVerificationPage />
+                    </Suspense>
+                  }
+                />
 
                 {/* Protected Routes */}
                 <Route path="/" element={<ProtectedRoute />}>
@@ -158,16 +214,169 @@ function App() {
                       </Suspense>
                     } 
                   />
+                  <Route 
+                    path="connections" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Connections..." />}>
+                        <MyConnections />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="messages" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Messages..." />}>
+                        <ChatList />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="messages/:connectionId" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Messages..." />}>
+                        <ChatList />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="sessions" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Sessions..." />}>
+                        <MySessionsPage />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="sessions/book/:mentorId" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Booking..." />}>
+                        <SessionBooking />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="mentorship/register" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Registration..." />}>
+                        <MentorRegistrationPage />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="settings" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Settings..." />}>
+                        <SettingsPage />
+                      </Suspense>
+                    } 
+                  />
+                  
+                  {/* Admin Routes */}
+                  <Route 
+                    path="admin" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Admin..." />}>
+                        <AdminDashboard />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="admin/mentors" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Mentor Verification..." />}>
+                        <AdminMentorVerification />
+                      </Suspense>
+                    } 
+                  />
+                  
                   <Route index element={<Navigate to="/dashboard" replace />} />
                 </Route>
+                
+                {/* Mentor Portal Routes - Protected with ProtectedMentorRoute */}
+                <Route element={<ProtectedMentorRoute />}>
+                  <Route element={<MentorPortalLayout />}>
+                    <Route 
+                      path="mentor" 
+                      element={<Navigate to="/mentor/dashboard" replace />} 
+                    />
+                    <Route 
+                      path="mentor/dashboard" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Mentor Dashboard..." />}>
+                          <MentorDashboard />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="mentor/connections" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Connections..." />}>
+                          <MentorConnections />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="mentor/mentees" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Mentees..." />}>
+                          <MentorMentees />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="mentor/sessions" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Sessions..." />}>
+                          <MentorSessions />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="mentor/availability" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Availability..." />}>
+                          <MentorAvailability />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="mentor/earnings" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Earnings..." />}>
+                          <MentorEarnings />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="mentor/profile" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Profile..." />}>
+                          <MentorProfile />
+                        </Suspense>
+                      } 
+                    />
+                  </Route>
+                </Route>
+                
+                {/* Public shared conversation route - no authentication required */}
+                <Route 
+                  path="/share/:shareCode" 
+                  element={
+                    <Suspense fallback={<LoadingPage message="Loading shared conversation..." />}>
+                      <SharedConversationView />
+                    </Suspense>
+                  } 
+                />
                 
                 {/* Catch-all route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </div>
+          </RoleProvider>
           </Router>
         </ErrorBoundary>
       </ToastProvider>
+    </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -221,6 +221,74 @@ The CareerForge AI Team
       throw error;
     }
   }
+
+  async sendMentorVerificationEmail(email, verificationToken, userName) {
+    try {
+      if (!this.isReady) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentorship/verify/${verificationToken}`;
+      
+      const mailOptions = {
+        from: process.env.EMAIL_FROM || 'CareerForge AI <noreply@careerforge.ai>',
+        to: email,
+        subject: 'Verify Your Mentor Profile - CareerForge AI',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">🎓 Welcome to CareerForge Mentorship!</h2>
+            <p>Hi ${userName},</p>
+            <p>Thank you for registering as a mentor. Please verify your email to activate your profile.</p>
+            <div style="margin: 30px 0;">
+              <a href="${verificationUrl}" 
+                 style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                ✓ Verify Email Address
+              </a>
+            </div>
+            <p style="color: #666; font-size: 14px;">
+              ⏰ This link expires in 24 hours<br/>
+              📝 After verification, admin will review your profile<br/>
+              🔔 You'll be notified once approved
+            </p>
+            <p style="color: #999; font-size: 12px;">
+              Link: <a href="${verificationUrl}">${verificationUrl}</a>
+            </p>
+          </div>
+        `,
+        text: `
+Hi ${userName}!
+
+Thank you for registering as a mentor on CareerForge AI.
+
+Verify your email: ${verificationUrl}
+
+This link expires in 24 hours.
+After verification, your profile will be reviewed by admin.
+
+Best regards,
+CareerForge AI Team
+        `,
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      
+      console.log('📧 Mentor verification email sent successfully');
+      console.log(`   To: ${email}`);
+      console.log(`   🔗 Verification URL: ${verificationUrl}`);
+      console.log(`   Message ID: ${info.messageId}`);
+      
+      return {
+        success: true,
+        messageId: info.messageId,
+        verificationUrl,
+      };
+      
+    } catch (error) {
+      console.error('❌ Error sending mentor verification email:', error);
+      console.error('   For development, use this URL:', `${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentorship/verify/${verificationToken}`);
+      throw error;
+    }
+  }
 }
 
 module.exports = new EmailService();

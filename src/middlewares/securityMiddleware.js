@@ -187,7 +187,7 @@ const suspiciousRequestDetection = () => {
     /<script[^>]*>.*?<\/script>/gi, // Script tags
     /javascript:/gi, // JavaScript protocol
     /on\w+\s*=/gi, // Event handlers
-    /\b(union|select|insert|delete|drop|create|alter)\b/gi, // SQL keywords
+    // Removed SQL keywords as they're common in legitimate career discussions
     /\.\.\//g, // Directory traversal
     /%00/g, // Null bytes
     /<iframe[^>]*>/gi, // Iframe tags

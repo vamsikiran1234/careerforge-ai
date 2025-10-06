@@ -12,6 +12,8 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
+  roles: string[]; // Changed from role?: string to roles: string[]
+  bio?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -115,13 +117,36 @@ export interface MentorSession {
   id: string;
   mentorId: string;
   userId: string;
+  studentId: string;
   scheduledAt: string;
   duration: number; // in minutes
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  sessionType: 'VIDEO' | 'VOICE' | 'IN_PERSON';
+  title: string;
+  description?: string;
+  timezone: string;
+  meetingLink?: string;
+  meetingRoom?: string;
+  agendaNotes?: string;
+  sessionNotes?: string;
+  startedAt?: string;
+  endedAt?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
   topic: string;
   notes?: string;
   rating?: number;
   review?: string;
+  mentor?: {
+    id: string;
+    userId: string;
+    company: string;
+    jobTitle: string;
+    user: {
+      name: string;
+      email: string;
+    };
+  };
 }
 
 // Dashboard Types

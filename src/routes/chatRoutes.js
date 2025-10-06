@@ -5,6 +5,7 @@ const { validateId, validateRequestSize } = require('../middlewares/enhancedVali
 const { rateLimiters, preventConcurrentOperations, suspiciousRequestDetection } = require('../middlewares/securityMiddleware');
 const { asyncHandler } = require('../middlewares/enhancedErrorHandling');
 const { authenticateToken } = require('../middlewares/authMiddleware');
+const { upload } = require('../services/fileService');
 
 const router = express.Router();
 
@@ -38,6 +39,24 @@ router.get('/session/:sessionId',
 router.put('/session/:sessionId/end', 
   validateId('sessionId'),
   asyncHandler(chatController.endSession)
+);
+
+// DELETE /api/v1/chat/session/:sessionId - Delete a chat session
+router.delete('/session/:sessionId', 
+  validateId('sessionId'),
+  asyncHandler(chatController.deleteSession)
+);
+
+// POST /api/v1/chat/upload - Upload files and analyze with AI
+router.post('/upload',
+  upload.array('files', 5), // Allow up to 5 files
+  preventConcurrentOperations('upload'),
+  asyncHandler(chatController.uploadAndAnalyze)
+);
+
+// GET /api/v1/chat/models - Get available AI models
+router.get('/models',
+  asyncHandler(chatController.getAvailableModels)
 );
 
 module.exports = router;

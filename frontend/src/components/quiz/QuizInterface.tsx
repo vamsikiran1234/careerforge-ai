@@ -100,6 +100,18 @@ const QuizInterface: React.FC<QuizInterfaceProps> = ({ onComplete }) => {
 
   const { question, progress, currentStage } = currentSession;
 
+  // If there's no question yet, show loading or prompt to generate one
+  if (!question) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Card className="p-8 text-center space-y-4">
+          <LoadingSpinner size="lg" />
+          <p className="text-gray-600">Loading your next question...</p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -142,7 +154,7 @@ const QuizInterface: React.FC<QuizInterfaceProps> = ({ onComplete }) => {
               <Clock className="w-4 h-4" />
               <span>Question {progress.currentStage} of {progress.totalStages}</span>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 leading-relaxed">
+            <h2 className="text-xl font-semibold text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
               {question.text}
             </h2>
           </div>
