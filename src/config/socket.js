@@ -39,6 +39,7 @@ const initializeSocket = (server) => {
 
   // Connection Handler
   io.on('connection', (socket) => {
+    // eslint-disable-next-line no-console
     console.log(`✅ User connected: ${socket.userId}`);
 
     // Join user's personal room (for targeted messages)
@@ -49,6 +50,7 @@ const initializeSocket = (server) => {
       try {
         // TODO: Verify user has access to this room (check MentorConnection)
         socket.join(`room:${roomId}`);
+        // eslint-disable-next-line no-console
         console.log(`📥 User ${socket.userId} joined room ${roomId}`);
         
         // Notify others in the room
@@ -64,6 +66,7 @@ const initializeSocket = (server) => {
     // Leave Chat Room
     socket.on('leave-room', (roomId) => {
       socket.leave(`room:${roomId}`);
+      // eslint-disable-next-line no-console
       console.log(`📤 User ${socket.userId} left room ${roomId}`);
       
       // Notify others in the room
@@ -90,6 +93,7 @@ const initializeSocket = (server) => {
           createdAt: new Date().toISOString(),
         });
         
+        // eslint-disable-next-line no-console
         console.log(`💬 Message sent in room ${roomId} by user ${socket.userId}`);
       } catch (error) {
         socket.emit('error', { message: 'Failed to send message' });
@@ -125,6 +129,7 @@ const initializeSocket = (server) => {
 
     // Disconnect Handler
     socket.on('disconnect', () => {
+      // eslint-disable-next-line no-console
       console.log(`❌ User disconnected: ${socket.userId}`);
     });
   });
