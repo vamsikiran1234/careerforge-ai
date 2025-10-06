@@ -92,7 +92,7 @@ describe('Quiz API Endpoints', () => {
       expect(response.body.message).toBe('User not found');
     });
 
-    test('should return 400 if active session exists', async () => {
+    test('should return 200 and resume if active session exists', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'user123',
         name: 'John Doe',
@@ -101,18 +101,26 @@ describe('Quiz API Endpoints', () => {
       mockPrisma.quizSession.findFirst.mockResolvedValue({
         id: 'existing-quiz',
         userId: 'user123',
-        currentStage: 'CAREER_INTERESTS',
+        currentStage: 'INTEREST_ANALYSIS',
         completedAt: null,
+        quizQuestions: [
+          {
+            id: 'q1',
+            questionText: 'What interests you most?',
+            options: JSON.stringify(['Option A', 'Option B']),
+            stage: 'INTEREST_ANALYSIS',
+          },
+        ],
       });
 
       const response = await request(app)
         .post('/api/v1/quiz/start')
         .send(validStartRequest)
-        .expect(400);
+        .expect(200);
 
-      expect(response.body.status).toBe('error');
-      expect(response.body.message).toContain('already have an active quiz session');
-      expect(response.body.data.existingSessionId).toBe('existing-quiz');
+      expect(response.body.status).toBe('success');
+      expect(response.body.message).toContain('Resuming existing quiz session');
+      expect(response.body.data.sessionId).toBe('existing-quiz');
     });
 
     test('should return 400 for missing userId', async () => {

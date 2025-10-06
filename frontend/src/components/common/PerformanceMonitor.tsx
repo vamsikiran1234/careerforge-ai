@@ -172,8 +172,8 @@ export const PerformanceDebugger: React.FC = () => {
   const metrics = getMetrics();
 
   return (
-    <div className="fixed bottom-4 right-4 bg-black bg-opacity-80 text-white p-3 rounded text-xs font-mono z-50">
-      <div className="font-bold mb-2">Performance Metrics</div>
+    <div className="fixed z-50 p-3 font-mono text-xs text-white bg-black rounded bottom-4 right-4 bg-opacity-80">
+      <div className="mb-2 font-bold">Performance Metrics</div>
       {metrics.fcp && <div>FCP: {metrics.fcp.toFixed(1)}ms</div>}
       {metrics.lcp && <div>LCP: {metrics.lcp.toFixed(1)}ms</div>}
       {metrics.fid && <div>FID: {metrics.fid.toFixed(1)}ms</div>}
