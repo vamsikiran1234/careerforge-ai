@@ -70,9 +70,7 @@ const quizController = {
           });
         }
       
-        // Parse answers to calculate progress
-        const answers = JSON.parse(existingSession.answers || '{}');
-        const answeredCount = Object.keys(answers).length;
+        // Calculate progress based on current stage
         const stageOrder = ['SKILLS_ASSESSMENT', 'INTEREST_ANALYSIS', 'PERSONALITY_TEST', 'VALUES_ALIGNMENT', 'CAREER_MATCHING'];
         const currentStageIndex = stageOrder.indexOf(existingSession.currentStage);
         const percentage = Math.round(((currentStageIndex) / stageOrder.length) * 100);
@@ -215,11 +213,9 @@ const quizController = {
     // Get next question or recommendations from AI
     const nextStep = await aiService.quizNext(session.id, answer);
 
-    let updatedSession;
-
     if (nextStep.isComplete) {
       // Quiz is complete, save final results - store as JSON strings
-      updatedSession = await prisma.quizSession.update({
+      await prisma.quizSession.update({
         where: { id: quizId },
         data: {
           answers: JSON.stringify(currentAnswers),
@@ -262,7 +258,7 @@ const quizController = {
       });
 
       // Update session - store answers as JSON string
-      updatedSession = await prisma.quizSession.update({
+      await prisma.quizSession.update({
         where: { id: quizId },
         data: {
           answers: JSON.stringify(currentAnswers),

@@ -608,12 +608,10 @@ const mentorController = {
   findMentorMatches: asyncHandler(async (req, res) => {
     const {
       skills = [],
-      careerGoal,
       experienceLevel,
       domain,
       budget,
-      location,
-      learningStyle
+      location
     } = req.body;
 
     // Validate required fields

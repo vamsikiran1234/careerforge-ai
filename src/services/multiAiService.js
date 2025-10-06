@@ -147,18 +147,16 @@ const makeGroqRequest = async (modelId, messages, systemPrompt) => {
 /**
  * Make AI request using OpenRouter (future implementation)
  */
-const makeOpenRouterRequest = async (modelId, messages, systemPrompt) => {
-  // TODO: Implement OpenRouter API calls
-  throw new Error('OpenRouter provider not yet implemented');
-};
+// const makeOpenRouterRequest = async (modelId, messages, systemPrompt) => {
+//   // TODO: Implement OpenRouter API calls
+//   throw new Error('OpenRouter provider not yet implemented');
+// };
 
 /**
  * Generic AI chat function with automatic model selection
  */
 const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
   const {
-    taskType = 'general',
-    preferredModel = null,
     systemPrompt = 'You are a helpful AI assistant.'
   } = options;
   
@@ -195,8 +193,8 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
           response = await makeGroqRequest(selectedModel.id, messages, systemPrompt);
           break;
         case 'openrouter':
-          response = await makeOpenRouterRequest(selectedModel.id, messages, systemPrompt);
-          break;
+          // OpenRouter not yet implemented, skip to next model
+          throw new Error('OpenRouter provider not yet implemented');
         default:
           throw new Error(`Unsupported provider: ${selectedModel.provider}`);
       }
