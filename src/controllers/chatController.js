@@ -4,12 +4,18 @@ const aiService = require('../services/aiService');
 const { processUploadedFiles, createFileContext } = require('../services/fileService');
 const { generateTitleFromMessage } = require('../utils/titleGenerator');
 
+// Constants
+const HTTP_STATUS_OK = 200;
+const HTTP_STATUS_NOT_FOUND = 404;
+const HTTP_STATUS_ERROR = 500;
+
 const chatController = {
   // POST /api/v1/chat
   createChatSession: asyncHandler(async (req, res) => {
     const { message, sessionId } = req.body; // Accept sessionId from frontend
     const userEmail = req.user.email || req.user.userEmail; // Get email from JWT
 
+    // eslint-disable-next-line no-console
     console.log('Chat request - User:', req.user, 'Email:', userEmail, 'SessionId:', sessionId);
 
     // Find user by email since in-memory auth uses different ID format
@@ -18,17 +24,19 @@ const chatController = {
     });
 
     if (!user) {
-      return res.status(404).json(
+      return res.status(HTTP_STATUS_NOT_FOUND).json(
         createResponse('error', 'User not found in database')
       );
     }
 
+    // eslint-disable-next-line no-console
     console.log('Found user in database:', user.id);
 
     let session = null;
     
     // If sessionId is provided, try to find that specific session
     if (sessionId && !sessionId.startsWith('temp-')) {
+      // eslint-disable-next-line no-console
       console.log('Looking for specific session:', sessionId);
       session = await prisma.careerSession.findFirst({
         where: {
@@ -36,11 +44,13 @@ const chatController = {
           userId: user.id,
         },
       });
+      // eslint-disable-next-line no-console
       console.log('Found specific session:', session?.id);
     }
     
     // If no specific session found, create a new one
     if (!session) {
+      // eslint-disable-next-line no-console
       console.log('Creating new session for user:', user.id);
       
       // Generate intelligent title from the first message
@@ -53,6 +63,7 @@ const chatController = {
           messages: JSON.stringify([]),
         },
       });
+      // eslint-disable-next-line no-console
       console.log('Created new session:', session.id, 'with title:', smartTitle);
     }
 
@@ -106,7 +117,7 @@ const chatController = {
       },
     });
 
-    res.status(200).json(
+    return res.status(HTTP_STATUS_OK).json(
       createResponse('success', 'Chat message processed successfully', {
         sessionId: updatedSession.id,
         title: updatedSession.title, // Include the session title
@@ -127,7 +138,7 @@ const chatController = {
     });
 
     if (!user) {
-      return res.status(404).json(
+      return res.status(HTTP_STATUS_NOT_FOUND).json(
         createResponse('error', 'User not found in database')
       );
     }
@@ -151,7 +162,7 @@ const chatController = {
       messages: JSON.parse(session.messages || '[]'),
     }));
 
-    res.status(200).json(
+    return res.status(HTTP_STATUS_OK).json(
       createResponse('success', 'User sessions retrieved successfully', {
         sessions: parsedSessions,
         totalSessions: parsedSessions.length,
@@ -177,12 +188,12 @@ const chatController = {
     });
 
     if (!session) {
-      return res.status(404).json(
+      return res.status(HTTP_STATUS_NOT_FOUND).json(
         createResponse('error', 'Session not found')
       );
     }
 
-    res.status(200).json(
+    return res.status(HTTP_STATUS_OK).json(
       createResponse('success', 'Session messages retrieved successfully', {
         session: {
           id: session.id,
@@ -207,7 +218,7 @@ const chatController = {
       },
     });
 
-    res.status(200).json(
+    return res.status(HTTP_STATUS_OK).json(
       createResponse('success', 'Session ended successfully', {
         sessionId: session.id,
         endedAt: session.endedAt,
@@ -220,6 +231,7 @@ const chatController = {
     const { sessionId } = req.params;
     const userEmail = req.user.email || req.user.userEmail;
 
+    // eslint-disable-next-line no-console
     console.log('Delete session request:', { sessionId, userEmail });
 
     // Find user by email
@@ -228,7 +240,7 @@ const chatController = {
     });
 
     if (!user) {
-      return res.status(404).json(
+      return res.status(HTTP_STATUS_NOT_FOUND).json(
         createResponse('error', 'User not found in database')
       );
     }
@@ -242,7 +254,7 @@ const chatController = {
     });
 
     if (!session) {
-      return res.status(404).json(
+      return res.status(HTTP_STATUS_NOT_FOUND).json(
         createResponse('error', 'Session not found or you do not have permission to delete it')
       );
     }
@@ -252,9 +264,10 @@ const chatController = {
       where: { id: sessionId },
     });
 
+    // eslint-disable-next-line no-console
     console.log('Session deleted successfully:', sessionId);
 
-    res.status(200).json(
+    return res.status(HTTP_STATUS_OK).json(
       createResponse('success', 'Session deleted successfully', {
         sessionId: sessionId,
       })
@@ -267,6 +280,7 @@ const chatController = {
     const files = req.files;
     const userEmail = req.user.email || req.user.userEmail;
 
+    // eslint-disable-next-line no-console
     console.log('File upload request - User:', userEmail, 'Files:', files?.length || 0, 'SessionId:', sessionId);
 
     if (!files || files.length === 0) {
@@ -281,7 +295,7 @@ const chatController = {
     });
 
     if (!user) {
-      return res.status(404).json(
+      return res.status(HTTP_STATUS_NOT_FOUND).json(
         createResponse('error', 'User not found in database')
       );
     }
@@ -385,7 +399,7 @@ const chatController = {
       },
     });
 
-    res.status(200).json(
+    return res.status(HTTP_STATUS_OK).json(
       createResponse('success', 'Files uploaded and analyzed successfully', {
         sessionId: updatedSession.id,
         reply: aiReply,
@@ -406,7 +420,7 @@ const chatController = {
     try {
       const models = aiService.getAvailableAIModels();
       
-      res.status(200).json(
+      return res.status(HTTP_STATUS_OK).json(
         createResponse('success', 'Available AI models retrieved successfully', {
           models: models,
           count: models.length,
@@ -414,8 +428,9 @@ const chatController = {
         })
       );
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Get models error:', error);
-      res.status(500).json(
+      return res.status(HTTP_STATUS_ERROR).json(
         createResponse('error', 'Failed to retrieve available models')
       );
     }
