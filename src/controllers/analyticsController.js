@@ -4,7 +4,11 @@ const prisma = new PrismaClient();
 // Constants
 const DAYS_IN_ANALYTICS_PERIOD = 30; // Days to look back for growth metrics
 const HTTP_STATUS_OK = 200;
+const HTTP_STATUS_ERROR = 500;
 const PERCENTAGE_MULTIPLIER = 100;
+const DEFAULT_RESULT_LIMIT = 10;
+const MILLISECONDS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
 
 /**
  * Get platform overview statistics
@@ -131,7 +135,7 @@ const getPlatformStats = async (req, res) => {
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching platform stats:', error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       message: 'Failed to fetch platform statistics',
       error: error.message
@@ -146,7 +150,7 @@ const getPlatformStats = async (req, res) => {
  */
 const getMentorStats = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || DEFAULT_RESULT_LIMIT;
 
     // Top rated mentors
     const topRatedMentors = await prisma.mentorProfile.findMany({
@@ -211,7 +215,7 @@ const getMentorStats = async (req, res) => {
     // Sort expertise by count
     const topExpertiseAreas = Object.entries(expertiseDistribution)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 10)
+      .slice(0, DEFAULT_RESULT_LIMIT)
       .map(([area, count]) => ({ area, count }));
 
     // Mentor availability distribution
@@ -225,7 +229,7 @@ const getMentorStats = async (req, res) => {
       }
     });
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS_OK).json({
       success: true,
       topRatedMentors: topRatedMentors.map(m => ({
         id: m.id,
@@ -253,8 +257,9 @@ const getMentorStats = async (req, res) => {
       }))
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching mentor stats:', error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       message: 'Failed to fetch mentor statistics',
       error: error.message
@@ -304,7 +309,7 @@ const getSessionStats = async (req, res) => {
 
     const avgDuration = completedSessions.length > 0
       ? completedSessions.reduce((acc, session) => {
-          const duration = (new Date(session.endTime) - new Date(session.startTime)) / (1000 * 60); // minutes
+          const duration = (new Date(session.endTime) - new Date(session.startTime)) / (MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE); // minutes
           return acc + duration;
         }, 0) / completedSessions.length
       : 0;
@@ -347,10 +352,10 @@ const getSessionStats = async (req, res) => {
     });
 
     const cancellationRate = totalBookings > 0
-      ? ((cancelledBookings / totalBookings) * 100).toFixed(1)
+      ? ((cancelledBookings / totalBookings) * PERCENTAGE_MULTIPLIER).toFixed(1)
       : 0;
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS_OK).json({
       success: true,
       sessionsOverTime,
       metrics: {
@@ -369,8 +374,9 @@ const getSessionStats = async (req, res) => {
       }))
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching session stats:', error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       message: 'Failed to fetch session statistics',
       error: error.message
@@ -417,6 +423,7 @@ const getUserStats = async (req, res) => {
           roleCount[role] = (roleCount[role] || 0) + 1;
         });
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.error('Error parsing user roles:', e);
       }
     });
@@ -428,7 +435,7 @@ const getUserStats = async (req, res) => {
 
     // Most active users (by message count)
     const mostActiveUsers = await prisma.user.findMany({
-      take: 10,
+      take: DEFAULT_RESULT_LIMIT,
       select: {
         id: true,
         name: true,
@@ -466,7 +473,7 @@ const getUserStats = async (req, res) => {
 
     const totalUsers = await prisma.user.count();
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS_OK).json({
       success: true,
       userGrowth,
       distribution: {
@@ -478,7 +485,7 @@ const getUserStats = async (req, res) => {
           withSessions: usersWithSessions,
           withQuizzes: usersWithQuizzes,
           engagementRate: totalUsers > 0 
-            ? `${((usersWithSessions / totalUsers) * 100).toFixed(1)}%`
+            ? `${((usersWithSessions / totalUsers) * PERCENTAGE_MULTIPLIER).toFixed(1)}%`
             : '0%'
         }
       },
@@ -495,8 +502,9 @@ const getUserStats = async (req, res) => {
       }))
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching user stats:', error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       message: 'Failed to fetch user statistics',
       error: error.message
@@ -549,10 +557,10 @@ const getReviewStats = async (req, res) => {
     });
 
     const responseRate = totalReviews > 0
-      ? ((reviewsWithResponse / totalReviews) * 100).toFixed(1)
+      ? ((reviewsWithResponse / totalReviews) * PERCENTAGE_MULTIPLIER).toFixed(1)
       : 0;
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS_OK).json({
       success: true,
       reviewsOverTime,
       ratingDistribution: ratingDistribution.map(item => ({
@@ -566,8 +574,9 @@ const getReviewStats = async (req, res) => {
       }
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching review stats:', error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       message: 'Failed to fetch review statistics',
       error: error.message

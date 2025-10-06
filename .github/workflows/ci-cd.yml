@@ -15,20 +15,6 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: careerforge_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -46,25 +32,27 @@ jobs:
       - name: Setup test environment
         run: |
           cp .env.example .env.test
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/careerforge_test" >> .env.test
+          echo "DATABASE_URL=file:./test.db" >> .env.test
           echo "NODE_ENV=test" >> .env.test
           echo "JWT_SECRET=test-secret-key-for-ci" >> .env.test
           echo "OPENAI_API_KEY=test-key" >> .env.test
+          echo "GROQ_API_KEY=test-groq-key" >> .env.test
 
       - name: Setup database for tests
         run: |
           npx prisma generate
           npx prisma db push --schema=./prisma/schema.prisma
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/careerforge_test
+          DATABASE_URL: file:./test.db
 
       - name: Run tests
         run: npm test -- --coverage
         env:
           NODE_ENV: test
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/careerforge_test
+          DATABASE_URL: file:./test.db
           JWT_SECRET: test-secret-key-for-ci
           OPENAI_API_KEY: test-key
+          GROQ_API_KEY: test-groq-key
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
