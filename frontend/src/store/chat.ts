@@ -517,7 +517,7 @@ export const useChatStore = create<ChatState>()(
             const isTemporarySession = !currentSession || currentSession.id.startsWith('temp-');
             const updatedSessions = isTemporarySession 
               ? [finalSession, ...get().sessions]
-              : get().sessions.map(s => s.id === currentSession.id ? finalSession : s);
+              : get().sessions.map((s: ChatSession) => s.id === currentSession.id ? finalSession : s);
 
             set({
               currentSession: finalSession,
@@ -554,7 +554,14 @@ export const useChatStore = create<ChatState>()(
         }
         
         console.log('LoadSessions: Starting to load sessions...');
-        set({ isLoading: true, error: null });
+        
+        // SECURITY FIX: Clear existing sessions before loading new ones
+        // This ensures we don't mix sessions from different users
+        set({ 
+          sessions: [], // Clear old sessions first
+          isLoading: true, 
+          error: null 
+        });
 
         try {
           const response = await apiClient.get<SessionsResponse>('/chat/sessions');
@@ -580,17 +587,18 @@ export const useChatStore = create<ChatState>()(
               });
             });
 
-            // Merge with existing sessions in local storage to maintain all sessions
+            // SECURITY FIX: Only use sessions from API (don't merge with localStorage)
+            // This prevents users from seeing other users' sessions that were cached locally
+            // Only preserve temporary sessions (those starting with 'temp-') that haven't been saved yet
             const currentSessions = state.sessions || [];
-            const mergedSessions = [...validatedSessions];
+            const tempSessions = currentSessions.filter((s: ChatSession) => s.id.startsWith('temp-'));
             
-            // Add any local sessions that might not be on the server yet (temp sessions)
-            currentSessions.forEach((localSession: ChatSession) => {
-              if (!mergedSessions.find((s: ChatSession) => s.id === localSession.id)) {
-                console.log('Adding local session to merged list:', localSession.id);
-                mergedSessions.push(localSession);
-              }
-            });
+            if (tempSessions.length > 0) {
+              console.log('LoadSessions: Preserving', tempSessions.length, 'temporary local sessions');
+            }
+            
+            // Use API sessions + any temporary local sessions only
+            const mergedSessions = [...validatedSessions, ...tempSessions];
 
             console.log('LoadSessions: Final merged sessions count:', mergedSessions.length);
 
@@ -665,7 +673,7 @@ export const useChatStore = create<ChatState>()(
               // Ensure this session doesn't already exist in sessions list
               const currentSessions = get().sessions;
               const newSessionId = response.data.sessionId;
-              const filteredSessions = currentSessions.filter(s => s.id !== newSessionId);
+              const filteredSessions = currentSessions.filter((s: ChatSession) => s.id !== newSessionId);
 
               console.log('CreateNewSession: Created new session with messages:', newSession);
               console.log('CreateNewSession: Updated sessions list length:', [newSession, ...filteredSessions].length);
@@ -732,7 +740,7 @@ export const useChatStore = create<ChatState>()(
 
         try {
           // First check if session exists in local storage
-          const existingSession = state.sessions.find(s => s.id === sessionId);
+          const existingSession = state.sessions.find((s: ChatSession) => s.id === sessionId);
           
           if (existingSession) {
             // Use local session data
@@ -759,9 +767,9 @@ export const useChatStore = create<ChatState>()(
 
               // Also update sessions list if not present
               const sessions = state.sessions;
-              const sessionExists = sessions.some(s => s.id === sessionId);
+              const sessionExists = sessions.some((s: ChatSession) => s.id === sessionId);
               const updatedSessions = sessionExists 
-                ? sessions.map(s => s.id === sessionId ? validatedSession : s)
+                ? sessions.map((s: ChatSession) => s.id === sessionId ? validatedSession : s)
                 : [validatedSession, ...sessions];
 
               set({
@@ -795,7 +803,7 @@ export const useChatStore = create<ChatState>()(
           
           // Update local state
           const { sessions, currentSession } = get();
-          const updatedSessions = sessions.map(session =>
+          const updatedSessions = sessions.map((session: ChatSession) =>
             session.id === sessionId
               ? { ...session, endedAt: new Date().toISOString() }
               : session
@@ -895,7 +903,7 @@ export const useChatStore = create<ChatState>()(
             
             // Remove existing reaction of same type if any
             updatedReactions[messageId] = updatedReactions[messageId].filter(
-              r => r.reactionType !== reactionType
+              (r: MessageReaction) => r.reactionType !== reactionType
             );
             
             // Add new reaction
@@ -918,9 +926,9 @@ export const useChatStore = create<ChatState>()(
           const updatedReactions = { ...messageReactions };
           
           // Remove reaction from all messages
-          Object.keys(updatedReactions).forEach(messageId => {
+          Object.keys(updatedReactions).forEach((messageId: string) => {
             updatedReactions[messageId] = updatedReactions[messageId].filter(
-              r => r.id !== reactionId
+              (r: MessageReaction) => r.id !== reactionId
             );
           });
           
@@ -957,20 +965,20 @@ export const useChatStore = create<ChatState>()(
         const lowerQuery = query.toLowerCase().trim();
         
         // Search through sessions and their messages
-        const results = sessions.filter(session => {
+        const results = sessions.filter((session: ChatSession) => {
           // Search in session title
           if (session.title?.toLowerCase().includes(lowerQuery)) {
             return true;
           }
 
           // Search in message content
-          return session.messages.some(message => 
+          return session.messages.some((message: ChatMessage) => 
             message.content.toLowerCase().includes(lowerQuery)
           );
         });
 
         // Sort results by relevance and recency
-        const sortedResults = results.sort((a, b) => {
+        const sortedResults = results.sort((a: ChatSession, b: ChatSession) => {
           // Prioritize title matches
           const aTitleMatch = a.title?.toLowerCase().includes(lowerQuery);
           const bTitleMatch = b.title?.toLowerCase().includes(lowerQuery);
@@ -1026,7 +1034,7 @@ export const useChatStore = create<ChatState>()(
         if (!currentSession) return;
 
         // Find the message where the branch starts
-        const messageIndex = currentSession.messages.findIndex(msg => msg.id === fromMessageId);
+        const messageIndex = currentSession.messages.findIndex((msg: ChatMessage) => msg.id === fromMessageId);
         if (messageIndex === -1) return;
 
         // Create new branch with messages up to the branching point
@@ -1059,7 +1067,7 @@ export const useChatStore = create<ChatState>()(
           set({ currentBranchId: null });
         } else {
           // Switch to specific branch
-          const branch = branches.find(b => b.id === branchId);
+          const branch = branches.find((b: ConversationBranch) => b.id === branchId);
           if (branch && currentSession) {
             // Update current session to show branch messages
             set({ 
@@ -1075,7 +1083,7 @@ export const useChatStore = create<ChatState>()(
 
       renameBranch: (branchId: string, newName: string) => {
         set({
-          branches: get().branches.map(branch =>
+          branches: get().branches.map((branch: ConversationBranch) =>
             branch.id === branchId
               ? { ...branch, branchName: newName, updatedAt: new Date().toISOString() }
               : branch
@@ -1087,7 +1095,7 @@ export const useChatStore = create<ChatState>()(
         const { currentBranchId } = get();
         
         set({
-          branches: get().branches.filter(branch => branch.id !== branchId),
+          branches: get().branches.filter((branch: ConversationBranch) => branch.id !== branchId),
           // If deleting current branch, switch to main thread
           currentBranchId: currentBranchId === branchId ? null : currentBranchId
         });
@@ -1157,12 +1165,12 @@ export const useChatStore = create<ChatState>()(
       // Title management actions
       updateSessionTitle: (sessionId: string, newTitle?: string) => {
         const sessions = get().sessions;
-        const session = sessions.find(s => s.id === sessionId);
+        const session = sessions.find((s: ChatSession) => s.id === sessionId);
         
         if (session) {
           const updatedTitle = newTitle || generateTitleFromConversation(session.messages);
           
-          const updatedSessions = sessions.map(s => 
+          const updatedSessions = sessions.map((s: ChatSession) => 
             s.id === sessionId 
               ? { ...s, title: updatedTitle, updatedAt: new Date().toISOString() }
               : s
@@ -1183,7 +1191,7 @@ export const useChatStore = create<ChatState>()(
 
       regenerateAllTitles: async () => {
         const sessions = get().sessions;
-        const updatedSessions = sessions.map(session => {
+        const updatedSessions = sessions.map((session: ChatSession) => {
           if (session.messages.length > 0) {
             const newTitle = generateTitleFromConversation(session.messages);
             return {

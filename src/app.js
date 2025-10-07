@@ -22,6 +22,7 @@ const mentorSessionRoutes = require('./routes/mentorSessionRoutes'); // MENTOR S
 const reviewRoutes = require('./routes/reviewRoutes'); // MENTOR REVIEW SYSTEM (Phase 5)
 const notificationRoutes = require('./routes/notificationRoutes'); // NOTIFICATION SYSTEM (Phase 6)
 const analyticsRoutes = require('./routes/analyticsRoutes'); // ANALYTICS SYSTEM (Phase 7)
+const dashboardRoutes = require('./routes/dashboardRoutes'); // USER DASHBOARD (Phase 8)
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const reactionRoutes = require('./routes/reactionRoutes');
@@ -80,6 +81,7 @@ app.use('/api/v1/sessions', mentorSessionRoutes); // MENTOR SESSION BOOKING (Pha
 app.use('/api/v1/reviews', reviewRoutes); // MENTOR REVIEW SYSTEM (Phase 5)
 app.use('/api/v1/notifications', notificationRoutes); // NOTIFICATION SYSTEM (Phase 6)
 app.use('/api/v1/analytics', analyticsRoutes); // ANALYTICS SYSTEM (Phase 7)
+app.use('/api/v1/dashboard', dashboardRoutes); // USER DASHBOARD (Phase 8)
 app.use('/api/v1/reactions', reactionRoutes);
 app.use('/api/v1/share', shareRoutes);
 app.use('/api/v1/test', testRoutes);
