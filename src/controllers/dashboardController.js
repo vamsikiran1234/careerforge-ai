@@ -2,8 +2,21 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const HTTP_STATUS_OK = 200;
+const HTTP_STATUS_UNAUTHORIZED = 401;
 const HTTP_STATUS_ERROR = 500;
 const DAYS_IN_WEEK = 7;
+
+// Progress score calculation weights
+const WEIGHT_CHAT_SESSIONS = 0.3;
+const WEIGHT_QUIZZES_TAKEN = 0.4;
+const WEIGHT_MENTOR_CONNECTIONS = 0.2;
+const WEIGHT_COMPLETED_QUIZZES = 0.1;
+
+// Max values for progress normalization
+const MAX_CHAT_SESSIONS = 20;
+const MAX_QUIZZES_TAKEN = 10;
+const MAX_MENTOR_CONNECTIONS = 5;
+const MAX_COMPLETED_QUIZZES = 10;
 
 /**
  * Get user-specific dashboard statistics
@@ -19,7 +32,7 @@ const getUserDashboardStats = async (req, res) => {
     if (!req.user || !req.user.userId) {
       // eslint-disable-next-line no-console
       console.error('❌ No user ID found in request');
-      return res.status(401).json({
+      return res.status(HTTP_STATUS_UNAUTHORIZED).json({
         success: false,
         message: 'User not authenticated',
         error: 'Missing user ID'
@@ -43,7 +56,6 @@ const getUserDashboardStats = async (req, res) => {
       mentorConnections,
       upcomingMeetings,
       completedQuizzes,
-      chatMessagesThisWeek,
       userQuizResults
     ] = await Promise.all([
       // Total chat sessions (CareerSession model)
@@ -103,14 +115,6 @@ const getUserDashboardStats = async (req, res) => {
           completedAt: {
             not: null
           }
-        }
-      }),
-      
-      // Chat messages this week for activity tracking (sent by user)
-      prisma.chatMessage.count({
-        where: {
-          senderId: userId,
-          createdAt: { gte: weekAgo }
         }
       }),
       
@@ -205,18 +209,18 @@ function calculateProgressScore(data) {
   
   // Weighted scoring system
   const weights = {
-    chatSessions: 0.3,
-    quizzesTaken: 0.4,
-    mentorConnections: 0.2,
-    completedQuizzes: 0.1
+    chatSessions: WEIGHT_CHAT_SESSIONS,
+    quizzesTaken: WEIGHT_QUIZZES_TAKEN,
+    mentorConnections: WEIGHT_MENTOR_CONNECTIONS,
+    completedQuizzes: WEIGHT_COMPLETED_QUIZZES
   };
   
   // Max values for normalization
   const maxValues = {
-    chatSessions: 20,
-    quizzesTaken: 10,
-    mentorConnections: 5,
-    completedQuizzes: 10
+    chatSessions: MAX_CHAT_SESSIONS,
+    quizzesTaken: MAX_QUIZZES_TAKEN,
+    mentorConnections: MAX_MENTOR_CONNECTIONS,
+    completedQuizzes: MAX_COMPLETED_QUIZZES
   };
   
   // Calculate weighted score

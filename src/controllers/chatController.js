@@ -6,6 +6,7 @@ const { generateTitleFromMessage } = require('../utils/titleGenerator');
 
 // Constants
 const HTTP_STATUS_OK = 200;
+const HTTP_STATUS_BAD_REQUEST = 400;
 const HTTP_STATUS_NOT_FOUND = 404;
 const HTTP_STATUS_ERROR = 500;
 
@@ -284,7 +285,7 @@ const chatController = {
     console.log('File upload request - User:', userEmail, 'Files:', files?.length || 0, 'SessionId:', sessionId);
 
     if (!files || files.length === 0) {
-      return res.status(400).json(
+      return res.status(HTTP_STATUS_BAD_REQUEST).json(
         createResponse('error', 'No files uploaded')
       );
     }
@@ -304,7 +305,7 @@ const chatController = {
     const processedFiles = await processUploadedFiles(files);
     
     if (processedFiles.length === 0) {
-      return res.status(400).json(
+      return res.status(HTTP_STATUS_BAD_REQUEST).json(
         createResponse('error', 'No files could be processed successfully')
       );
     }
