@@ -105,11 +105,14 @@ class PerformanceMonitor {
 
   private sendToAnalytics(name: string, value: number) {
     // Send to your analytics service (Google Analytics, etc.)
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'timing_complete', {
-        name: name,
-        value: Math.round(value)
-      });
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      const gtag = (window as any).gtag;
+      if (typeof gtag === 'function') {
+        gtag('event', 'timing_complete', {
+          name: name,
+          value: Math.round(value)
+        });
+      }
     }
   }
 

@@ -136,6 +136,10 @@ export const useAuthStore = create<AuthStore>()(
         apiClient.clearAuthToken();
         localStorage.removeItem('token'); // For backward compatibility
         
+        // CRITICAL FIX: Clear chat storage to prevent sessions from persisting across users
+        localStorage.removeItem('chat-storage');
+        console.log('✅ Cleared chat-storage on logout to prevent data leakage');
+        
         set({
           user: null,
           token: null,
