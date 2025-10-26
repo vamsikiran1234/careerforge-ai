@@ -1,20 +1,74 @@
 # 🚀 CareerForge AI
 
-[![CI/CD Pipeline](https://github.com/your-username/careerforge-ai/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/your-username/careerforge-ai/actions/workflows/ci-cd.yml)
-[![Test Coverage](https://codecov.io/gh/your-username/careerforge-ai/branch/main/graph/badge.svg)](https://codecov.io/gh/your-username/careerforge-ai)
+[![CI/CD Pipeline](https://github.com/your-username/careerforge-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/careerforge-ai/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.1-blue)](https://reactjs.org/)
 
-> An AI-powered career guidance platform that provides personalized mentorship, skill assessments, and career recommendations through intelligent chatbot interactions.
+> **Complete AI-powered career development platform** featuring mentorship matching, real-time chat, session booking, and intelligent career recommendations. Built with modern technologies and ready for production deployment.
 
-## ✨ Features
+## 🌟 **Live Demo**
+- **Frontend**: [Coming Soon - Deploy to Vercel]
+- **Backend API**: [Coming Soon - Deploy to Railway]
+- **Admin Dashboard**: [Coming Soon - Admin Access]
 
-- 🤖 **AI-Powered Chatbot**: Intelligent career guidance using OpenAI GPT
-- 📊 **Skill Assessment**: Comprehensive quizzes to evaluate technical and soft skills
-- 👥 **Mentor Matching**: Smart algorithm to connect users with suitable mentors
-- 🎯 **Personalized Recommendations**: Tailored career paths based on skills and interests
-- 📈 **Progress Tracking**: Monitor learning journey and skill development
-- 🔐 **Secure Authentication**: JWT-based user authentication and authorization
-- 🚀 **Production Ready**: Complete CI/CD pipeline with automated testing and deployment
+## ✨ **Key Features**
+
+### 🤖 **AI-Powered Career Guidance**
+- **Groq AI Integration**: Lightning-fast AI responses for career advice
+- **Intelligent Recommendations**: Personalized career paths and skill suggestions
+- **Real-time Chat**: Instant AI-powered career conversations
+- **Career Trajectory Planning**: AI-generated milestone and goal tracking
+
+### 👥 **Complete Mentorship Platform**
+- **Mentor Registration**: Comprehensive profile creation with verification
+- **Smart Matching**: Algorithm-based mentor-mentee connections
+- **Connection Management**: Request, accept, reject mentorship connections
+- **Capacity Control**: Automatic mentor workload management (max 3 active mentees)
+
+### 💬 **Real-time Communication**
+- **Live Chat System**: Instant messaging between mentors and mentees
+- **Message Reactions**: 7 types of emoji reactions (like, love, laugh, etc.)
+- **Typing Indicators**: Real-time typing status
+- **Message History**: Persistent chat history with timestamps
+- **Markdown Support**: Rich text formatting in messages
+
+### 📅 **Session Management**
+- **Video Session Booking**: Integrated Jitsi Meet for video calls
+- **Conflict Detection**: Automatic scheduling conflict prevention
+- **Session Reminders**: Email notifications for upcoming sessions
+- **AI Session Summaries**: Automatic post-session summary generation
+- **Cancellation System**: 2-hour minimum cancellation policy
+
+### ⭐ **Review & Rating System**
+- **5-Star Rating System**: Overall and detailed ratings (communication, knowledge, helpfulness)
+- **Written Reviews**: Detailed feedback from mentees
+- **Mentor Responses**: Ability for mentors to respond to reviews
+- **Rating Analytics**: Distribution charts and average calculations
+- **Public/Private Reviews**: Flexible review visibility options
+
+### 🔔 **Comprehensive Notifications**
+- **14 Notification Types**: Complete coverage of platform activities
+- **In-App Notifications**: Real-time notification center with unread badges
+- **Email Notifications**: Gmail SMTP integration for external alerts
+- **Auto-Refresh**: 30-second polling for live updates
+- **Action URLs**: Direct navigation to relevant platform sections
+
+### 📊 **Admin Analytics Dashboard**
+- **Platform Overview**: User growth, session statistics, mentor performance
+- **Interactive Charts**: Line, bar, pie charts with Recharts integration
+- **User Management**: Ban/unban users, search and filter functionality
+- **Export Capabilities**: CSV export for all analytics data
+- **Time Period Filters**: 7, 30, 90, 365-day analytics views
+
+### 🔐 **Enterprise-Grade Security**
+- **JWT Authentication**: Secure token-based authentication system
+- **Role-Based Access**: Student, Mentor, Admin role management
+- **Input Validation**: Comprehensive data validation with Joi schemas
+- **SQL Injection Protection**: Prisma ORM with parameterized queries
+- **Password Security**: bcrypt hashing with salt rounds
+- **CORS Protection**: Configurable cross-origin resource sharing
 
 ## 🏗️ Architecture
 
