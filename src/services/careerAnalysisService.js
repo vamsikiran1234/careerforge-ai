@@ -512,7 +512,8 @@ Be specific and actionable.`
 async function getGoalSuggestions(goal) {
   const completedMilestones = goal.milestones.filter(m => m.status === 'COMPLETED').length;
   const totalMilestones = goal.milestones.length;
-  const progressRate = totalMilestones > 0 ? completedMilestones / totalMilestones : 0;
+  // Calculate progress rate for potential future use
+  // const progressRate = totalMilestones > 0 ? completedMilestones / totalMilestones : 0;
   
   const messages = [
     {

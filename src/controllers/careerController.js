@@ -6,8 +6,6 @@ const careerAnalysisService = require('../services/careerAnalysisService');
 const HTTP_STATUS_OK = 200;
 const HTTP_STATUS_CREATED = 201;
 const HTTP_STATUS_BAD_REQUEST = 400;
-const HTTP_STATUS_UNAUTHORIZED = 401;
-const HTTP_STATUS_FORBIDDEN = 403;
 const HTTP_STATUS_NOT_FOUND = 404;
 const HTTP_STATUS_ERROR = 500;
 
