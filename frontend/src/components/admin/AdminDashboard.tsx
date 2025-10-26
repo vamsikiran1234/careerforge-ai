@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import axios from 'axios';
+import { ScreenshotManager } from './ScreenshotManager';
 
 interface PlatformStats {
   users: {
@@ -334,6 +335,9 @@ const AdminDashboard = () => {
           Platform is running smoothly with {stats?.sessions.completionRate || '0%'} session completion rate
         </p>
       </div>
+
+      {/* Screenshot Manager */}
+      <ScreenshotManager />
     </div>
   );
 };

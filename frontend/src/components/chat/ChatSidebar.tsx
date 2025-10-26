@@ -101,7 +101,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     if (!isResizing) return;
     
     const diff = e.clientX - startX.current;
-    const newWidth = Math.min(Math.max(startWidth.current + diff, 200), 600);
+    const newWidth = Math.min(Math.max(startWidth.current + diff, 280), 600);
     setSidebarWidth(newWidth);
     onResize?.(newWidth);
   }, [isResizing, onResize]);
@@ -124,30 +124,24 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   }, [isResizing, handleMouseMove, handleMouseUp]);
   return (
     <div 
-      className={`fixed top-0 left-0 z-10 flex h-full overflow-hidden bg-gradient-to-b from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border-r border-blue-100/60 dark:border-slate-700/50 text-gray-900 dark:text-white transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : ''}`}
-      style={{ width: isCollapsed ? '64px' : `${sidebarWidth}px` }}
+      className={`chat-sidebar-fixed fixed top-0 h-full overflow-hidden bg-gradient-to-b from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 text-gray-900 dark:text-white transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : ''}`}
+      style={{ left: 'var(--global-sidebar-width, 0px)', width: isCollapsed ? '64px' : `${sidebarWidth}px`, zIndex: 60 }}
     >
       {/* Main Sidebar Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
       {/* Header Section */}
-      <div className={`border-b border-blue-100/60 dark:border-slate-700/50 bg-gradient-to-r from-white/80 via-blue-50/50 to-indigo-50/50 dark:from-slate-800/80 dark:via-slate-800/60 dark:to-slate-700/50 backdrop-blur-sm ${isCollapsed ? 'p-3' : 'p-6'}`}>
-        <div className={`flex items-center gap-4 ${isCollapsed ? 'mb-3 justify-center' : 'mb-6'}`}>
-          <CareerForgeAvatar size="lg" showGradient={true} />
-          
-          {!isCollapsed && (
-            <>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  CareerForge AI
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Elite Career Mentor</p>
-              </div>
-
+      <div className={`border-b border-blue-100/60 dark:border-slate-700/50 bg-gradient-to-r from-white/80 via-blue-50/50 to-indigo-50/50 dark:from-slate-800/80 dark:via-slate-800/60 dark:to-slate-700/50 backdrop-blur-sm ${isCollapsed ? 'p-3' : 'p-5'}`}>
+        {!isCollapsed ? (
+          <>
+            {/* Top Row: Avatar and Action Buttons */}
+            <div className="flex items-center justify-between mb-4">
+              <CareerForgeAvatar size="lg" showGradient={true} />
+              
               <div className="flex items-center gap-2">
                 {/* Theme Toggle Button */}
                 <button
                   onClick={toggleTheme}
-                  className="p-2 text-gray-600 transition-colors duration-200 bg-gray-100 rounded-lg dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 dark:text-gray-300"
+                  className="p-2 text-gray-600 transition-colors duration-200 bg-white/80 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-300 shadow-sm"
                   title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
                   {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -157,13 +151,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 {onToggleFullscreen && (
                   <button
                     onClick={onToggleFullscreen}
-                    className="p-2 transition-all duration-200 rounded-lg text-slate-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 group"
+                    className="p-2 transition-all duration-200 rounded-lg text-slate-600 dark:text-gray-300 bg-white/80 dark:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600 group shadow-sm"
                     title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
                   >
                     {isFullscreen ? (
-                      <Minimize2 className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                      <Minimize2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                     ) : (
-                      <Maximize2 className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                      <Maximize2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                     )}
                   </button>
                 )}
@@ -172,7 +166,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 {onToggleCollapse && (
                   <button
                     onClick={onToggleCollapse}
-                    className="p-2 transition-all duration-200 rounded-lg text-slate-600 dark:text-gray-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-gray-700 group"
+                    className="p-2 transition-all duration-200 rounded-lg text-slate-600 dark:text-gray-300 bg-white/80 dark:bg-gray-700 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-gray-600 group shadow-sm"
                     title="Hide sidebar"
                   >
                     <svg
@@ -191,10 +185,25 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   </button>
                 )}
               </div>
-            </>
-          )}
-        </div>
+            </div>
+            
+            {/* Bottom Row: Title and Subtitle */}
+            <div className="mt-2">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                CareerForge AI
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Elite Career Mentor</p>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-center">
+            <CareerForgeAvatar size="lg" showGradient={true} />
+          </div>
+        )}
+      </div>
         
+      {/* New Chat Button and Controls */}
+      <div className={`border-b border-blue-100/60 dark:border-slate-700/50 ${isCollapsed ? 'p-3' : 'p-5'}`}>
         {isCollapsed ? (
           <div className="flex flex-col items-center space-y-2">
             <Button
@@ -450,14 +459,15 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       />
       </div>
 
-      {/* Resize Handle - Only show when not collapsed */}
+      {/* Resize Handle - Only show when not collapsed - Absolute positioned on right edge */}
       {!isCollapsed && (
         <div 
-          className="relative w-2 transition-colors duration-200 bg-gray-200 select-none dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 cursor-col-resize group"
+          className="absolute top-0 right-0 bottom-0 w-1 transition-colors duration-200 bg-transparent select-none cursor-col-resize group hover:w-2"
           onMouseDown={handleMouseDown}
+          style={{ right: '-4px' }}
         >
-          <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-blue-400/20"></div>
-          <div className="absolute w-1 h-8 transition-colors duration-200 transform -translate-x-1/2 -translate-y-1/2 bg-gray-400 rounded top-1/2 left-1/2 dark:bg-gray-600 group-hover:bg-blue-500"></div>
+          <div className="absolute inset-y-0 w-2 group-hover:bg-blue-400/10" style={{ left: '-4px', right: '-4px' }}></div>
+          <div className="absolute w-1 h-12 transition-all duration-200 transform -translate-y-1/2 bg-gray-300/50 rounded top-1/2 left-0 dark:bg-gray-500/50 group-hover:bg-blue-500 group-hover:w-1"></div>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ChatSidebar } from './ChatSidebar';
@@ -21,7 +22,9 @@ interface ChatResponse {
 export const ChatInterface: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const location = useLocation();
+  // If the route is the chat page, default to fullscreen (global layout) — but still allow rendering the chat sessions sidebar
+  const [isFullscreen, setIsFullscreen] = useState(() => location.pathname.startsWith('/app/chat'));
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const { user } = useAuthStore();
   const {
@@ -350,9 +353,12 @@ export const ChatInterface: React.FC = () => {
   }
 
   return (
-    <div className={`h-full flex bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative ${isFullscreen ? 'fixed inset-0 z-50 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800' : ''}`}>
-      {/* Desktop Sidebar - Fixed/Sticky - Hide in fullscreen */}
-      {!isFullscreen && (
+    <div className={`h-full flex bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative ${isFullscreen ? 'fixed inset-0 z-50 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800' : ''}`} style={{
+      // Expose global sidebar width so ChatSidebar can position itself to the right of the primary navigation
+      ['--global-sidebar-width' as any]: '16rem'
+    }}>
+      {/* Desktop Chat Sidebar - show when not fullscreen OR when route is the chat page (so users see sessions while in chat-only view) */}
+      {((!isFullscreen) || location.pathname.startsWith('/app/chat')) && (
         <ErrorBoundary>
           <div className="hidden lg:block">
             <ChatSidebar
@@ -453,9 +459,10 @@ export const ChatInterface: React.FC = () => {
 
       {/* Main Chat Area - Responsive with sidebar spacing */}
       <div 
-        className={`flex-1 flex flex-col bg-gradient-to-b from-white/80 via-blue-50/20 to-indigo-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 shadow-sm border-l border-indigo-100/40 dark:border-slate-700 relative h-full ${isFullscreen ? '' : 'lg:transition-all lg:duration-300'}`}
+        className={`flex-1 flex flex-col bg-gradient-to-b from-white/80 via-blue-50/20 to-indigo-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 shadow-sm relative h-full ${isFullscreen ? '' : 'lg:transition-all lg:duration-300'}`}
         style={{ 
-          marginLeft: isFullscreen ? 0 : isSidebarCollapsed ? '64px' : `${sidebarWidth}px`,
+          // marginLeft should account for the primary app sidebar (16rem) plus the chat sidebar width
+          marginLeft: isFullscreen ? 0 : isSidebarCollapsed ? '64px' : `calc(var(--global-sidebar-width, 16rem) + ${sidebarWidth}px)`,
           height: '100vh'
         }}
       >
@@ -481,27 +488,31 @@ export const ChatInterface: React.FC = () => {
 
         {/* Messages Area */}
         <div className="flex-1 overflow-hidden h-full min-h-0">
-          <MessageList
-            messages={currentSession?.messages || []}
-            isTyping={isTyping}
-            isLoading={isLoading && !!currentSession}
-            onEditMessage={handleEditMessage}
-            onSendMessage={handleSendMessage}
-          />
+          <div className={location.pathname.startsWith('/app/chat') ? 'w-full h-full' : 'max-w-5xl mx-auto w-full h-full'}>
+            <MessageList
+              messages={currentSession?.messages || []}
+              isTyping={isTyping}
+              isLoading={isLoading && !!currentSession}
+              onEditMessage={handleEditMessage}
+              onSendMessage={handleSendMessage}
+            />
+          </div>
         </div>
 
-        {/* Professional Message Input */}
-        <div className="bg-white dark:bg-gray-800">
-          <MessageInput
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            isTyping={isTyping}
-            placeholder={
-              currentSession 
-                ? "Continue your conversation with your AI career mentor..." 
-                : "Ask your AI career mentor anything about your professional journey..."
-            }
-          />
+        {/* Professional Message Input with shadow separator */}
+        <div className="bg-white dark:bg-gray-800 shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.3)] border-t border-gray-100 dark:border-gray-700">
+          <div className={location.pathname.startsWith('/app/chat') ? 'w-full px-4 py-3' : 'max-w-5xl mx-auto w-full px-4 py-3'}>
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+              isTyping={isTyping}
+              placeholder={
+                currentSession 
+                  ? "Continue your conversation with your AI career mentor..." 
+                  : "Ask your AI career mentor anything about your professional journey..."
+              }
+            />
+          </div>
         </div>
       </div>
 

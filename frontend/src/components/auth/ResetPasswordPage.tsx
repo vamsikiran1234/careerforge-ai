@@ -5,12 +5,14 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { validatePassword } from '@/utils';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/store/auth';
 import { ArrowLeft, CheckCircle, AlertCircle, Lock } from 'lucide-react';
 
 export const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const { logout } = useAuthStore();
 
   const [formData, setFormData] = useState({
     password: '',
@@ -22,11 +24,14 @@ export const ResetPasswordPage: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Logout user if they're logged in (to prevent conflicts)
+    logout();
+    
     // Check if token is present
     if (!token) {
       setError('Invalid reset link. Please request a new password reset.');
     }
-  }, [token]);
+  }, [token, logout]);
 
   const validateForm = (): boolean => {
     const newErrors: { password?: string; confirmPassword?: string } = {};

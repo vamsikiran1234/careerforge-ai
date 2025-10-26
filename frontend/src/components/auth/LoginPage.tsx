@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LogoSimple } from '@/components/ui/Logo';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 import { isValidEmail } from '@/utils';
 import type { LoginForm } from '@/types';
 
@@ -113,7 +113,7 @@ export const LoginPage: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center">
-            <LogoSimple size={48} />
+            <BrandLogo size="xl" variant="default" theme="gradient" />
           </div>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
             Sign in to your account

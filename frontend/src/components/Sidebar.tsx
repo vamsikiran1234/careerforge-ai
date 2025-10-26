@@ -17,26 +17,28 @@ import {
   GraduationCap,
   Calendar,
   Shield,
-  Link2
+  Link2,
+  Target
 } from 'lucide-react';
 import { Logo } from './ui/Logo';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'AI Chat', href: '/chat', icon: MessageSquare },
-  { name: 'Career Quiz', href: '/quiz', icon: BookOpen },
-  { name: 'Find Mentors', href: '/mentors', icon: Users },
-  { name: 'My Connections', href: '/connections', icon: Link2 },
-  { name: 'Messages', href: '/messages', icon: MessageSquare },
-  { name: 'My Sessions', href: '/sessions', icon: Calendar },
-  { name: 'Become a Mentor', href: '/mentorship/register', icon: GraduationCap },
+  { name: 'Dashboard', href: '/app/dashboard', icon: Home },
+  { name: 'AI Chat', href: '/app/chat', icon: MessageSquare },
+  { name: 'Career Quiz', href: '/app/quiz', icon: BookOpen },
+  { name: 'Career Trajectory', href: '/app/career', icon: Target },
+  { name: 'Find Mentors', href: '/app/mentors', icon: Users },
+  { name: 'My Connections', href: '/app/connections', icon: Link2 },
+  { name: 'Messages', href: '/app/messages', icon: MessageSquare },
+  { name: 'My Sessions', href: '/app/sessions', icon: Calendar },
+  { name: 'Become a Mentor', href: '/app/mentorship/register', icon: GraduationCap },
 ];
 
 const adminNavigation = [
-  { name: 'Admin Dashboard', href: '/admin', icon: Shield },
-  { name: 'Verify Mentors', href: '/admin/mentors', icon: UserCheck },
+  { name: 'Admin Dashboard', href: '/app/admin', icon: Shield },
+  { name: 'Verify Mentors', href: '/app/admin/mentors', icon: UserCheck },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -101,11 +103,11 @@ export const Sidebar: React.FC = () => {
       {/* Logo & Toggle */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
         {!isCollapsed ? (
-          <Link to="/dashboard" className="flex items-center">
+          <Link to="/app/dashboard" className="flex items-center">
             <Logo size="md" variant="full" />
           </Link>
         ) : (
-          <Link to="/dashboard" className="flex items-center justify-center flex-1">
+          <Link to="/app/dashboard" className="flex items-center justify-center flex-1">
             <Logo size="md" variant="icon" />
           </Link>
         )}
@@ -154,10 +156,10 @@ export const Sidebar: React.FC = () => {
         {/* My Connections - For Students (when not viewing as mentor) */}
         {!isMentor && (
           <Link
-            to="/connections"
+            to="/app/connections"
             className={cn(
               'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group',
-              location.pathname === '/connections'
+              location.pathname === '/app/connections'
                 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/50'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
               isCollapsed && 'justify-center'
@@ -166,7 +168,7 @@ export const Sidebar: React.FC = () => {
           >
             <UserCheck className={cn(
               'h-5 w-5 flex-shrink-0',
-              location.pathname === '/connections' ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+              location.pathname === '/app/connections' ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
             )} />
             {!isCollapsed && (
               <span className="text-sm font-medium">My Connections</span>
@@ -218,7 +220,7 @@ export const Sidebar: React.FC = () => {
       <div className="border-t border-gray-200 dark:border-gray-800">
         {/* Settings */}
         <Link
-          to="/settings"
+          to="/app/settings"
           className={cn(
             'flex items-center space-x-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
             isCollapsed && 'justify-center'

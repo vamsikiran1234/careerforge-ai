@@ -7,19 +7,21 @@ import { Menu } from 'lucide-react';
 import { LogoSimple } from './ui/Logo';
 
 export const Layout: React.FC = () => {
-  const location = useLocation();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const location = useLocation();
 
-  // Hide sidebar on chat page for full-screen experience
-  const isChatPage = location.pathname === '/chat';
+  // Hide sidebar and headers on the chat route to provide a focused chat-only view
+  const isChatPage = location.pathname.startsWith('/app/chat');
 
   if (isChatPage) {
     return (
-      <div className="h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 chat-fullscreen" style={{ ['--global-sidebar-width' as any]: '0px' }}>
         <Outlet />
       </div>
     );
   }
+
+  // Always show sidebar and main content, even on chat page
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">

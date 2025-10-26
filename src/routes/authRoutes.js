@@ -63,12 +63,19 @@ router.post('/register', [
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Determine roles based on email (admin users get both STUDENT and ADMIN roles)
+    const adminEmails = ['vamsikiran198@gmail.com', 'admin@careerforge.ai'];
+    const assignedRoles = adminEmails.includes(email.toLowerCase()) 
+      ? '["STUDENT","ADMIN"]' 
+      : '["STUDENT"]';
+
     // Create new user in database
     const newUser = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
+        roles: assignedRoles,
       }
     });
 

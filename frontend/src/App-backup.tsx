@@ -18,11 +18,7 @@ const queryClient = new QueryClient({
 });
 
 // Protected Route Component
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   if (isLoading) {
@@ -33,11 +29,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <Layout>{children}</Layout>;
+  return <Layout />;
 };
 
 // Public Route Component (redirect to dashboard if already authenticated)
-const PublicRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+interface PublicRouteProps {
+  children: React.ReactNode;
+}
+
+const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   if (isLoading) {
@@ -174,38 +174,12 @@ function App() {
             />
 
             {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/chat"
-              element={
-                <ProtectedRoute>
-                  <ChatPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/quiz"
-              element={
-                <ProtectedRoute>
-                  <QuizPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/mentors"
-              element={
-                <ProtectedRoute>
-                  <MentorsPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/app" element={<ProtectedRoute />}>
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="chat" element={<ChatPage />} />
+              <Route path="quiz" element={<QuizPage />} />
+              <Route path="mentors" element={<MentorsPage />} />
+            </Route>
 
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

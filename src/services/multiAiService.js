@@ -1,9 +1,11 @@
 // Multi-provider AI service supporting various free AI models
 const Groq = require('groq-sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Initialize AI providers
 const providers = {
   groq: null,
+  gemini: null,
   // Add more providers as needed
 };
 
@@ -12,6 +14,13 @@ if (process.env.GROQ_API_KEY) {
   providers.groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
   });
+  console.log('✅ Groq AI provider initialized');
+}
+
+// Initialize Gemini if API key is available
+if (process.env.GEMINI_API_KEY) {
+  providers.gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  console.log('✅ Gemini AI provider initialized');
 }
 
 // Available models configuration - Updated with current working models
@@ -48,6 +57,35 @@ const models = {
       description: 'Google\'s Gemma model, good for instruction following',
       free: true,
       priority: 4
+    }
+  },
+  gemini: {
+    'gemini-1.5-flash': {
+      name: 'Gemini 1.5 Flash',
+      provider: 'gemini',
+      tokenLimit: 32000,
+      description: 'Google\'s fast multimodal model, 15 RPM / 1M RPD',
+      free: true,
+      priority: 1,
+      rateLimit: { requestsPerMinute: 15, requestsPerDay: 1000000 }
+    },
+    'gemini-1.5-flash-8b': {
+      name: 'Gemini 1.5 Flash 8B',
+      provider: 'gemini',
+      tokenLimit: 32000,
+      description: 'Smaller, faster Gemini model, 15 RPM / 1M RPD',
+      free: true,
+      priority: 2,
+      rateLimit: { requestsPerMinute: 15, requestsPerDay: 1000000 }
+    },
+    'gemini-1.5-pro': {
+      name: 'Gemini 1.5 Pro',
+      provider: 'gemini',
+      tokenLimit: 1000000,
+      description: 'Most capable Gemini model, 2 RPM / 50 RPD',
+      free: true,
+      priority: 3,
+      rateLimit: { requestsPerMinute: 2, requestsPerDay: 50 }
     }
   },
   // Future: Add OpenRouter, Together AI, etc.
@@ -145,6 +183,36 @@ const makeGroqRequest = async (modelId, messages, systemPrompt) => {
 };
 
 /**
+ * Make AI request using Google Gemini
+ */
+const makeGeminiRequest = async (modelId, messages, systemPrompt) => {
+  if (!providers.gemini) {
+    throw new Error('Gemini API key not configured');
+  }
+  
+  try {
+    const model = providers.gemini.getGenerativeModel({ model: modelId });
+    
+    // Combine system prompt and messages into a single prompt
+    const fullPrompt = `${systemPrompt}\n\n${messages.map(msg => {
+      const role = msg.role === 'user' ? 'User' : 'Assistant';
+      return `${role}: ${msg.content}`;
+    }).join('\n\n')}`;
+    
+    const result = await model.generateContent(fullPrompt);
+    const response = result.response;
+    
+    return response.text() || 'Sorry, I could not generate a response.';
+  } catch (error) {
+    // Handle specific Gemini errors
+    if (error.message && error.message.includes('429')) {
+      throw new Error('rate_limit_exceeded');
+    }
+    throw error;
+  }
+};
+
+/**
  * Make AI request using OpenRouter (future implementation)
  */
 // const makeOpenRouterRequest = async (modelId, messages, systemPrompt) => {
@@ -191,6 +259,9 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
       switch (selectedModel.provider) {
         case 'groq':
           response = await makeGroqRequest(selectedModel.id, messages, systemPrompt);
+          break;
+        case 'gemini':
+          response = await makeGeminiRequest(selectedModel.id, messages, systemPrompt);
           break;
         case 'openrouter':
           // OpenRouter not yet implemented, skip to next model

@@ -1,0 +1,1854 @@
+{
+	"info": {
+		"_postman_id": "careerforge-ai-collection",
+		"name": "CareerForge AI - Complete API",
+		"description": "Complete API collection for CareerForge AI platform with all endpoints ready to test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "🏥 Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Documentation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/docs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"docs"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    console.log('User registered:', jsonData.data.user.email);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Vamsi Kiran\",\n  \"email\": \"vamsikiran198@gmail.com\",\n  \"password\": \"Vamsi$93525\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user account. Password must be at least 8 characters with uppercase, lowercase, number, and special character."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('token', jsonData.data.token);",
+									"    pm.environment.set('user_id', jsonData.data.user.id);",
+									"    pm.environment.set('user_email', jsonData.data.user.email);",
+									"    console.log('Token saved:', jsonData.data.token);",
+									"    console.log('User ID:', jsonData.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"vamsikiran198@gmail.com\",\n  \"password\": \"Vamsi$93525\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with email and password. Returns JWT token that will be automatically saved to environment."
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"vamsikiran198@gmail.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/forgot-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"forgot-password"
+							]
+						},
+						"description": "Request password reset email"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"reset-token-from-email\",\n  \"password\": \"Naga$93525\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Reset password using token from email"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/verify-email?token=verification-token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"verify-email"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "verification-token"
+								}
+							]
+						},
+						"description": "Verify email address using token from email"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👤 User Profile",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Get current user profile (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Updated\",\n  \"bio\": \"I'm a passionate developer looking to transition into AI\",\n  \"avatar\": \"https://example.com/avatar.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Update user profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Delete user account permanently"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💬 AI Chat",
+			"item": [
+				{
+					"name": "Send Chat Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"What career path should I take for AI and Machine Learning?\",\n  \"context\": \"I have a background in computer science and 2 years of experience in software development\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"chat"
+							]
+						},
+						"description": "Send message to AI career guidance assistant"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/chat/history?limit=20&offset=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"chat",
+								"history"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get chat conversation history"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Chat Conversation",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/chat/history/:conversationId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"chat",
+								"history",
+								":conversationId"
+							],
+							"variable": [
+								{
+									"key": "conversationId",
+									"value": "conversation-uuid"
+								}
+							]
+						},
+						"description": "Delete a specific chat conversation"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📝 Quiz & Assessments",
+			"item": [
+				{
+					"name": "Get Available Quizzes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/quiz/available",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"quiz",
+								"available"
+							]
+						},
+						"description": "Get list of available career assessment quizzes"
+					},
+					"response": []
+				},
+				{
+					"name": "Start Quiz",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quizId\": \"quiz-uuid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/quiz/start",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"quiz",
+								"start"
+							]
+						},
+						"description": "Start a quiz session and get questions"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Quiz Answers",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quizSessionId\": \"session-uuid\",\n  \"answers\": [\n    {\n      \"questionId\": \"question-1-uuid\",\n      \"answer\": \"A\"\n    },\n    {\n      \"questionId\": \"question-2-uuid\",\n      \"answer\": \"B\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/quiz/submit",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"quiz",
+								"submit"
+							]
+						},
+						"description": "Submit quiz answers and get results"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quiz Results",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/quiz/results/:quizSessionId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"quiz",
+								"results",
+								":quizSessionId"
+							],
+							"variable": [
+								{
+									"key": "quizSessionId",
+									"value": "session-uuid"
+								}
+							]
+						},
+						"description": "Get quiz results by session ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🤝 Mentorship Platform",
+			"item": [
+				{
+					"name": "Get All Mentors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentorship/mentors?expertise=Software Engineering&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentorship",
+								"mentors"
+							],
+							"query": [
+								{
+									"key": "expertise",
+									"value": "Software Engineering",
+									"description": "Filter by expertise (optional)"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Browse available mentors with optional filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mentor Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentorship/mentors/:mentorId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentorship",
+								"mentors",
+								":mentorId"
+							],
+							"variable": [
+								{
+									"key": "mentorId",
+									"value": "mentor-uuid"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific mentor"
+					},
+					"response": []
+				},
+				{
+					"name": "Register as Mentor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"expertise\": [\"Software Engineering\", \"Career Development\", \"AI/ML\"],\n  \"bio\": \"10+ years of experience in software engineering and mentoring junior developers. Passionate about helping others grow in their tech careers.\",\n  \"availability\": \"Weekdays 6-9pm EST, Weekends flexible\",\n  \"hourlyRate\": 50,\n  \"linkedinUrl\": \"https://linkedin.com/in/johndoe\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentorship/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentorship",
+								"register"
+							]
+						},
+						"description": "Apply to become a mentor on the platform"
+					},
+					"response": []
+				},
+				{
+					"name": "Send Connection Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mentorId\": \"mentor-uuid\",\n  \"message\": \"Hi! I'm interested in learning more about transitioning into AI/ML. Your experience in both software engineering and AI would be incredibly valuable to me.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentorship/connect",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentorship",
+								"connect"
+							]
+						},
+						"description": "Send connection request to a mentor"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Connections",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentorship/connections?status=ACCEPTED&role=MENTEE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentorship",
+								"connections"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "ACCEPTED",
+									"description": "PENDING, ACCEPTED, REJECTED (optional)"
+								},
+								{
+									"key": "role",
+									"value": "MENTEE",
+									"description": "MENTOR or MENTEE (optional)"
+								}
+							]
+						},
+						"description": "Get all mentorship connections"
+					},
+					"response": []
+				},
+				{
+					"name": "Accept/Reject Connection",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentorship/connections/:connectionId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentorship",
+								"connections",
+								":connectionId"
+							],
+							"variable": [
+								{
+									"key": "connectionId",
+									"value": "connection-uuid"
+								}
+							]
+						},
+						"description": "Accept or reject a connection request (status: ACCEPTED or REJECTED)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Mentor Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bio\": \"Updated bio with new achievements...\",\n  \"expertise\": [\"Software Engineering\", \"AI/ML\", \"System Design\"],\n  \"hourlyRate\": 60,\n  \"availability\": \"More flexible schedule now\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentorship/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentorship",
+								"profile"
+							]
+						},
+						"description": "Update mentor profile information"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💬 Mentor Chat",
+			"item": [
+				{
+					"name": "Send Message to Mentor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"recipientId\": \"mentor-uuid\",\n  \"message\": \"Hello! I have a question about your experience with AI/ML...\",\n  \"connectionId\": \"connection-uuid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentor-chat/send",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentor-chat",
+								"send"
+							]
+						},
+						"description": "Send a message to a connected mentor"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentor-chat/messages/:connectionId?limit=50&offset=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentor-chat",
+								"messages",
+								":connectionId"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "50"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							],
+							"variable": [
+								{
+									"key": "connectionId",
+									"value": "connection-uuid"
+								}
+							]
+						},
+						"description": "Get chat messages for a connection"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Message as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentor-chat/read/:messageId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentor-chat",
+								"read",
+								":messageId"
+							],
+							"variable": [
+								{
+									"key": "messageId",
+									"value": "message-uuid"
+								}
+							]
+						},
+						"description": "Mark a message as read"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Unread Message Count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mentor-chat/unread",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentor-chat",
+								"unread"
+							]
+						},
+						"description": "Get count of unread messages"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📅 Session Booking",
+			"item": [
+				{
+					"name": "Book Session with Mentor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mentorId\": \"mentor-uuid\",\n  \"connectionId\": \"connection-uuid\",\n  \"scheduledAt\": \"2025-10-15T14:00:00Z\",\n  \"duration\": 60,\n  \"topic\": \"Career transition to AI/ML\",\n  \"notes\": \"I want to discuss the best path to transition from web development to AI/ML, including recommended courses and projects.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sessions/book",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sessions",
+								"book"
+							]
+						},
+						"description": "Book a mentorship session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Sessions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sessions?status=SCHEDULED&role=MENTEE&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sessions"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "SCHEDULED",
+									"description": "SCHEDULED, COMPLETED, CANCELLED (optional)"
+								},
+								{
+									"key": "role",
+									"value": "MENTEE",
+									"description": "MENTOR or MENTEE (optional)"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all sessions (as mentor or mentee)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Session Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sessions/:sessionId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sessions",
+								":sessionId"
+							],
+							"variable": [
+								{
+									"key": "sessionId",
+									"value": "session-uuid"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific session"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Session",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Schedule conflict - need to reschedule\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sessions/:sessionId/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sessions",
+								":sessionId",
+								"cancel"
+							],
+							"variable": [
+								{
+									"key": "sessionId",
+									"value": "session-uuid"
+								}
+							]
+						},
+						"description": "Cancel a scheduled session"
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Session",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"Great session! We covered career planning, recommended courses, and created an action plan for the next 6 months.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sessions/:sessionId/complete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sessions",
+								":sessionId",
+								"complete"
+							],
+							"variable": [
+								{
+									"key": "sessionId",
+									"value": "session-uuid"
+								}
+							]
+						},
+						"description": "Mark session as completed"
+					},
+					"response": []
+				},
+				{
+					"name": "Reschedule Session",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newScheduledAt\": \"2025-10-16T15:00:00Z\",\n  \"reason\": \"Original time conflicts with work meeting\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sessions/:sessionId/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sessions",
+								":sessionId",
+								"reschedule"
+							],
+							"variable": [
+								{
+									"key": "sessionId",
+									"value": "session-uuid"
+								}
+							]
+						},
+						"description": "Reschedule a session to a new time"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "⭐ Reviews & Ratings",
+			"item": [
+				{
+					"name": "Submit Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mentorId\": \"mentor-uuid\",\n  \"sessionId\": \"session-uuid\",\n  \"rating\": 5,\n  \"comment\": \"Excellent mentor! Very knowledgeable and patient. The session was well-structured and I got clear actionable advice.\",\n  \"tags\": [\"knowledgeable\", \"patient\", \"clear-communication\", \"helpful\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/reviews",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reviews"
+							]
+						},
+						"description": "Submit a review for a mentor after a session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mentor Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reviews/mentor/:mentorId?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reviews",
+								"mentor",
+								":mentorId"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							],
+							"variable": [
+								{
+									"key": "mentorId",
+									"value": "mentor-uuid"
+								}
+							]
+						},
+						"description": "Get all reviews for a specific mentor"
+					},
+					"response": []
+				},
+				{
+					"name": "Update My Review",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rating\": 5,\n  \"comment\": \"Updated review: After reflecting more, this was one of the best mentorship sessions I've had!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/reviews/:reviewId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reviews",
+								":reviewId"
+							],
+							"variable": [
+								{
+									"key": "reviewId",
+									"value": "review-uuid"
+								}
+							]
+						},
+						"description": "Update your own review"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete My Review",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reviews/:reviewId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reviews",
+								":reviewId"
+							],
+							"variable": [
+								{
+									"key": "reviewId",
+									"value": "review-uuid"
+								}
+							]
+						},
+						"description": "Delete your own review"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔔 Notifications",
+			"item": [
+				{
+					"name": "Get My Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications?read=false&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "read",
+									"value": "false",
+									"description": "Filter by read status (optional)"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all notifications for current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/:notificationId/read",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								":notificationId",
+								"read"
+							],
+							"variable": [
+								{
+									"key": "notificationId",
+									"value": "notification-uuid"
+								}
+							]
+						},
+						"description": "Mark a single notification as read"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark All Notifications as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/read-all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"read-all"
+							]
+						},
+						"description": "Mark all notifications as read"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Notification",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/:notificationId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								":notificationId"
+							],
+							"variable": [
+								{
+									"key": "notificationId",
+									"value": "notification-uuid"
+								}
+							]
+						},
+						"description": "Delete a notification"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Settings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"settings"
+							]
+						},
+						"description": "Get notification preferences"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Notification Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"emailNotifications\": true,\n  \"pushNotifications\": true,\n  \"connectionRequests\": true,\n  \"sessionReminders\": true,\n  \"newMessages\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"settings"
+							]
+						},
+						"description": "Update notification preferences"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📊 Analytics & Dashboard",
+			"item": [
+				{
+					"name": "Get User Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"dashboard"
+							]
+						},
+						"description": "Get complete user dashboard with stats and recent activity"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quick Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/dashboard/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"dashboard",
+								"stats"
+							]
+						},
+						"description": "Get quick statistics overview"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Analytics Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/analytics/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"analytics",
+								"dashboard"
+							]
+						},
+						"description": "Get detailed analytics dashboard"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mentor Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/analytics/mentor",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"analytics",
+								"mentor"
+							]
+						},
+						"description": "Get mentor-specific analytics (only for mentors)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Career Progress",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/analytics/career-progress",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"analytics",
+								"career-progress"
+							]
+						},
+						"description": "Get career progress and milestones"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🎯 Career Trajectory",
+			"item": [
+				{
+					"name": "Get Career Recommendations",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"skills\": [\"Python\", \"JavaScript\", \"Machine Learning\", \"Data Analysis\"],\n  \"interests\": [\"AI\", \"Data Science\", \"Research\"],\n  \"experience\": \"2 years\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/career/recommendations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"career",
+								"recommendations"
+							]
+						},
+						"description": "Get AI-powered career recommendations based on skills and interests"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Career Path",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/career/path/:careerTitle",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"career",
+								"path",
+								":careerTitle"
+							],
+							"variable": [
+								{
+									"key": "careerTitle",
+									"value": "Machine Learning Engineer"
+								}
+							]
+						},
+						"description": "Get detailed career path and progression steps"
+					},
+					"response": []
+				},
+				{
+					"name": "Save Career Goal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Become Machine Learning Engineer\",\n  \"targetDate\": \"2026-12-31\",\n  \"milestones\": [\n    \"Complete Python for ML course\",\n    \"Build 3 ML projects for portfolio\",\n    \"Get ML certification\",\n    \"Land ML internship or job\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/career/goals",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"career",
+								"goals"
+							]
+						},
+						"description": "Save a new career goal with milestones"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Career Goals",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/career/goals",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"career",
+								"goals"
+							]
+						},
+						"description": "Get all saved career goals"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👍 Reactions",
+			"item": [
+				{
+					"name": "Add Reaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"messageId\": \"message-uuid\",\n  \"reactionType\": \"LIKE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/reactions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reactions"
+							]
+						},
+						"description": "Add reaction to a message (LIKE, LOVE, HELPFUL, INSIGHTFUL)"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Reaction",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reactions/:reactionId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reactions",
+								":reactionId"
+							],
+							"variable": [
+								{
+									"key": "reactionId",
+									"value": "reaction-uuid"
+								}
+							]
+						},
+						"description": "Remove your reaction"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Message Reactions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reactions/message/:messageId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reactions",
+								"message",
+								":messageId"
+							],
+							"variable": [
+								{
+									"key": "messageId",
+									"value": "message-uuid"
+								}
+							]
+						},
+						"description": "Get all reactions for a message"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔗 Share",
+			"item": [
+				{
+					"name": "Share Content",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contentType\": \"CHAT\",\n  \"contentId\": \"content-uuid\",\n  \"shareWith\": \"PUBLIC\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/share",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"share"
+							]
+						},
+						"description": "Share content (CHAT, QUIZ_RESULT, CAREER_PATH) with visibility (PUBLIC, PRIVATE, SPECIFIC_USER)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Shared Content",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/share/:shareId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"share",
+								":shareId"
+							],
+							"variable": [
+								{
+									"key": "shareId",
+									"value": "share-uuid"
+								}
+							]
+						},
+						"description": "View shared content (public access)"
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Share",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/share/:shareId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"share",
+								":shareId"
+							],
+							"variable": [
+								{
+									"key": "shareId",
+									"value": "share-uuid"
+								}
+							]
+						},
+						"description": "Revoke/delete a share link"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-add Authorization header if token exists",
+					"const token = pm.environment.get('token');",
+					"if (token && !pm.request.auth) {",
+					"    pm.request.headers.add({",
+					"        key: 'Authorization',",
+					"        value: 'Bearer ' + token",
+					"    });",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-log response for debugging",
+					"if (pm.response.code >= 400) {",
+					"    console.error('Request failed:', pm.response.code, pm.response.status);",
+					"    console.error('Response:', pm.response.text());",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}

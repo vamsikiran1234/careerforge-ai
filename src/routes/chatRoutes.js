@@ -29,6 +29,11 @@ router.get('/sessions',
   asyncHandler(chatController.getUserSessions)
 );
 
+// GET /api/v1/chat/history - Alias for /sessions (for frontend compatibility)
+router.get('/history', 
+  asyncHandler(chatController.getUserSessions)
+);
+
 // GET /api/v1/chat/session/:sessionId - Get specific session messages
 router.get('/session/:sessionId', 
   validateId('sessionId'),

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { Badge } from './ui/Badge';
+import { BrandLogo } from './ui/BrandLogo';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -155,8 +156,24 @@ export const MentorSidebar: React.FC = () => {
           )}
         </button>
 
+        {/* Logo Section */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          {!isCollapsed ? (
+            <div className="flex flex-col items-center">
+              <BrandLogo size="md" variant="compact" theme="gradient" />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium tracking-wide uppercase">
+                Mentor Portal
+              </p>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <BrandLogo size="sm" variant="monogram" theme="gradient" />
+            </div>
+          )}
+        </div>
+
         {/* Navigation */}
-        <nav className="flex flex-col gap-1 p-4 mt-4">
+        <nav className="flex flex-col gap-1 p-4">
           {navigation.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);

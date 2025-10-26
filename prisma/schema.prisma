@@ -31,6 +31,7 @@ model User {
   studentQuestions    StudentQuestion[]
   messageReactions    MessageReaction[]
   sharedConversations SharedConversation[]
+  careerGoals         CareerGoal[]
 
   @@map("users")
 }
@@ -423,4 +424,174 @@ model SharedConversation {
   careerSession CareerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("shared_conversations")
+}
+
+// ========================================
+// CAREER TRAJECTORY FEATURE MODELS
+// ========================================
+
+// CareerGoal - Main career trajectory record
+model CareerGoal {
+  id                String   @id @default(cuid())
+  userId            String
+  
+  // Current state
+  currentRole       String
+  currentCompany    String?
+  currentLevel      String?  // Junior, Mid, Senior, Lead, etc.
+  yearsExperience   Int?
+  
+  // Target state
+  targetRole        String
+  targetCompany     String?
+  targetLevel       String?
+  targetSalary      Float?
+  
+  // Timeline
+  timeframeMonths   Int      // How many months to achieve
+  startDate         DateTime @default(now())
+  targetDate        DateTime
+  
+  // Status
+  status            String   @default("ACTIVE") // ACTIVE, ACHIEVED, POSTPONED, CANCELLED
+  progress          Int      @default(0) // 0-100%
+  
+  // Metadata
+  aiGenerated       Boolean  @default(false)
+  aiAnalysis        String?  // JSON with AI insights
+  notes             String?
+  visibility        String   @default("PRIVATE") // PRIVATE, PUBLIC, SHARED
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  achievedAt        DateTime?
+  
+  // Relations
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones        Milestone[]
+  skillGaps         SkillGap[]
+  learningResources LearningResource[]
+  
+  @@index([userId])
+  @@index([status])
+  @@map("career_goals")
+}
+
+// Milestone - Key checkpoints in career trajectory
+model Milestone {
+  id          String   @id @default(cuid())
+  goalId      String
+  
+  // Milestone details
+  title       String
+  description String?
+  category    String   // SKILL_DEVELOPMENT, NETWORKING, PROJECT, CERTIFICATION, etc.
+  
+  // Timeline
+  targetDate  DateTime
+  order       Int      @default(0) // Display order
+  
+  // Status
+  status      String   @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED, BLOCKED
+  progress    Int      @default(0) // 0-100%
+  
+  // Completion tracking
+  completedAt DateTime?
+  evidence    String?  // Link to portfolio, certificate, etc.
+  
+  // AI support
+  aiSuggested Boolean  @default(false)
+  aiGuidance  String?  // JSON with AI tips
+  
+  // Metadata
+  priority    String   @default("MEDIUM") // HIGH, MEDIUM, LOW
+  estimatedHours Int?
+  actualHours    Int?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  goal        CareerGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  
+  @@index([goalId])
+  @@index([status])
+  @@map("milestones")
+}
+
+// SkillGap - Skills needed to achieve career goal
+model SkillGap {
+  id              String   @id @default(cuid())
+  goalId          String
+  
+  // Skill details
+  skillName       String
+  category        String   // TECHNICAL, SOFT_SKILL, DOMAIN_KNOWLEDGE
+  
+  // Assessment
+  currentLevel    Int      @default(0) // 0-10 scale
+  targetLevel     Int      // 0-10 scale
+  gap             Int      // Calculated: targetLevel - currentLevel
+  
+  // Priority & timeline
+  priority        String   @default("MEDIUM") // HIGH, MEDIUM, LOW
+  estimatedWeeks  Int?     // Time to bridge gap
+  
+  // Progress tracking
+  progress        Int      @default(0) // 0-100%
+  lastPracticed   DateTime?
+  
+  // Learning path
+  learningStrategy String? // JSON with recommended approach
+  
+  // Status
+  status          String   @default("IDENTIFIED") // IDENTIFIED, LEARNING, PROFICIENT
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  goal            CareerGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  
+  @@index([goalId])
+  @@index([priority])
+  @@map("skill_gaps")
+}
+
+// LearningResource - Curated resources for skill development
+model LearningResource {
+  id          String   @id @default(cuid())
+  goalId      String
+  skillGapId  String?  // Optional link to specific skill
+  
+  // Resource details
+  title       String
+  type        String   // COURSE, BOOK, ARTICLE, VIDEO, PROJECT, CERTIFICATION
+  url         String?
+  platform    String?  // Coursera, Udemy, YouTube, etc.
+  
+  // Metadata
+  duration    String?  // "4 weeks", "2 hours", etc.
+  cost        Float?   // 0 for free
+  difficulty  String?  // BEGINNER, INTERMEDIATE, ADVANCED
+  rating      Float?   // 0-5 stars
+  
+  // Tracking
+  status      String   @default("RECOMMENDED") // RECOMMENDED, IN_PROGRESS, COMPLETED
+  startedAt   DateTime?
+  completedAt DateTime?
+  
+  // AI recommendation
+  aiRecommended Boolean @default(false)
+  relevanceScore Float?  // 0-1, how relevant to goal
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  goal        CareerGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  
+  @@index([goalId])
+  @@index([status])
+  @@map("learning_resources")
 }
