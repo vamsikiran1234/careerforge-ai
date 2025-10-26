@@ -24,7 +24,7 @@ export const Layout: React.FC = () => {
   // Always show sidebar and main content, even on chat page
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
@@ -34,26 +34,26 @@ export const Layout: React.FC = () => {
       <MobileNav isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="flex flex-col flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200 md:hidden dark:bg-gray-800 dark:border-gray-700">
           <button
             onClick={() => setIsMobileNavOpen(true)}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            <Menu className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+            <Menu className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
           <LogoSimple size={32} />
           <RoleSwitcher />
         </div>
 
         {/* Desktop Header - Role Switcher */}
-        <div className="hidden md:flex items-center justify-end p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="items-center justify-end hidden p-4 bg-white border-b border-gray-200 md:flex dark:bg-gray-800 dark:border-gray-700">
           <RoleSwitcher />
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 p-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>
