@@ -168,9 +168,9 @@ export const MyConnections: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
         </div>
       </div>
     );
@@ -178,12 +178,12 @@ export const MyConnections: React.FC = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <AlertCircle className="h-12 w-12 text-red-600 dark:text-red-400 mx-auto mb-4" />
-              <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-600 dark:text-red-400" />
+              <p className="mb-4 text-red-600 dark:text-red-400">{error}</p>
               <Button onClick={fetchConnections}>Try Again</Button>
             </div>
           </CardContent>
@@ -193,10 +193,10 @@ export const MyConnections: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
           My Connections
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
@@ -209,11 +209,10 @@ export const MyConnections: React.FC = () => {
         <nav className="flex space-x-8">
           <button
             onClick={() => setSelectedTab('all')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              selectedTab === 'all'
+            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === 'all'
                 ? 'border-primary-600 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+              }`}
           >
             All Connections
             <span className="ml-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-2 py-0.5 rounded-full text-xs">
@@ -222,11 +221,10 @@ export const MyConnections: React.FC = () => {
           </button>
           <button
             onClick={() => setSelectedTab('pending')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              selectedTab === 'pending'
+            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === 'pending'
                 ? 'border-primary-600 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+              }`}
           >
             Pending
             <span className="ml-2 bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100 px-2 py-0.5 rounded-full text-xs">
@@ -235,11 +233,10 @@ export const MyConnections: React.FC = () => {
           </button>
           <button
             onClick={() => setSelectedTab('accepted')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              selectedTab === 'accepted'
+            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === 'accepted'
                 ? 'border-primary-600 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+              }`}
           >
             Active
             <span className="ml-2 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 px-2 py-0.5 rounded-full text-xs">
@@ -248,11 +245,10 @@ export const MyConnections: React.FC = () => {
           </button>
           <button
             onClick={() => setSelectedTab('rejected')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              selectedTab === 'rejected'
+            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === 'rejected'
                 ? 'border-primary-600 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+              }`}
           >
             Declined
             <span className="ml-2 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-2 py-0.5 rounded-full text-xs">
@@ -267,21 +263,21 @@ export const MyConnections: React.FC = () => {
         <Card>
           <CardContent className="p-12">
             <div className="text-center">
-              <Users className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <Users className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
+              <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
                 {selectedTab === 'all' && 'No connections yet'}
                 {selectedTab === 'pending' && 'No pending requests'}
                 {selectedTab === 'accepted' && 'No active connections'}
                 {selectedTab === 'rejected' && 'No declined connections'}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="mb-6 text-gray-600 dark:text-gray-400">
                 {selectedTab === 'all' && 'Start by finding mentors who can guide your career'}
                 {selectedTab === 'pending' && 'Your connection requests will appear here'}
                 {selectedTab === 'accepted' && 'Accepted connections will appear here'}
                 {selectedTab === 'rejected' && 'Declined connections will appear here'}
               </p>
               {selectedTab === 'all' && (
-                <Button onClick={() => navigate('/mentors')}>
+                <Button onClick={() => navigate('/app/mentors')}>
                   Browse Mentors
                 </Button>
               )}
@@ -289,13 +285,13 @@ export const MyConnections: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredConnections.map((connection) => (
-            <Card key={connection.id} className="hover:shadow-lg transition-shadow">
+            <Card key={connection.id} className="transition-shadow hover:shadow-lg">
               <CardHeader>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="flex items-center justify-center w-12 h-12 text-lg font-bold text-white rounded-full bg-gradient-to-br from-primary-500 to-purple-600">
                       {connection.mentor.user.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -314,7 +310,7 @@ export const MyConnections: React.FC = () => {
                 <div className="space-y-3">
                   {/* Company */}
                   <div className="flex items-center space-x-2 text-sm">
-                    <Briefcase className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                    <Briefcase className="flex-shrink-0 w-4 h-4 text-gray-500" />
                     <span className="text-gray-700 dark:text-gray-300">
                       {connection.mentor.company}
                     </span>
@@ -322,7 +318,7 @@ export const MyConnections: React.FC = () => {
 
                   {/* Experience */}
                   <div className="flex items-center space-x-2 text-sm">
-                    <GraduationCap className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                    <GraduationCap className="flex-shrink-0 w-4 h-4 text-gray-500" />
                     <span className="text-gray-700 dark:text-gray-300">
                       {connection.mentor.yearsOfExperience} years experience
                     </span>
@@ -331,7 +327,7 @@ export const MyConnections: React.FC = () => {
                   {/* Rating */}
                   {connection.mentor.averageRating && (
                     <div className="flex items-center space-x-2 text-sm">
-                      <Star className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      <Star className="flex-shrink-0 w-4 h-4 text-yellow-500" />
                       <span className="text-gray-700 dark:text-gray-300">
                         {connection.mentor.averageRating.toFixed(1)} ({connection.mentor.totalSessions} sessions)
                       </span>
@@ -345,9 +341,9 @@ export const MyConnections: React.FC = () => {
                       const areas = Array.isArray(connection.mentor.expertiseAreas)
                         ? connection.mentor.expertiseAreas
                         : typeof connection.mentor.expertiseAreas === 'string'
-                        ? JSON.parse(connection.mentor.expertiseAreas)
-                        : [];
-                      
+                          ? JSON.parse(connection.mentor.expertiseAreas)
+                          : [];
+
                       return areas.slice(0, 3).map((skill: string) => (
                         <Badge key={skill} variant="secondary" className="text-xs">
                           {skill}
@@ -358,9 +354,9 @@ export const MyConnections: React.FC = () => {
                       const areas = Array.isArray(connection.mentor.expertiseAreas)
                         ? connection.mentor.expertiseAreas
                         : typeof connection.mentor.expertiseAreas === 'string'
-                        ? JSON.parse(connection.mentor.expertiseAreas)
-                        : [];
-                      
+                          ? JSON.parse(connection.mentor.expertiseAreas)
+                          : [];
+
                       return areas.length > 3 && (
                         <Badge variant="outline" className="text-xs">
                           +{areas.length - 3}
@@ -371,8 +367,8 @@ export const MyConnections: React.FC = () => {
 
                   {/* Request Message */}
                   {connection.message && (
-                    <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">
+                    <div className="p-3 mt-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                      <p className="mb-1 text-xs font-medium text-gray-600 dark:text-gray-400">
                         Your message:
                       </p>
                       <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
@@ -382,7 +378,7 @@ export const MyConnections: React.FC = () => {
                   )}
 
                   {/* Date Info */}
-                  <div className="flex items-center space-x-2 text-xs text-gray-500 pt-2 border-t">
+                  <div className="flex items-center pt-2 space-x-2 text-xs text-gray-500 border-t">
                     <Clock className="w-3 h-3" />
                     <span>
                       {connection.status === 'PENDING' && `Requested ${new Date(connection.createdAt).toLocaleDateString()}`}
@@ -399,7 +395,7 @@ export const MyConnections: React.FC = () => {
                           variant="primary"
                           size="sm"
                           className="flex-1"
-                          onClick={() => navigate(`/messages/${connection.id}`)}
+                          onClick={() => navigate(`/app/messages/${connection.id}`)}
                         >
                           <MessageCircle className="w-4 h-4 mr-2" />
                           Chat
@@ -408,7 +404,7 @@ export const MyConnections: React.FC = () => {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => navigate(`/sessions/book/${connection.mentor.id}`)}
+                          onClick={() => navigate(`/app/sessions/book/${connection.mentor.id}`)}
                         >
                           <Calendar className="w-4 h-4 mr-2" />
                           Book Session
@@ -429,7 +425,7 @@ export const MyConnections: React.FC = () => {
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={() => navigate('/mentors')}
+                        onClick={() => navigate('/app/mentors')}
                       >
                         Browse Other Mentors
                       </Button>
@@ -465,9 +461,9 @@ export const MyConnections: React.FC = () => {
             <strong>{connectionToDelete?.mentor.user.name}</strong>?
           </p>
           {connectionToDelete?.status === 'ACCEPTED' && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+            <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <AlertCircle className="w-4 h-4 inline mr-2" />
+                <AlertCircle className="inline w-4 h-4 mr-2" />
                 This will also delete all chat history and scheduled sessions with this mentor.
               </p>
             </div>

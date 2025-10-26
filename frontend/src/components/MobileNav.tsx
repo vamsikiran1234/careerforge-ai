@@ -46,7 +46,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
       <div className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-900 shadow-xl z-50 md:hidden transform transition-transform duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-          <Link to="/dashboard" className="flex items-center" onClick={onClose}>
+          <Link to="/app/dashboard" className="flex items-center" onClick={onClose}>
             <Logo size="md" variant="full" />
           </Link>
           <button

@@ -1,0 +1,76 @@
+/* Custom styles for milestone progress slider */
+.milestone-progress-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.milestone-progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #10b981;
+  cursor: pointer;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+}
+
+.milestone-progress-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.milestone-progress-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+}
+
+.milestone-progress-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #10b981;
+  cursor: pointer;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+}
+
+.milestone-progress-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.milestone-progress-slider::-moz-range-thumb:active {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+}
+
+/* Dark mode styles */
+.dark .milestone-progress-slider::-webkit-slider-thumb {
+  border: 3px solid #1f2937;
+}
+
+.dark .milestone-progress-slider::-moz-range-thumb {
+  border: 3px solid #1f2937;
+}
+
+/* Focus styles for accessibility */
+.milestone-progress-slider:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Progress bar background gradient */
+.milestone-progress-slider {
+  background: linear-gradient(to right, #10b981 0%, #10b981 var(--progress, 0%), #e5e7eb var(--progress, 0%), #e5e7eb 100%);
+}
+
+.dark .milestone-progress-slider {
+  background: linear-gradient(to right, #10b981 0%, #10b981 var(--progress, 0%), #374151 var(--progress, 0%), #374151 100%);
+}

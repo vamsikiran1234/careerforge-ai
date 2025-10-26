@@ -8,6 +8,91 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 });
 
+// Multi-Model Fallback Configuration for Groq API
+const GROQ_MODELS = [
+  'llama-3.3-70b-versatile',      // Primary model - most capable
+  'llama-3.1-70b-versatile',      // Fallback 1 - stable alternative
+  'llama-3.1-8b-instant',         // Fallback 2 - faster, lower quota usage
+  'mixtral-8x7b-32768',           // Fallback 3 - different architecture
+  'gemma2-9b-it',                 // Fallback 4 - Google's model
+  'llama3-8b-8192'                // Fallback 5 - final fallback
+];
+
+// Enhanced Groq API call with automatic model fallback
+const callGroqWithFallback = async (messages, options = {}) => {
+  const defaultOptions = {
+    max_tokens: 1200,
+    temperature: 0.7,
+    response_format: { type: 'json_object' },
+    ...options
+  };
+
+  let lastError = null;
+  
+  for (let i = 0; i < GROQ_MODELS.length; i++) {
+    const model = GROQ_MODELS[i];
+    
+    try {
+      console.log(`🤖 Attempting Groq API call with model: ${model} (attempt ${i + 1}/${GROQ_MODELS.length})`);
+      
+      const response = await groq.chat.completions.create({
+        model,
+        messages,
+        ...defaultOptions,
+      });
+
+      console.log(`✅ Success with model: ${model}`);
+      return {
+        response,
+        modelUsed: model,
+        attemptNumber: i + 1
+      };
+      
+    } catch (error) {
+      console.warn(`❌ Model ${model} failed:`, error.message);
+      lastError = error;
+      
+      // Check if it's a quota/rate limit error
+      if (error.message?.includes('quota') || 
+          error.message?.includes('rate limit') || 
+          error.message?.includes('insufficient_quota') ||
+          error.status === 429) {
+        console.log(`⏭️ Quota exceeded for ${model}, trying next model...`);
+        continue;
+      }
+      
+      // Check if it's an authentication error
+      if (error.message?.includes('authentication') || 
+          error.message?.includes('api_key') ||
+          error.status === 401) {
+        console.log(`🔑 Auth error for ${model}, trying next model...`);
+        continue;
+      }
+      
+      // Check if model is not found/available
+      if (error.message?.includes('model') && error.message?.includes('not found') ||
+          error.status === 404) {
+        console.log(`🚫 Model ${model} not available, trying next model...`);
+        continue;
+      }
+      
+      // For other errors, still try next model but log the error
+      console.log(`🔄 Error with ${model}, trying next model:`, error.message);
+      continue;
+    }
+  }
+  
+  // If all models failed, throw the last error with context
+  const fallbackError = new Error(`All Groq models failed. Last error: ${lastError?.message || 'Unknown error'}`);
+  fallbackError.originalError = lastError;
+  fallbackError.code = 'all_models_failed';
+  throw fallbackError;
+};
+
+// Removed fallback system - using only real AI implementation
+
+// Removed fallback recommendations - using only real AI implementation
+
 const aiService = {
   // Career Chat AI Service with Groq
   chatReply: async (userId, message, messageHistory = []) => {
@@ -37,7 +122,7 @@ const aiService = {
       // Enhanced Career Chat System Prompt for Groq - Optimized for Token Limits
       const systemPrompt = `You are CareerForge AI, a senior career mentor providing personalized guidance to tech professionals and students.
 
-USER: ${user.name} (${user.role}) - ${user.bio || 'No bio provided'}
+USER: ${user.name} (${JSON.parse(user.roles || '["STUDENT"]').join(', ')}) - ${user.bio || 'No bio provided'}
 
 EXPERTISE: Technical careers, skill development, job market insights, resume optimization, interview prep.
 
@@ -61,17 +146,17 @@ Focus on practical, personalized career advice with current market insights.`;
         { role: 'user', content: message },
       ];
 
-      // Call Groq API
-      console.log('🤖 Calling Groq API with llama-3.1-8b-instant...');
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.1-8b-instant',
-        messages,
+      // Call Groq API with multi-model fallback
+      console.log('🤖 Calling Groq API with multi-model fallback for chat...');
+      const { response, modelUsed, attemptNumber } = await callGroqWithFallback(messages, {
         max_tokens: 800,
         temperature: 0.7,
         top_p: 1,
         stream: false,
+        response_format: undefined // Remove JSON format requirement for chat
       });
 
+      console.log(`💬 Chat response generated using ${modelUsed} (attempt ${attemptNumber})`);
       const aiReply = response.choices[0]?.message?.content;
 
       if (!aiReply) {
@@ -132,7 +217,7 @@ Focus on practical, personalized career advice with current market insights.`;
 
 ## USER CONTEXT
 - Name: ${user.name}
-- Role: ${user.role}
+- Role: ${JSON.parse(user.roles || '["STUDENT"]').join(', ')}
 - Bio: ${user.bio || 'No bio provided'}
 
 ## CORE CAPABILITIES
@@ -176,17 +261,18 @@ Remember: You're not just providing information - you're mentoring their entire 
         { role: 'user', content: message },
       ];
 
-      // Call Groq API
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages,
+      // Call Groq API with multi-model fallback
+      const { response, modelUsed, attemptNumber } = await callGroqWithFallback(messages, {
         max_tokens: 800,
         temperature: 0.7,
         top_p: 1,
         frequency_penalty: 0.1,
         presence_penalty: 0.1,
         stream: false,
+        response_format: undefined // Remove JSON format requirement for chat
       });
+
+      console.log(`💬 OpenAI-compatible response generated using ${modelUsed} (attempt ${attemptNumber})`);
 
       const aiReply = response.choices[0].message.content;
 
@@ -265,7 +351,7 @@ Remember: You're not just providing information - you're mentoring their entire 
           user: {
             select: {
               name: true,
-              role: true,
+              roles: true,
               bio: true,
             },
           },
@@ -306,23 +392,50 @@ Remember: You're not just providing information - you're mentoring their entire 
         if (!currentAnswers[currentStage]) {
           currentAnswers[currentStage] = [];
         }
-        currentAnswers[currentStage].push({
+        const newAnswer = {
           question: session.quizQuestions[questionCount - 1]?.questionText || 'Previous question',
           answer: userAnswer,
           timestamp: new Date().toISOString(),
-        });
+        };
+        currentAnswers[currentStage].push(newAnswer);
+        console.log(`💾 Added answer to ${currentStage}:`, newAnswer);
+        console.log(`📊 Current answers for ${currentStage}:`, currentAnswers[currentStage].length);
       }
 
       // Check if current stage is complete
       const currentStageAnswers = currentAnswers[currentStage] || [];
       const isCurrentStageComplete = currentStageAnswers.length >= questionsPerStage[currentStage];
 
-      // Determine next stage or completion
-      nextStage = currentStage; // Update the outer variable
-      if (isCurrentStageComplete && currentStageIndex < stageOrder.length - 1) {
-        nextStage = stageOrder[currentStageIndex + 1];
-      } else if (isCurrentStageComplete && currentStageIndex === stageOrder.length - 1) {
-        nextStage = 'COMPLETED';
+      console.log(`🔍 Quiz Progress Debug:`, {
+        sessionId,
+        currentStage,
+        currentStageIndex,
+        currentStageAnswers: currentStageAnswers.length,
+        requiredForStage: questionsPerStage[currentStage],
+        isCurrentStageComplete,
+        questionCount,
+        userAnswer: userAnswer ? 'provided' : 'none',
+        allStageAnswers: Object.keys(currentAnswers).map(stage => `${stage}: ${currentAnswers[stage].length}`)
+      });
+
+      // Determine next stage or completion with more robust logic
+      nextStage = currentStage; // Start with current stage
+      
+      // If we have a user answer, we need to check if the current stage is now complete
+      if (userAnswer && isCurrentStageComplete) {
+        if (currentStageIndex < stageOrder.length - 1) {
+          nextStage = stageOrder[currentStageIndex + 1];
+          console.log(`🎯 Stage ${currentStage} complete! Moving to next stage: ${nextStage}`);
+        } else {
+          nextStage = 'COMPLETED';
+          console.log(`🏁 All stages complete! Quiz finished!`);
+        }
+      } else if (userAnswer) {
+        // Continue with current stage - more questions needed
+        console.log(`📝 Continuing with current stage: ${currentStage} (${currentStageAnswers.length}/${questionsPerStage[currentStage]} questions)`);
+      } else {
+        // No user answer - this is the initial question or resuming
+        console.log(`🚀 ${userAnswer ? 'Continuing' : 'Starting'} stage: ${currentStage}`);
       }
 
       // Generate context for AI
@@ -335,7 +448,7 @@ Remember: You're not just providing information - you're mentoring their entire 
 
 ## USER CONTEXT
 - Name: ${session.user.name}
-- Role: ${session.user.role}
+- Role: ${JSON.parse(session.user.roles || '["STUDENT"]').join(', ')}
 - Current Stage: ${nextStage}
 - Question #: ${questionCount + 1}
 - Bio: ${session.user.bio || 'No bio provided'}
@@ -437,23 +550,26 @@ Create engaging, relevant questions that:
 
 Always return valid JSON. Ensure questions are clear, scenario-based, and options reveal different career inclinations.`;
 
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile', // Groq's recommended model (replaces decommissioned 3.1)
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { 
-            role: 'user', 
-            content: userAnswer ? 
-              `User answered: "${userAnswer}". Please provide the next step.` : 
-              'Please start the quiz with the first question.'
-          },
-        ],
-        max_tokens: 1200,
-        temperature: 0.7,
-        response_format: { type: 'json_object' },
-      });
+      // Use multi-model fallback system for real AI implementation
+      console.log(`🤖 Attempting AI call for ${nextStage} stage...`);
+      const { response, modelUsed, attemptNumber } = await callGroqWithFallback([
+        { role: 'system', content: systemPrompt },
+        { 
+          role: 'user', 
+          content: userAnswer ? 
+            `User answered: "${userAnswer}". Please provide the next step.` : 
+            'Please start the quiz with the first question.'
+        },
+      ]);
 
+      console.log(`🎯 Quiz question generated successfully using ${modelUsed} (attempt ${attemptNumber})`);
       const result = JSON.parse(response.choices[0].message.content);
+      console.log(`🤖 AI Generated Result:`, {
+        type: result.type,
+        stage: result.stage,
+        isComplete: result.isComplete,
+        questionPreview: result.question ? result.question.substring(0, 50) + '...' : 'No question'
+      });
 
       // Update session answers in database
       await prisma.quizSession.update({
@@ -470,82 +586,35 @@ Always return valid JSON. Ensure questions are clear, scenario-based, and option
       
       // Handle JSON parsing errors specifically for quiz responses
       if (error.message.includes('JSON') || error.name === 'SyntaxError') {
-        console.warn('Quiz AI returned invalid JSON, using fallback question');
-        
-        // Return appropriate fallback based on current stage
-        const fallbackQuestions = {
-          'SKILLS_ASSESSMENT': {
-            type: 'question',
-            stage: 'SKILLS_ASSESSMENT',
-            question: 'What programming languages are you most comfortable working with?',
-            options: ['JavaScript/TypeScript', 'Python', 'Java/C#', 'Other/No experience'],
-            isComplete: false,
-          },
-          'CAREER_INTERESTS': {
-            type: 'question',
-            stage: 'CAREER_INTERESTS', 
-            question: 'Which work environment appeals to you most?',
-            options: ['Fast-paced startup', 'Established enterprise', 'Remote freelancing', 'Research institution'],
-            isComplete: false,
-          },
-          'PERSONALITY_TRAITS': {
-            type: 'question',
-            stage: 'PERSONALITY_TRAITS',
-            question: 'How do you prefer to approach new challenges?',
-            options: ['Research thoroughly first', 'Jump in and learn by doing', 'Collaborate with others', 'Break it into smaller steps'],
-            isComplete: false,
-          },
-          'LEARNING_STYLE': {
-            type: 'question',
-            stage: 'LEARNING_STYLE',
-            question: 'How do you learn new skills most effectively?',
-            options: ['Online courses and tutorials', 'Books and documentation', 'Hands-on projects', 'Mentorship and guidance'],
-            isComplete: false,
-          },
-          'CAREER_GOALS': {
-            type: 'question',
-            stage: 'CAREER_GOALS',
-            question: 'What is your primary career goal for the next 2 years?',
-            options: ['Land a job at a top tech company', 'Start my own business', 'Become a domain expert', 'Achieve work-life balance'],
-            isComplete: false,
-          }
-        };
-        
-        const fallback = fallbackQuestions[currentStage] || fallbackQuestions['SKILLS_ASSESSMENT'];
-        
-        // Update session with fallback answer if we have one
-        if (userAnswer && currentStage !== 'COMPLETED') {
-          await prisma.quizSession.update({
-            where: { id: sessionId },
-            data: {
-              answers: JSON.stringify(currentAnswers), // Convert to JSON string for database
-              currentStage: nextStage,
-            },
-          });
-        }
-        
-        return fallback;
+        console.error('Quiz AI returned invalid JSON:', error);
+        throw new Error('AI service returned invalid response format. Please try again.');
       }
       
-      // Handle Groq quota/auth errors with mock responses
-      if (error.code === 'insufficient_quota' || error.code === 'invalid_api_key' || error.code === 'model_not_found') {
-        console.log('Groq API unavailable, using mock quiz response');
-        const { getMockQuizQuestion } = require('./mockAI');
-        return getMockQuizQuestion(currentStage);
+      // Handle all Groq models failed error
+      if (error.code === 'all_models_failed') {
+        console.error('🚨 All Groq models failed:', error);
+        throw new Error('AI service is currently unavailable. Please try again later.');
       }
       
-      // Handle other AI service errors - throw generic error
-      if (error.code) {
-        const serviceError = new Error('AI service error');
-        serviceError.code = error.code;
-        throw serviceError;
+      // Handle specific Groq errors that might still occur
+      if (error.code === 'insufficient_quota' || 
+          error.code === 'invalid_api_key' || 
+          error.code === 'model_not_found' ||
+          error.message?.includes('quota') ||
+          error.message?.includes('authentication')) {
+        console.error('🔄 Groq API issues detected:', error);
+        throw new Error('AI service quota exceeded or authentication failed. Please try again later.');
       }
       
-      // Final fallback for quiz service
-      const fallbackError = new Error('Quiz service temporarily unavailable. Please try again later.');
-      fallbackError.code = 'quiz_service_error';
-      fallbackError.name = 'APIError';
-      throw fallbackError;
+      // Handle database or other system errors
+      if (error.message?.includes('database') || error.message?.includes('prisma')) {
+        console.error('💾 Database error in quiz service:', error);
+        throw new Error('Database error occurred. Please try again.');
+      }
+      
+      // Final error handling
+      console.error('🆘 Unexpected error in quiz service:', error);
+      throw new Error('Quiz service encountered an unexpected error. Please try again.');
     }
   },
 
@@ -646,16 +715,15 @@ Respond with ONLY the domain name in uppercase (e.g., "WEB_DEVELOPMENT")
 
 Analyze keywords, technologies, context, and intent to classify into the most appropriate domain.`;
 
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Classify this question: "${question}"` },
-        ],
+      const { response, modelUsed, attemptNumber } = await callGroqWithFallback([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Classify this question: "${question}"` },
+      ], {
         max_tokens: 20,
         temperature: 0.1, // Low temperature for consistent classification
         top_p: 1,
         frequency_penalty: 0,
+        response_format: undefined, // Remove JSON format requirement for classification
         presence_penalty: 0,
       });
 
@@ -704,15 +772,15 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
 
       const apiOptions = { ...defaultOptions, ...options };
 
-      const response = await groq.chat.completions.create({
+      const { response, modelUsed, attemptNumber } = await callGroqWithFallback([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ], {
         ...apiOptions,
-        model: apiOptions.model || 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
+        response_format: undefined // Remove JSON format requirement for general API
       });
 
+      console.log(`🔧 General API response generated using ${modelUsed} (attempt ${attemptNumber})`);
       return response.choices[0].message.content;
     } catch (error) {
       console.error('General AI Service Error:', error);
@@ -723,12 +791,14 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
   // Validate Groq API key
   validateApiKey: async () => {
     try {
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: 'Hello' }],
+      const { response, modelUsed } = await callGroqWithFallback([
+        { role: 'user', content: 'Hello' }
+      ], {
         max_tokens: 5,
+        response_format: undefined // Remove JSON format requirement for validation
       });
 
+      console.log(`🔑 API key validated successfully using ${modelUsed}`);
       return !!response.choices[0].message.content;
     } catch (error) {
       console.error('API Key Validation Error:', error);
@@ -769,7 +839,7 @@ Analyze keywords, technologies, context, and intent to classify into the most ap
       // Enhanced Career Chat System Prompt
       const systemPrompt = `You are CareerForge AI, a senior career mentor providing personalized guidance to tech professionals and students.
 
-USER: ${user.name} (${user.role}) - ${user.bio || 'No bio provided'}
+USER: ${user.name} (${JSON.parse(user.roles || '["STUDENT"]').join(', ')}) - ${user.bio || 'No bio provided'}
 
 EXPERTISE: Technical careers, skill development, job market insights, resume optimization, interview prep.
 

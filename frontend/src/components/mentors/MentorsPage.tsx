@@ -175,7 +175,7 @@ export const MentorsPage: React.FC = () => {
           <select
             value={minRating}
             onChange={(e) => setMinRating(Number(e.target.value))}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent whitespace-nowrap min-w-[140px]"
           >
             <option value={0}>All Ratings</option>
             <option value={4}>4+ Stars</option>

@@ -89,9 +89,9 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-white/70 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-        {/* Welcome Header */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-4xl mx-auto w-full min-h-0 pt-16">
+    <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-white/70 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+      {/* Welcome Header */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 w-full min-h-0 pt-16">
           <div className="text-center mb-8">
             {/* CareerForge AI Logo */}
             <div className="inline-flex items-center justify-center w-24 h-24 mb-6">
@@ -107,11 +107,11 @@ export const MessageList: React.FC<MessageListProps> = ({
           </div>
 
           {/* Feature Cards - Modern Canva-inspired design */}
-          <div className="grid grid-cols-2 gap-4 w-full max-w-2xl mx-auto mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl mx-auto mb-8">
             {/* Career Goals Card */}
             <div 
               onClick={() => onSendMessage?.("I want to set clear and achievable career goals for the next 2-3 years. Can you help me create a strategic career plan with specific milestones, timelines, and actionable steps to advance in my profession?")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-indigo-100 dark:border-slate-700 hover:shadow-lg hover:border-indigo-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1"
+              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-indigo-100 dark:border-slate-700 hover:shadow-lg hover:border-indigo-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
             >
               <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/25">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +125,7 @@ export const MessageList: React.FC<MessageListProps> = ({
             {/* Resume Review Card */}
             <div 
               onClick={() => onSendMessage?.("I would like you to review my resume and provide detailed feedback on how to improve it. Please analyze the content, format, keywords, and overall presentation to help me make it more compelling for potential employers in my target industry.")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-emerald-100 dark:border-slate-700 hover:shadow-lg hover:border-emerald-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1"
+              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-emerald-100 dark:border-slate-700 hover:shadow-lg hover:border-emerald-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
             >
               <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/25">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +139,7 @@ export const MessageList: React.FC<MessageListProps> = ({
             {/* Skill Gaps Card */}
             <div 
               onClick={() => onSendMessage?.("Please help me identify skill gaps in my current profession and recommend specific skills I should develop to stay competitive and advance in my career. I'd like to understand both technical and soft skills that are in high demand in my industry.")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-violet-100 dark:border-slate-700 hover:shadow-lg hover:border-violet-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1"
+              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-violet-100 dark:border-slate-700 hover:shadow-lg hover:border-violet-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
             >
               <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-violet-500/25">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +153,7 @@ export const MessageList: React.FC<MessageListProps> = ({
             {/* Interview Prep Card */}
             <div 
               onClick={() => onSendMessage?.("I have upcoming job interviews and need comprehensive preparation. Can you help me prepare for common interview questions, develop compelling answers using the STAR method, and provide tips on how to make a strong impression during the interview process?")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-amber-100 dark:border-slate-700 hover:shadow-lg hover:border-amber-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1"
+              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-amber-100 dark:border-slate-700 hover:shadow-lg hover:border-amber-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
             >
               <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-amber-500/25">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,15 +175,17 @@ export const MessageList: React.FC<MessageListProps> = ({
     <div className="flex-1 relative overflow-hidden h-full">
       <div 
         ref={scrollContainerRef}
-        className="h-full overflow-y-auto scroll-smooth custom-scrollbar"
-        style={{ maxHeight: 'calc(100vh - 140px)' }}
+        className="h-full overflow-y-auto scroll-smooth custom-scrollbar px-4 md:px-6 lg:px-8"
+        style={{ 
+          maxHeight: 'calc(100vh - 140px)',
+          paddingRight: '1.5rem' // Extra padding to prevent content from touching scrollbar
+        }}
       >
-        <div className="space-y-1 pb-2 min-h-full">
-          {messages.map((message, index) => (
+        <div className="space-y-1 pb-2 min-h-full max-w-5xl mx-auto">
+          {messages.map((message) => (
             <MessageItem
               key={message.id}
               message={message}
-              isLast={index === messages.length - 1 && !isTyping}
               onEdit={onEditMessage}
             />
           ))}

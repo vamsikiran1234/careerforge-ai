@@ -91,7 +91,7 @@ const chatController = {
       {
         userId: user.id,
         userName: user.name,
-        userRole: user.role,
+        userRole: JSON.parse(user.roles || '["STUDENT"]').join(', '),
         userBio: user.bio,
         taskType: 'general'
       }
@@ -373,7 +373,7 @@ const chatController = {
       {
         userId: user.id,
         userName: user.name,
-        userRole: user.role,
+        userRole: JSON.parse(user.roles || '["STUDENT"]').join(', '),
         userBio: user.bio,
         taskType: 'document' // Indicate this is for document analysis
       }

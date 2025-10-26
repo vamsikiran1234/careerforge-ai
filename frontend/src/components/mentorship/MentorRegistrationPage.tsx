@@ -711,7 +711,7 @@ export const MentorRegistrationPage: React.FC = () => {
         {currentStep < 4 && (
           <div className="mt-4 text-center">
             <Link
-              to="/dashboard"
+              to="/app/dashboard"
               className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
             >
               Cancel and go back

@@ -124,22 +124,26 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onClick }) => {
         {/* Stats Row */}
         <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
           {/* Rating */}
-          <div className="flex items-center">
-            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 mr-1" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">
-              {mentor.averageRating?.toFixed(1) || 'New'}
+          <div className="flex items-center gap-1.5">
+            <Star className={`w-4 h-4 ${mentor.averageRating && mentor.averageRating > 0 ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 dark:text-gray-600'}`} />
+            <span className={`text-sm font-semibold ${mentor.averageRating && mentor.averageRating > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>
+              {mentor.averageRating && mentor.averageRating > 0 ? mentor.averageRating.toFixed(2) : '0.00'}
             </span>
-            {mentor.averageRating && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+            {mentor.averageRating && mentor.averageRating > 0 ? (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 ({mentor.totalSessions})
+              </span>
+            ) : (
+              <span className="text-xs text-gray-400 dark:text-gray-500 italic">
+                No ratings yet
               </span>
             )}
           </div>
 
           {/* Sessions */}
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            <Users className="w-4 h-4 mr-1" />
-            <span>{mentor.totalSessions} sessions</span>
+            <Users className="w-4 h-4 mr-1.5 flex-shrink-0" />
+            <span className="whitespace-nowrap">{mentor.totalSessions} session{mentor.totalSessions !== 1 ? 's' : ''}</span>
           </div>
         </div>
 

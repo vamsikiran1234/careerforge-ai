@@ -201,7 +201,7 @@ export const MentorMentees: React.FC = () => {
 
                   <div className="flex gap-2 pt-2">
                     <Link
-                      to="/messages"
+                      to={`/app/messages/${mentee.id}`}
                       className="flex-1 px-3 py-2 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium text-center transition-colors"
                     >
                       <Mail className="h-4 w-4 inline mr-1" />

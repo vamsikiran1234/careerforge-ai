@@ -17,6 +17,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { RoleProvider } from '@/contexts/RoleContext';
 import { MentorPortalLayout } from '@/layouts/MentorPortalLayout';
 import { ProtectedMentorRoute } from '@/components/ProtectedMentorRoute';
+import { LandingPage } from '@/components/landing/LandingPage';
 
 // Lazy load components for better performance
 const DashboardPage = React.lazy(() => import('@/components/DashboardPage').then(module => ({ default: module.DashboardPage })));
@@ -44,6 +45,11 @@ const MentorSessions = React.lazy(() => import('./pages/mentor/MentorSessions').
 const MentorAvailability = React.lazy(() => import('./pages/mentor/MentorAvailability').then(module => ({ default: module.MentorAvailability })));
 const MentorEarnings = React.lazy(() => import('./pages/mentor/MentorEarnings').then(module => ({ default: module.MentorEarnings })));
 const MentorProfile = React.lazy(() => import('./pages/mentor/MentorProfile').then(module => ({ default: module.MentorProfile })));
+
+// Career Trajectory Components
+const CareerTrajectoryDashboard = React.lazy(() => import('./components/career/CareerTrajectoryDashboard'));
+const GoalCreationWizard = React.lazy(() => import('./components/career/wizard/GoalCreationWizard'));
+const GoalDetailPage = React.lazy(() => import('./components/career/GoalDetailPage'));
 
 
 // Create a client
@@ -74,17 +80,19 @@ const ProtectedRoute: React.FC = () => {
 // Public Route Component (redirect to dashboard if already authenticated)
 interface PublicRouteProps {
   children: React.ReactNode;
+  allowAuthenticated?: boolean; // Allow authenticated users on certain pages (like reset password)
 }
 
-const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
+const PublicRoute: React.FC<PublicRouteProps> = ({ children, allowAuthenticated = false }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   if (isLoading) {
     return <LoadingPage message="Loading..." />;
   }
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  // Don't redirect if allowAuthenticated is true (for reset password flow)
+  if (isAuthenticated && !allowAuthenticated) {
+    return <Navigate to="/app/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -156,7 +164,7 @@ function App() {
                 <Route
                   path="/reset-password"
                   element={
-                    <PublicRoute>
+                    <PublicRoute allowAuthenticated={true}>
                       <ResetPasswordPage />
                     </PublicRoute>
                   }
@@ -180,8 +188,22 @@ function App() {
                   }
                 />
 
+                {/* Landing Page - Public */}
+                <Route 
+                  path="/" 
+                  element={
+                    <PublicRoute>
+                      <LandingPage />
+                    </PublicRoute>
+                  } 
+                />
+
                 {/* Protected Routes */}
-                <Route path="/" element={<ProtectedRoute />}>
+                <Route path="/app" element={<ProtectedRoute />}>
+                  <Route 
+                    index
+                    element={<Navigate to="/app/dashboard" replace />}
+                  />
                   <Route 
                     path="dashboard" 
                     element={
@@ -271,6 +293,32 @@ function App() {
                     } 
                   />
                   
+                  {/* Career Trajectory Routes */}
+                  <Route 
+                    path="career" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Career Trajectory..." />}>
+                        <CareerTrajectoryDashboard />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="career/new" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Creating Goal..." />}>
+                        <GoalCreationWizard />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="career/:goalId" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Goal..." />}>
+                        <GoalDetailPage />
+                      </Suspense>
+                    } 
+                  />
+                  
                   {/* Admin Routes */}
                   <Route 
                     path="admin" 
@@ -289,7 +337,7 @@ function App() {
                     } 
                   />
                   
-                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route index element={<Navigate to="/app/dashboard" replace />} />
                 </Route>
                 
                 {/* Mentor Portal Routes - Protected with ProtectedMentorRoute */}
@@ -369,7 +417,7 @@ function App() {
                 />
                 
                 {/* Catch-all route */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </div>
           </RoleProvider>

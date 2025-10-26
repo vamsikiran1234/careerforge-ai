@@ -98,6 +98,15 @@ export const SEO: React.FC<SEOProps> = ({
 
 // Helper function to generate page-specific SEO
 export const createSEO = {
+  landing: () => (
+    <SEO 
+      title="CareerForge AI - AI-Powered Career Guidance Platform"
+      description="Transform your career with AI-powered guidance, skill assessments, expert mentor connections, and personalized recommendations. Join 10,000+ professionals achieving their career goals."
+      keywords="AI career guidance, career development platform, mentor matching, career assessment, professional growth, AI coaching, career planning"
+      type="website"
+    />
+  ),
+
   dashboard: () => (
     <SEO 
       title="Dashboard"

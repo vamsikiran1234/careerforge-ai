@@ -5,18 +5,18 @@ const aiService = require('../services/aiService');
 const quizController = {
   // POST /api/v1/quiz/start
   startQuiz: asyncHandler(async (req, res) => {
-    const { userId } = req.body;
-
-    // Validate userId is provided
-    if (!userId) {
-      return res.status(400).json(
-        createResponse('error', 'User ID is required')
+    // Get user from JWT token instead of request body
+    const userEmail = req.user.email || req.user.userEmail;
+    
+    if (!userEmail) {
+      return res.status(401).json(
+        createResponse('error', 'Authentication required')
       );
     }
 
-    // Validate user exists
+    // Find user by email
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { email: userEmail },
     });
 
     if (!user) {
@@ -24,6 +24,8 @@ const quizController = {
         createResponse('error', 'User not found')
       );
     }
+
+    const userId = user.id;
 
     // Check if user has an active quiz session
     const existingSession = await prisma.quizSession.findFirst({
@@ -105,9 +107,21 @@ const quizController = {
         );
       } catch (error) {
         console.error('Error resuming existing session:', error);
-        return res.status(500).json(
-          createResponse('error', `Failed to resume quiz session: ${error.message}`)
-        );
+        console.log('Deleting failed session and creating new one...');
+        
+        // Delete the failed session and create a new one
+        try {
+          await prisma.quizQuestion.deleteMany({
+            where: { quizSessionId: existingSession.id }
+          });
+          await prisma.quizSession.delete({
+            where: { id: existingSession.id }
+          });
+          console.log('Deleted failed session, will create new one');
+        } catch (deleteError) {
+          console.error('Error deleting failed session:', deleteError);
+        }
+        // Continue to create new session below
       }
     }
 
@@ -124,10 +138,29 @@ const quizController = {
       console.log('Created new quiz session:', session.id);
 
       // Generate first question using AI
-      const firstQuestion = await aiService.quizNext(session.id, null);
+      let firstQuestion;
+      try {
+        firstQuestion = await aiService.quizNext(session.id, null);
+      } catch (aiError) {
+        console.error('AI service error:', aiError);
+        // Provide a fallback question if AI service fails
+        firstQuestion = {
+          question: "What is your primary area of interest in technology?",
+          options: [
+            "Web Development (Frontend/Backend)",
+            "Mobile App Development",
+            "Data Science & Analytics",
+            "Artificial Intelligence & Machine Learning",
+            "Cybersecurity",
+            "Cloud Computing & DevOps",
+            "Other"
+          ],
+          stage: "SKILLS_ASSESSMENT"
+        };
+      }
 
       if (!firstQuestion || !firstQuestion.question) {
-        throw new Error('Failed to generate first question from AI service');
+        throw new Error('Failed to generate first question');
       }
 
       console.log('Generated first question:', firstQuestion.question.substring(0, 50) + '...');
@@ -167,10 +200,17 @@ const quizController = {
     }
   }),
 
-  // POST /api/v1/quiz/:quizId/answer
+  // POST /api/v1/quiz/:quizId/answer OR POST /api/v1/quiz/submit
   submitAnswer: asyncHandler(async (req, res) => {
-    const { quizId } = req.params;
+    // Support both URL param and body for quizId (frontend compatibility)
+    const quizId = req.params.quizId || req.body.quizId || req.body.sessionId;
     const { answer, questionId } = req.body;
+
+    if (!quizId) {
+      return res.status(400).json(
+        createResponse('error', 'Quiz session ID is required')
+      );
+    }
 
     // Get quiz session
     const session = await prisma.quizSession.findUnique({
@@ -223,6 +263,8 @@ const quizController = {
     currentAnswers[currentStage].push(answer);
 
     // Get next question or recommendations from AI
+    // The aiService has built-in error handling and fallback mechanisms
+    // so we don't need to catch errors here - let it handle fallbacks internally
     const nextStep = await aiService.quizNext(session.id, answer);
 
     if (nextStep.isComplete) {
@@ -299,7 +341,8 @@ const quizController = {
 
   // GET /api/v1/quiz/session/:quizId
   getQuizSession: asyncHandler(async (req, res) => {
-    const { quizId } = req.params;
+    // Accept both quizId and sessionId for compatibility
+    const quizId = req.params.quizId || req.params.sessionId;
 
     const session = await prisma.quizSession.findUnique({
       where: { id: quizId },

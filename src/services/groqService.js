@@ -45,7 +45,7 @@ const groqService = {
 
 ## USER CONTEXT
 - Name: ${user.name}
-- Role: ${user.role}
+- Role: ${JSON.parse(user.roles || '["STUDENT"]').join(', ')}
 - Bio: ${user.bio || 'No bio provided'}
 
 ## CORE CAPABILITIES
