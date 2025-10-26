@@ -31,7 +31,7 @@ const mentorController = {
       },
     });
 
-    res.status(201).json(
+    return res.status(201).json(
       createResponse('success', 'Question submitted successfully', {
         questionId: studentQuestion.id,
         domain,
@@ -157,7 +157,7 @@ const mentorController = {
     // Sort by match score
     enhancedMatches.sort((a, b) => b.matchScore - a.matchScore);
 
-    res.status(200).json(
+    return res.status(200).json(
       createResponse('success', 'Mentors matched successfully', {
         questionId,
         question: studentQuestion.question,
@@ -276,7 +276,7 @@ const mentorController = {
       },
     });
 
-    res.status(200).json(
+    return res.status(200).json(
       createResponse('success', 'Question deactivated successfully', {
         questionId: updatedQuestion.id,
         isActive: updatedQuestion.isActive,
@@ -482,7 +482,7 @@ const mentorController = {
       );
     }
 
-    res.status(200).json(
+    return res.status(200).json(
       createResponse('success', 'Mentor retrieved successfully', {
         mentor
       })
@@ -544,7 +544,7 @@ const mentorController = {
       },
     });
 
-    res.status(201).json(
+    return res.status(201).json(
       createResponse('success', 'Mentor created successfully', {
         mentor: newMentor
       })
@@ -572,7 +572,7 @@ const mentorController = {
       data: req.body,
     });
 
-    res.status(200).json(
+    return res.status(200).json(
       createResponse('success', 'Mentor updated successfully', {
         mentor: updatedMentor
       })
@@ -598,6 +598,10 @@ const mentorController = {
     await prisma.mentor.delete({
       where: { id },
     });
+
+    return res.status(200).json(
+      createResponse('success', 'Mentor deleted successfully')
+    );
 
     res.status(200).json(
       createResponse('success', 'Mentor deleted successfully')
