@@ -602,10 +602,6 @@ const mentorController = {
     return res.status(200).json(
       createResponse('success', 'Mentor deleted successfully')
     );
-
-    res.status(200).json(
-      createResponse('success', 'Mentor deleted successfully')
-    );
   }),
 
   // POST /api/v1/mentors/match - Find mentor matches based on criteria

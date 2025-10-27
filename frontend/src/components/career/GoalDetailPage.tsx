@@ -343,6 +343,11 @@ export default function GoalDetailPage() {
 
           {activeTab === 'resources' && (
             <div data-tab="resources">
+              {isGeneratingResources && (
+                <div className="mb-4 p-3 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200">
+                  Generating learning resources... this may take a moment.
+                </div>
+              )}
               <LearningResourceList 
                 goalId={goal.id} 
                 resources={goal.learningResources || []} 

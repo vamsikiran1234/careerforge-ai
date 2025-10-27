@@ -95,13 +95,13 @@ exports.createGoal = async (req, res) => {
 
     console.log(`✅ Created career goal: ${goal.id} for user: ${userId}`);
 
-    res.status(HTTP_STATUS_CREATED).json({
+    return res.status(HTTP_STATUS_CREATED).json({
       success: true,
       data: { goal }
     });
   } catch (error) {
     console.error('❌ Error creating goal:', error);
-    res.status(HTTP_STATUS_ERROR).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       error: 'Failed to create career goal',
       details: error.message
@@ -182,13 +182,13 @@ exports.getGoalById = async (req, res) => {
       });
     }
 
-    res.status(HTTP_STATUS_OK).json({
+    return res.status(HTTP_STATUS_OK).json({
       success: true,
       data: { goal }
     });
   } catch (error) {
     console.error('❌ Error fetching goal:', error);
-    res.status(HTTP_STATUS_ERROR).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       error: 'Failed to fetch goal',
       details: error.message
@@ -303,13 +303,13 @@ exports.updateGoalProgress = async (req, res) => {
       data: updateData
     });
 
-    res.status(HTTP_STATUS_OK).json({
+    return res.status(HTTP_STATUS_OK).json({
       success: true,
       data: { goal: updatedGoal }
     });
   } catch (error) {
     console.error('❌ Error updating goal progress:', error);
-    res.status(HTTP_STATUS_ERROR).json({
+    return res.status(HTTP_STATUS_ERROR).json({
       success: false,
       error: 'Failed to update progress',
       details: error.message
