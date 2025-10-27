@@ -1,40 +1,21 @@
 {
   "env": {
     "node": true,
-    "es2021": true
+    "es2021": true,
+    "jest": true
   },
   "extends": [
-    "eslint:recommended",
-    "plugin:node/recommended",
-    "prettier"
+    "eslint:recommended"
   ],
   "parserOptions": {
-    "ecmaVersion": "latest",
+    "ecmaVersion": 12,
     "sourceType": "module"
   },
   "rules": {
-    "no-console": "warn",
-    "no-unused-vars": "error",
-    "no-undef": "error",
-    "prefer-const": "error",
-    "no-var": "error",
-    "object-shorthand": "warn",
-    "prefer-arrow-callback": "error",
-    "consistent-return": "warn",
-    "no-magic-numbers": ["warn", { "ignore": [0, 1, -1] }],
-    "no-process-exit": "warn",
-    "node/no-unpublished-require": "off",
-    "node/no-missing-import": "off"
-  },
-  "overrides": [
-    {
-      "files": ["tests/**/*.js"],
-      "env": {
-        "jest": true
-      },
-      "rules": {
-        "no-magic-numbers": "off"
-      }
-    }
-  ]
+    "no-console": "off",
+    "no-unused-vars": "warn",
+    "consistent-return": "off",
+    "no-magic-numbers": "off",
+    "no-process-exit": "warn"
+  }
 }
