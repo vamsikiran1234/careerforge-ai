@@ -45,6 +45,9 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/careerforge_test
     
+    - name: 🔍 Code Quality Check
+      run: npm run lint
+    
     - name: 🧪 Run backend tests
       run: npm test
       env:

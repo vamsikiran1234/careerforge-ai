@@ -19,7 +19,6 @@ process.on('SIGTERM', () => {
   console.log('👋 SIGTERM received. Shutting down gracefully...');
   server.close(() => {
     console.log('💤 Process terminated');
-    process.exit(0);
   });
 });
 
@@ -27,7 +26,6 @@ process.on('SIGINT', () => {
   console.log('👋 SIGINT received. Shutting down gracefully...');
   server.close(() => {
     console.log('💤 Process terminated');
-    process.exit(0);
   });
 });
 

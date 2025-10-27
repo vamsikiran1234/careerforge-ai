@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
+const { generateTestToken } = require('./testUtils');
 
 // Get mock prisma from global setup
 const mockPrisma = global.mockPrisma;
@@ -8,6 +9,12 @@ const mockPrisma = global.mockPrisma;
 const aiService = require('../src/services/aiService');
 
 describe('Quiz API Endpoints', () => {
+  let authToken;
+
+  beforeAll(() => {
+    // Generate auth token for tests
+    authToken = generateTestToken();
+  });
   describe('POST /api/v1/quiz/start', () => {
     const validStartRequest = {
       userId: 'user123',
@@ -18,11 +25,11 @@ describe('Quiz API Endpoints', () => {
     });
 
     test('should start quiz session successfully', async () => {
-      // Mock user exists
+      // Mock user exists (for auth middleware)
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'user123',
         name: 'John Doe',
-        email: 'john@example.com',
+        email: 'test@example.com',
         role: 'STUDENT',
       });
 
@@ -59,6 +66,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/quiz/start')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validStartRequest)
         .expect(201);
 
@@ -75,7 +83,7 @@ describe('Quiz API Endpoints', () => {
 
       // Verify service calls
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user123' },
+        where: { email: 'test@example.com' },
       });
       expect(aiService.quizNext).toHaveBeenCalled();
     });
@@ -85,6 +93,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/quiz/start')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validStartRequest)
         .expect(404);
 
@@ -96,6 +105,7 @@ describe('Quiz API Endpoints', () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'user123',
         name: 'John Doe',
+        email: 'test@example.com',
       });
 
       mockPrisma.quizSession.findFirst.mockResolvedValue({
@@ -115,6 +125,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/quiz/start')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validStartRequest)
         .expect(200);
 
@@ -123,14 +134,18 @@ describe('Quiz API Endpoints', () => {
       expect(response.body.data.sessionId).toBe('existing-quiz');
     });
 
-    test('should return 400 for missing userId', async () => {
+    test('should return 404 for missing user in database', async () => {
+      // Mock user not found in database (even though token is valid)
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
       const response = await request(app)
         .post('/api/v1/quiz/start')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({})
-        .expect(400);
+        .expect(404);
 
       expect(response.body.status).toBe('error');
-      expect(response.body.message).toContain('User ID is required');
+      expect(response.body.message).toBe('User not found');
     });
   });
 
@@ -203,6 +218,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/quiz/quiz123/answer')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validAnswerRequest)
         .expect(200);
 
@@ -286,6 +302,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/quiz/quiz123/answer')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ answer: 'Build amazing products' })
         .expect(200);
 
@@ -303,6 +320,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/quiz/nonexistent/answer')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validAnswerRequest)
         .expect(404);
 
@@ -318,6 +336,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/v1/quiz/quiz123/answer')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(validAnswerRequest)
         .expect(400);
 
@@ -328,6 +347,7 @@ describe('Quiz API Endpoints', () => {
     test('should return 400 for missing answer', async () => {
       const response = await request(app)
         .post('/api/v1/quiz/quiz123/answer')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({})
         .expect(400);
 
@@ -367,6 +387,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .get('/api/v1/quiz/session/quiz123')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.status).toBe('success');
@@ -382,6 +403,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .get('/api/v1/quiz/session/nonexistent')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
       expect(response.body.status).toBe('error');
@@ -412,6 +434,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .get('/api/v1/quiz/sessions/user123')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.status).toBe('success');
@@ -435,6 +458,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .delete('/api/v1/quiz/quiz123')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.status).toBe('success');
@@ -446,6 +470,7 @@ describe('Quiz API Endpoints', () => {
 
       const response = await request(app)
         .delete('/api/v1/quiz/nonexistent')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
       expect(response.body.status).toBe('error');

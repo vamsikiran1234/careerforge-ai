@@ -715,7 +715,7 @@ Respond with ONLY the domain name in uppercase (e.g., "WEB_DEVELOPMENT")
 
 Analyze keywords, technologies, context, and intent to classify into the most appropriate domain.`;
 
-      const { response, modelUsed, attemptNumber } = await callGroqWithFallback([
+      const { response } = await callGroqWithFallback([
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Classify this question: "${question}"` },
       ], {
