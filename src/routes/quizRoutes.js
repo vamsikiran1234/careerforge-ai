@@ -1,6 +1,6 @@
 const express = require('express');
 const quizController = require('../controllers/quizController');
-const { validate, quizAnswerSchema, userIdSchema } = require('../middlewares/validation');
+const { validate, quizAnswerSchema } = require('../middlewares/validation');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 
 const router = express.Router();

@@ -1121,7 +1121,6 @@ exports.generateSkillResources = async (req, res) => {
 // AI-powered career path analysis
 exports.analyzeCareerPath = async (req, res) => {
   try {
-    const userId = req.user.userId;
     const { currentRole, targetRole, yearsExperience, timeframeMonths } = req.body;
 
     if (!currentRole || !targetRole) {
