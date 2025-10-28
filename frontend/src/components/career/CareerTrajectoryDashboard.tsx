@@ -14,8 +14,8 @@ const CareerTrajectoryDashboard = () => {
     loadOverview();
   }, [loadGoals, loadOverview]);
 
-  const filteredGoals = statusFilter === 'ALL' 
-    ? goals 
+  const filteredGoals = statusFilter === 'ALL'
+    ? goals
     : goals.filter(g => g.status === statusFilter);
 
   if (isLoading && goals.length === 0) {
@@ -56,7 +56,7 @@ const CareerTrajectoryDashboard = () => {
               </p>
             </div>
             <button
-              onClick={() => navigate('/career/new')}
+              onClick={() => navigate('/app/career/new')}
               className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl"
             >
               <Plus className="w-5 h-5" />
@@ -140,11 +140,10 @@ const CareerTrajectoryDashboard = () => {
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                statusFilter === status
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === status
+                ? 'bg-emerald-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                }`}
             >
               {status === 'ALL' ? 'All Goals' : status.charAt(0) + status.slice(1).toLowerCase()}
             </button>
@@ -161,13 +160,13 @@ const CareerTrajectoryDashboard = () => {
               {statusFilter === 'ALL' ? 'No Career Goals Yet' : `No ${statusFilter.toLowerCase()} goals`}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              {statusFilter === 'ALL' 
+              {statusFilter === 'ALL'
                 ? 'Start your career journey by creating your first goal. Track your progress, milestones, and skills as you grow.'
                 : `You don't have any ${statusFilter.toLowerCase()} goals at the moment.`}
             </p>
             {statusFilter === 'ALL' && (
               <button
-                onClick={() => navigate('/career/new')}
+                onClick={() => navigate('/app/career/new')}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
               >
                 <Plus className="w-5 h-5" />

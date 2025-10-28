@@ -160,13 +160,13 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     // Navigate to appropriate dashboard based on role
     switch (role) {
       case 'STUDENT':
-        navigate('/dashboard');
+        navigate('/app/dashboard');
         break;
       case 'MENTOR':
         navigate('/mentor/dashboard');
         break;
       case 'ADMIN':
-        navigate('/admin/dashboard');
+        navigate('/app/admin');
         break;
     }
   };

@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { MentorSidebar } from '@/components/MentorSidebar';
 import { RoleSwitcher } from '../components/RoleSwitcher';
-import { LogoSimple } from '../components/ui/Logo';
+
 
 export const MentorPortalLayout: React.FC = () => {
   return (
@@ -11,18 +11,17 @@ export const MentorPortalLayout: React.FC = () => {
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between h-full px-4">
           <div className="flex items-center gap-4">
-            <LogoSimple size={32} />
-            <span className="hidden md:block text-lg font-semibold text-gray-900 dark:text-white">
+            <span className="text-lg font-semibold text-gray-900 dark:text-white">
               Mentor Portal
             </span>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <RoleSwitcher />
           </div>
         </div>
       </header>
-      
+
       <div className="flex pt-16">
         <MentorSidebar />
         <main className="flex-1 lg:ml-64">

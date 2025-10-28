@@ -269,7 +269,7 @@ export const MentorsPage: React.FC = () => {
             setShowBooking(false);
             setShowProfile(false);
             // Optionally refresh mentors or navigate to connections
-            navigate('/connections');
+            navigate('app/connections');
           }}
         />
       )}

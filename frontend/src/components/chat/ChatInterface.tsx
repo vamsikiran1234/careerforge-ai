@@ -67,7 +67,7 @@ export const ChatInterface: React.FC = () => {
           useChatStore.setState({ currentSession: null });
         }
       }, 100);
-      
+
       return () => clearTimeout(timer);
     }
   }, [user?.id]); // Removed loadSessions from dependencies to prevent re-renders
@@ -119,7 +119,7 @@ export const ChatInterface: React.FC = () => {
       await createNewSession(message);
       return;
     }
-    
+
     if (files && files.length > 0) {
       // Handle file upload and analysis
       await sendMessageWithFiles(message, files);
@@ -132,13 +132,13 @@ export const ChatInterface: React.FC = () => {
   const handleNewSession = async () => {
     // Clear current session first to ensure clean state and prevent mixing
     console.log('ChatInterface: Creating new session, clearing current session first');
-    useChatStore.setState({ 
+    useChatStore.setState({
       currentSession: null,
       isLoading: false,
       isTyping: false,
-      error: null 
+      error: null
     });
-    
+
     // Small delay to ensure state is cleared
     await new Promise(resolve => setTimeout(resolve, 50));
     await createNewSession();
@@ -154,20 +154,20 @@ export const ChatInterface: React.FC = () => {
       // Only handle shortcuts when not in input fields
       if (
         e.target instanceof HTMLElement &&
-        (e.target.tagName === 'INPUT' || 
-         e.target.tagName === 'TEXTAREA' || 
-         e.target.contentEditable === 'true')
+        (e.target.tagName === 'INPUT' ||
+          e.target.tagName === 'TEXTAREA' ||
+          e.target.contentEditable === 'true')
       ) {
         return;
       }
 
-      const { 
-        openTemplateSelector, 
-        openExportDialog, 
-        closeTemplateSelector, 
-        closeExportDialog, 
-        showTemplateSelector, 
-        showExportDialog 
+      const {
+        openTemplateSelector,
+        openExportDialog,
+        closeTemplateSelector,
+        closeExportDialog,
+        showTemplateSelector,
+        showExportDialog
       } = useChatStore.getState();
 
       // Handle keyboard shortcuts
@@ -227,7 +227,7 @@ export const ChatInterface: React.FC = () => {
 
     // Remove all messages after the edited message (including AI responses)
     const messagesBeforeEdit = currentSession.messages.slice(0, messageIndex);
-    
+
     // Create the updated user message
     const updatedUserMessage = {
       ...currentSession.messages[messageIndex],
@@ -267,20 +267,20 @@ export const ChatInterface: React.FC = () => {
           messages: [...updatedSession.messages, aiMessage]
         };
 
-        useChatStore.setState({ 
+        useChatStore.setState({
           currentSession: finalUpdatedSession,
           isLoading: false,
-          isTyping: false 
+          isTyping: false
         });
       } else {
         throw new Error('API response was not successful');
       }
     } catch (error) {
       console.error('Error editing message:', error);
-      useChatStore.setState({ 
-        isLoading: false, 
-        isTyping: false, 
-        error: 'Failed to get AI response' 
+      useChatStore.setState({
+        isLoading: false,
+        isTyping: false,
+        error: 'Failed to get AI response'
       });
     }
   };
@@ -295,19 +295,19 @@ export const ChatInterface: React.FC = () => {
 
   const handleDeleteSession = async (sessionId: string) => {
     console.log('ChatInterface: Handling delete session:', sessionId);
-    
+
     // Find the session to get its title for confirmation
     const sessionToDelete = sessions.find(s => s.id === sessionId);
     const sessionTitle = sessionToDelete?.title || 'this session';
-    
+
     // Show confirmation dialog
     const confirmed = window.confirm(`Are you sure you want to delete "${sessionTitle}"? This action cannot be undone.`);
-    
+
     if (!confirmed) {
       console.log('ChatInterface: Session deletion cancelled by user');
       return;
     }
-    
+
     try {
       // Delete the session completely (this will also handle current session switching)
       await deleteSession(sessionId);
@@ -353,10 +353,7 @@ export const ChatInterface: React.FC = () => {
   }
 
   return (
-    <div className={`h-full flex bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative ${isFullscreen ? 'fixed inset-0 z-50 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800' : ''}`} style={{
-      // Expose global sidebar width so ChatSidebar can position itself to the right of the primary navigation
-      ['--global-sidebar-width' as any]: '16rem'
-    }}>
+    <div className={`h-full bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative ${isFullscreen ? 'fixed inset-0 z-50 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800' : ''}`}>
       {/* Desktop Chat Sidebar - show when not fullscreen OR when route is the chat page (so users see sessions while in chat-only view) */}
       {((!isFullscreen) || location.pathname.startsWith('/app/chat')) && (
         <ErrorBoundary>
@@ -383,7 +380,7 @@ export const ChatInterface: React.FC = () => {
       {isMobileSidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={() => setIsMobileSidebarOpen(false)}
           />
@@ -422,7 +419,7 @@ export const ChatInterface: React.FC = () => {
       {isFullscreen && isMobileSidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={() => setIsMobileSidebarOpen(false)}
           />
@@ -458,14 +455,45 @@ export const ChatInterface: React.FC = () => {
       )}
 
       {/* Main Chat Area - Responsive with sidebar spacing */}
-      <div 
-        className={`flex-1 flex flex-col bg-gradient-to-b from-white/80 via-blue-50/20 to-indigo-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 shadow-sm relative h-full ${isFullscreen ? '' : 'lg:transition-all lg:duration-300'}`}
-        style={{ 
-          // marginLeft should account for the primary app sidebar (16rem) plus the chat sidebar width
-          marginLeft: isFullscreen ? 0 : isSidebarCollapsed ? '64px' : `calc(var(--global-sidebar-width, 16rem) + ${sidebarWidth}px)`,
+      <div
+        className={`flex-1 flex flex-col bg-gradient-to-b from-white/80 via-blue-50/20 to-indigo-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 shadow-sm relative h-full transition-all duration-300`}
+        style={{
+          // Only add margin when sidebar is visible and not in fullscreen
+          marginLeft: ((!isFullscreen) || location.pathname.startsWith('/app/chat')) && !isSidebarCollapsed
+            ? `${sidebarWidth}px`
+            : ((!isFullscreen) || location.pathname.startsWith('/app/chat')) && isSidebarCollapsed
+              ? '64px'
+              : '0px',
           height: '100vh'
         }}
       >
+
+        {/* Mobile Menu Button - Floating Action Button Style */}
+        <button
+          onClick={() => setIsMobileSidebarOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 transition-all duration-200"
+          title="Show sidebar"
+        >
+          {/* Right-pointing chevron for mobile */}
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Show Sidebar Button - At right edge of collapsed sidebar */}
+        {isSidebarCollapsed && (
+          <button
+            onClick={() => setIsSidebarCollapsed(false)}
+            className="hidden lg:flex fixed top-1/2 -translate-y-1/2 z-50 w-6 h-16 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-r-lg shadow-lg border border-l-0 border-gray-200 dark:border-gray-600 transition-all duration-200 items-center justify-center"
+            style={{ left: '64px' }}
+            title="Show sidebar"
+          >
+            {/* Right-pointing chevron - matches hide button */}
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
 
         {/* Professional Error Display */}
         {error && (
@@ -507,8 +535,8 @@ export const ChatInterface: React.FC = () => {
               isLoading={isLoading}
               isTyping={isTyping}
               placeholder={
-                currentSession 
-                  ? "Continue your conversation with your AI career mentor..." 
+                currentSession
+                  ? "Continue your conversation with your AI career mentor..."
                   : "Ask your AI career mentor anything about your professional journey..."
               }
             />

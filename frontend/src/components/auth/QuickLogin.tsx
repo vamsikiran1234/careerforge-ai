@@ -37,7 +37,7 @@ export default function QuickLogin() {
       }
     } catch (error) {
       console.error('❌ Login error:', error);
-      alert('Login error: ' + error.message);
+      alert('Login error: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsLoading(false);
     }

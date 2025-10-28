@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { Badge } from './ui/Badge';
-import { BrandLogo } from './ui/BrandLogo';
+
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -160,14 +160,22 @@ export const MentorSidebar: React.FC = () => {
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           {!isCollapsed ? (
             <div className="flex flex-col items-center">
-              <BrandLogo size="md" variant="compact" theme="gradient" />
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium tracking-wide uppercase">
                 Mentor Portal
               </p>
             </div>
           ) : (
             <div className="flex justify-center">
-              <BrandLogo size="sm" variant="monogram" theme="gradient" />
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
             </div>
           )}
         </div>

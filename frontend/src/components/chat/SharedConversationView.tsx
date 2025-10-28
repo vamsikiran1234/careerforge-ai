@@ -533,7 +533,6 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
                 <div key={message.id || index}>
                   <MessageItem
                     message={message}
-                    isLast={index === messages.length - 1}
                   />
                   
                   {/* Custom Message Reactions for Shared Conversations */}
