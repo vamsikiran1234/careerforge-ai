@@ -120,7 +120,7 @@ export const MentorVerificationPage: React.FC = () => {
                       Go to Dashboard
                     </Button>
                     <Button 
-                      onClick={() => navigate('/mentorship/profile')} 
+                      onClick={() => navigate('/app/mentorship/profile')} 
                       variant="outline"
                       className="w-full"
                     >
@@ -143,7 +143,7 @@ export const MentorVerificationPage: React.FC = () => {
                   </p>
                   <div className="flex flex-col gap-3 w-full">
                     <Button 
-                      onClick={() => navigate('/mentorship/register')} 
+                      onClick={() => navigate('/app/mentorship/register')} 
                       className="w-full"
                     >
                       Register Again

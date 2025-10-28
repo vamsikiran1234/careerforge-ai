@@ -294,7 +294,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                       Phase {phaseNum}
                     </h3>
                     <p className="text-gray-900 dark:text-white font-medium text-base">
-                      {description}
+                      {String(description)}
                     </p>
                   </div>
                 </div>

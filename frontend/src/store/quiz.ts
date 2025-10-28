@@ -282,13 +282,13 @@ export const useQuizStore = create<QuizState>()(
           
           if (response && typeof response === 'object') {
             // Case 1: response = { status, message, data: { sessions: [...], statistics: {...} } }
-            if (response.data && response.data.sessions) {
-              sessions = response.data.sessions;
+            if (response.data && (response.data as any).sessions) {
+              sessions = (response.data as any).sessions;
               console.log('✅ Quiz Store: Found sessions in response.data.sessions:', sessions);
             }
             // Case 2: response already is { sessions: [...], statistics: {...} }
-            else if (response.sessions) {
-              sessions = response.sessions;
+            else if ((response as any).sessions) {
+              sessions = (response as any).sessions;
               console.log('✅ Quiz Store: Found sessions in response.sessions:', sessions);
             }
             // Case 3: response is an array directly

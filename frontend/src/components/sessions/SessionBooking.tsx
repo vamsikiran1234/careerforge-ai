@@ -153,7 +153,7 @@ export default function SessionBooking() {
 
       if (response.data.success) {
         alert('Session booked successfully! You will receive a meeting link.');
-        navigate('/sessions');
+        navigate('/app/sessions');
       }
     } catch (err: any) {
       console.error('Book session error:', err);

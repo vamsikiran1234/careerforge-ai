@@ -113,7 +113,7 @@ const GoalCreationWizard = () => {
         }
       }
 
-      navigate(`/career/${newGoal.id}`);
+      navigate(`/app/career/${newGoal.id}`);
     } catch (err: any) {
       console.error('Failed to create goal:', err);
       // Error is handled by the store and displayed in UI
@@ -519,7 +519,7 @@ const GoalCreationWizard = () => {
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
-              onClick={() => navigate('/career')}
+              onClick={() => navigate('/app/career')}
               disabled={isLoading || isAnalyzing}
               className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
             >

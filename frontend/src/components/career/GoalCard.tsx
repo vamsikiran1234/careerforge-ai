@@ -52,7 +52,7 @@ const GoalCard = ({ goal }: GoalCardProps) => {
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/career/${goal.id}/edit`);
+    navigate(`/app/career/${goal.id}/edit`);
   };
 
   const targetDate = new Date(goal.targetDate);
@@ -62,7 +62,7 @@ const GoalCard = ({ goal }: GoalCardProps) => {
 
   return (
     <div
-      onClick={() => navigate(`/career/${goal.id}`)}
+      onClick={() => navigate(`/app/career/${goal.id}`)}
       className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all cursor-pointer group relative ${
         isDeleting ? 'opacity-50 pointer-events-none' : ''
       }`}
