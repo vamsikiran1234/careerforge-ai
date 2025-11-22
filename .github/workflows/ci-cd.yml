@@ -217,42 +217,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check Railway Configuration
+      - name: Railway Deployment Status
         run: |
-          echo "🔍 Checking Railway deployment readiness..."
-          if [ -z "${{ secrets.RAILWAY_TOKEN }}" ]; then
-            echo "⚠️  RAILWAY_TOKEN not configured"
-            echo "ℹ️  Follow COMPLETE_DEPLOYMENT_GUIDE.md to set up Railway"
-            exit 0
-          fi
-        continue-on-error: true
-
-      - name: Install Railway CLI
-        if: secrets.RAILWAY_TOKEN != ''
-        run: |
-          curl -fsSL https://railway.app/install.sh | sh
-          echo "$HOME/.railway/bin" >> $GITHUB_PATH
-        continue-on-error: true
-
-      - name: Deploy to Railway
-        if: secrets.RAILWAY_TOKEN != ''
-        run: |
-          echo "🚀 Deploying CareerForge AI to Railway Production..."
-          
-          # Railway deployment would go here
-          # railway login --token ${{ secrets.RAILWAY_TOKEN }}
-          # railway up --detach
-          
-          echo "✅ Production deployment completed successfully!"
-          echo "🌐 Application URL: https://your-app.railway.app"
-          echo "🐳 Docker Image: ghcr.io/${{ github.repository }}:latest"
-          echo "📊 Database: Railway PostgreSQL"
-          echo "🔒 Environment: Production"
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        continue-on-error: true
+          echo "🔍 Railway Deployment Information"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "ℹ️  Auto-deployment is currently disabled"
+          echo ""
+          echo "📖 To deploy manually:"
+          echo "   1. Follow COMPLETE_DEPLOYMENT_GUIDE.md"
+          echo "   2. Set up Railway account and services"
+          echo "   3. Configure GitHub secrets"
+          echo "   4. Enable auto-deploy with ENABLE_AUTO_DEPLOY=true"
+          echo ""
+          echo "✅ Code is ready for deployment!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
   notification:
     name: Send Notifications
