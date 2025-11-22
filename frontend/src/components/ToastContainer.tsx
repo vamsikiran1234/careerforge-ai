@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Info, X } from 'lucide-react';
-import { Toast, ToastType, addToastListener, toast } from '../utils/toast';
+import type { Toast, ToastType } from '../utils/toast';
+import { addToastListener, toast } from '../utils/toast';
 
 // Re-export toast for backward compatibility
 export { toast };
@@ -19,7 +20,10 @@ export default function ToastContainer() {
       }
     };
 
-    return addToastListener(listener);
+    const unsubscribe = addToastListener(listener);
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const removeToast = (id: string) => {
