@@ -114,3 +114,15 @@ Thumbs.db
 # Prisma
 prisma/migrations/
 !prisma/migrations/.gitkeep
+
+# Git backup directories
+repo-mirror-*/
+backups/
+
+# Build artifacts
+build/
+frontend/dist/
+frontend/build/
+
+# Railway CLI
+.railway/

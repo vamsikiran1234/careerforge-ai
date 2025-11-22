@@ -81,7 +81,7 @@ export default function GoalDetailPage() {
   const handleDelete = async () => {
     if (!goalId) return;
     await deleteGoal(goalId);
-    navigate('/app/career');
+    navigate('/career');
   };
 
   if (isLoading) {
@@ -181,7 +181,7 @@ export default function GoalDetailPage() {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => navigate(`/app/career/edit/${goalId}`)}
+                  onClick={() => navigate(`/career/edit/${goalId}`)}
                   className="p-2 text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   <Edit className="w-5 h-5" />
