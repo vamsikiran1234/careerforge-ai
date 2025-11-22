@@ -60,8 +60,9 @@ const AdminDashboard = () => {
       );
       setStats(response.data.stats);
       setLastUpdated(new Date());
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch platform stats');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to fetch platform stats');
       console.error('Error fetching stats:', err);
     } finally {
       setLoading(false);
@@ -185,8 +186,8 @@ const AdminDashboard = () => {
     },
   ];
 
-  const getColorClasses = (color: string) => {
-    const colors: any = {
+  const getColorClasses = (color: string): string => {
+    const colors: Record<string, string> = {
       blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
       green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
       purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',

@@ -34,7 +34,10 @@
 
 // Global function to clear chat storage
 if (typeof window !== 'undefined') {
-  (window as any).__clearChatStorage = () => {
+  interface WindowWithDevTools extends Window {
+    __clearChatStorage?: () => void;
+  }
+  (window as WindowWithDevTools).__clearChatStorage = () => {
     localStorage.removeItem('chat-storage');
     console.log('✅ Chat storage cleared!');
     console.log('🔄 Reloading page...');

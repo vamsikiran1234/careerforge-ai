@@ -50,11 +50,6 @@ export const Sidebar: React.FC = () => {
   
   const userIsAdmin = isAdmin(user);
 
-  // Check if user is a mentor
-  useEffect(() => {
-    checkMentorStatus();
-  }, [user]);
-
   const checkMentorStatus = async () => {
     if (!user) {
       setIsMentor(false);
@@ -87,6 +82,11 @@ export const Sidebar: React.FC = () => {
       setIsMentor(false);
     }
   };
+
+  // Check if user is a mentor
+  useEffect(() => {
+    checkMentorStatus();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = () => {
     logout();

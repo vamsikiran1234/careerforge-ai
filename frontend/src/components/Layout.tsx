@@ -15,7 +15,7 @@ export const Layout: React.FC = () => {
 
   if (isChatPage) {
     return (
-      <div className="h-screen bg-gray-50 dark:bg-gray-900 chat-fullscreen" style={{ ['--global-sidebar-width' as any]: '0px' }}>
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 chat-fullscreen" style={{ '--global-sidebar-width': '0px' } as React.CSSProperties}>
         <Outlet />
       </div>
     );

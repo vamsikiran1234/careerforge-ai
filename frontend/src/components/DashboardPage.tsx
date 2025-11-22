@@ -67,7 +67,7 @@ export const DashboardPage: React.FC = () => {
         
         // apiClient.get returns response.data directly (not the full axios response)
         // Backend returns: { success: boolean, data: DashboardStats }
-        const response = await apiClient.get('/dashboard/stats') as any;
+        const response = await apiClient.get<{ success: boolean; data: DashboardStats }>('/dashboard/stats');
         
         // Debug logging
         console.log('🔍 Dashboard API Response:', response);

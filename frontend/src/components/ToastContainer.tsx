@@ -1,36 +1,9 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Info, X } from 'lucide-react';
+import { Toast, ToastType, addToastListener, toast } from '../utils/toast';
 
-type ToastType = 'success' | 'error' | 'warning' | 'info';
-
-interface Toast {
-  id: string;
-  type: ToastType;
-  message: string;
-  duration?: number;
-}
-
-let toastId = 0;
-const listeners = new Set<(toast: Toast) => void>();
-
-export const toast = {
-  success: (message: string, duration = 3000) => {
-    const id = `toast-${++toastId}`;
-    listeners.forEach(listener => listener({ id, type: 'success', message, duration }));
-  },
-  error: (message: string, duration = 4000) => {
-    const id = `toast-${++toastId}`;
-    listeners.forEach(listener => listener({ id, type: 'error', message, duration }));
-  },
-  warning: (message: string, duration = 3500) => {
-    const id = `toast-${++toastId}`;
-    listeners.forEach(listener => listener({ id, type: 'warning', message, duration }));
-  },
-  info: (message: string, duration = 3000) => {
-    const id = `toast-${++toastId}`;
-    listeners.forEach(listener => listener({ id, type: 'info', message, duration }));
-  }
-};
+// Re-export toast for backward compatibility
+export { toast };
 
 export default function ToastContainer() {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -46,10 +19,7 @@ export default function ToastContainer() {
       }
     };
 
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
+    return addToastListener(listener);
   }, []);
 
   const removeToast = (id: string) => {
