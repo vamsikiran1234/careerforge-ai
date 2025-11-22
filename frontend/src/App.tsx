@@ -111,7 +111,10 @@ function App() {
 
     // Expose clear function globally for easy access in console
     if (typeof window !== 'undefined') {
-      (window as any).__clearChatStorage = () => {
+      interface WindowWithDevTools extends Window {
+        __clearChatStorage?: () => void;
+      }
+      (window as WindowWithDevTools).__clearChatStorage = () => {
         clearAllSessions();
         console.log('✅ Chat storage cleared!');
         console.log('🔄 Reloading page...');
@@ -121,7 +124,7 @@ function App() {
       console.log('💡 CareerForge AI Developer Tools:');
       console.log('   Run: __clearChatStorage()  - to clear all chat data');
     }
-  }, [checkAuth, clearAllSessions]);
+  }, [checkAuth, clearAllSessions, token]);
 
   if (isLoading) {
     return <LoadingPage message="Initializing CareerForge AI..." />;

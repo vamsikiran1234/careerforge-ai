@@ -85,7 +85,7 @@ export const MentorSidebar: React.FC = () => {
     fetchStats();
     const interval = setInterval(fetchStats, 60000); // Refresh every 60s
     return () => clearInterval(interval);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const navigation: NavItem[] = [
     {
