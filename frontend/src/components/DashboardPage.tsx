@@ -65,26 +65,26 @@ export const DashboardPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // apiClient.get returns response.data directly (not the full axios response)
-        // Backend returns: { success: boolean, data: DashboardStats }
-        const response = await apiClient.get<{ success: boolean; data: DashboardStats }>('/dashboard/stats');
+        // apiClient.get returns ApiResponse wrapper with status, message, data
+        const response = await apiClient.get<DashboardStats>('/dashboard/stats');
         
         // Debug logging
         console.log('🔍 Dashboard API Response:', response);
-        console.log('🔍 Success:', response?.success);
+        console.log('🔍 Status:', response?.status);
         console.log('🔍 Stats Data:', response?.data);
         
-        if (response?.success && response?.data) {
+        if (response?.status === 'success' && response?.data) {
           console.log('✅ Setting stats with real data');
           setStats(response.data);
         } else {
           console.error('❌ Response structure issue:', {
             hasResponse: !!response,
-            hasSuccess: !!response?.success,
+            status: response?.status,
             hasDataField: !!response?.data,
+            message: response?.message,
             actualStructure: response
           });
-          setError('Failed to load dashboard data');
+          setError(response?.message || 'Failed to load dashboard data');
         }
       } catch (err: unknown) {
         // eslint-disable-next-line no-console
