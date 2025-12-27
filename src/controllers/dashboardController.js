@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { createResponse } = require('../utils/helpers');
 const prisma = new PrismaClient();
 
 const HTTP_STATUS_OK = 200;
@@ -32,11 +33,9 @@ const getUserDashboardStats = async (req, res) => {
     if (!req.user || !req.user.userId) {
       // eslint-disable-next-line no-console
       console.error('❌ No user ID found in request');
-      return res.status(HTTP_STATUS_UNAUTHORIZED).json({
-        success: false,
-        message: 'User not authenticated',
-        error: 'Missing user ID'
-      });
+      return res.status(HTTP_STATUS_UNAUTHORIZED).json(
+        createResponse('error', 'User not authenticated')
+      );
     }
     
     const userId = req.user.userId;
@@ -159,9 +158,8 @@ const getUserDashboardStats = async (req, res) => {
       completedQuizzes
     });
 
-    return res.status(HTTP_STATUS_OK).json({
-      success: true,
-      data: {
+    return res.status(HTTP_STATUS_OK).json(
+      createResponse('success', 'Dashboard statistics retrieved successfully', {
         quickStats: {
           chatSessions: {
             total: totalChatSessions,
@@ -181,8 +179,8 @@ const getUserDashboardStats = async (req, res) => {
         skills: skillsData,
         careerInterests,
         achievements
-      }
-    });
+      })
+    );
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('❌ Error fetching user dashboard stats:');
@@ -193,11 +191,9 @@ const getUserDashboardStats = async (req, res) => {
     // eslint-disable-next-line no-console
     console.error('User ID:', req.user?.id);
     
-    return res.status(HTTP_STATUS_ERROR).json({
-      success: false,
-      message: 'Failed to fetch dashboard statistics',
-      error: error.message
-    });
+    return res.status(HTTP_STATUS_ERROR).json(
+      createResponse('error', 'Failed to fetch dashboard statistics')
+    );
   }
 };
 

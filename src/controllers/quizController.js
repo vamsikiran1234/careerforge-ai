@@ -296,20 +296,23 @@ const quizController = {
       const stageOrder = ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
       const currentStageIndex = stageOrder.indexOf(nextStep.stage);
       
-      // Create next question in database
-      const questionCount = await prisma.quizQuestion.count({
-        where: { quizSessionId: quizId },
-      });
+      // Only create question if we have question text (not a completion message)
+      if (nextStep.question) {
+        // Create next question in database
+        const questionCount = await prisma.quizQuestion.count({
+          where: { quizSessionId: quizId },
+        });
 
-      await prisma.quizQuestion.create({
-        data: {
-          quizSessionId: quizId,
-          questionText: nextStep.question,
-          options: JSON.stringify(nextStep.options), // Store as JSON string
-          stage: nextStep.stage,
-          order: questionCount + 1,
-        },
-      });
+        await prisma.quizQuestion.create({
+          data: {
+            quizSessionId: quizId,
+            questionText: nextStep.question,
+            options: JSON.stringify(nextStep.options), // Store as JSON string
+            stage: nextStep.stage,
+            order: questionCount + 1,
+          },
+        });
+      }
 
       // Update session - store answers as JSON string
       await prisma.quizSession.update({
