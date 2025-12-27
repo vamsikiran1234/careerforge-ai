@@ -356,16 +356,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Express.js](https://expressjs.com/) for the web framework
 - [Jest](https://jestjs.io/) for the testing framework
 
-## 📞 Support
 
-- **Documentation**: [Comprehensive guides](./docs/)
-- **Issues**: [GitHub Issues](https://github.com/your-username/careerforge-ai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/careerforge-ai/discussions)
-
-## 🔗 Links
-
-- **API Documentation**: [https://api.careerforge-ai.com/docs](https://api.careerforge-ai.com/docs)
-
----
 
 **CareerForge AI** - Empowering careers through artificial intelligence 🚀
