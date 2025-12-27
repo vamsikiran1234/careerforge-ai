@@ -364,9 +364,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **Live Demo**: [https://careerforge-ai.vercel.app](https://careerforge-ai.vercel.app)
 - **API Documentation**: [https://api.careerforge-ai.com/docs](https://api.careerforge-ai.com/docs)
-- **Status Page**: [https://status.careerforge-ai.com](https://status.careerforge-ai.com)
 
 ---
 
