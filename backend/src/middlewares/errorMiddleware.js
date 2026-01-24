@@ -19,7 +19,7 @@ const errorHandler = (err, req, res) => {
     message = 'Record not found';
   }
 
-  // OpenAI errors
+  // Groq AI errors
   if (err.name === 'APIError') {
     statusCode = 500;
     message = 'AI service temporarily unavailable';

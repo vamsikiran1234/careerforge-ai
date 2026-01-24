@@ -16,7 +16,51 @@ router.use(authenticateToken);
 router.use(suspiciousRequestDetection());
 router.use(rateLimiters.chat);
 
-// POST /api/v1/chat - Create or continue chat session
+/**
+ * @swagger
+ * /chat:
+ *   post:
+ *     summary: Create or continue chat session
+ *     description: Send a message to the AI chatbot and receive career guidance. Can create a new session or continue an existing one.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ChatRequest'
+ *     responses:
+ *       200:
+ *         description: Chat response received successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Message sent successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     sessionId:
+ *                       type: string
+ *                     response:
+ *                       type: string
+ *                     messages:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/ChatMessage'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 router.post('/', 
   validateRequestSize(50 * 1024), // 50KB max for chat messages
   validate(chatSchema),
@@ -24,42 +68,270 @@ router.post('/',
   asyncHandler(chatController.createChatSession)
 );
 
-// GET /api/v1/chat/sessions - Get user's chat sessions (from authenticated user)
+/**
+ * @swagger
+ * /chat/sessions:
+ *   get:
+ *     summary: Get user's chat sessions
+ *     description: Retrieve all chat sessions for the authenticated user
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Chat sessions retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     sessions:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/ChatSession'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/sessions', 
   asyncHandler(chatController.getUserSessions)
 );
 
-// GET /api/v1/chat/history - Alias for /sessions (for frontend compatibility)
+/**
+ * @swagger
+ * /chat/history:
+ *   get:
+ *     summary: Get chat history (alias)
+ *     description: Alias for /sessions endpoint - retrieves all chat sessions for the authenticated user
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Chat history retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     sessions:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/ChatSession'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/history', 
   asyncHandler(chatController.getUserSessions)
 );
 
-// GET /api/v1/chat/session/:sessionId - Get specific session messages
+/**
+ * @swagger
+ * /chat/session/{sessionId}:
+ *   get:
+ *     summary: Get specific session messages
+ *     description: Retrieve all messages for a specific chat session
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Chat session ID
+ *     responses:
+ *       200:
+ *         description: Session messages retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/ChatSession'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/session/:sessionId', 
   validateId('sessionId'),
   asyncHandler(chatController.getSessionMessages)
 );
 
-// PUT /api/v1/chat/session/:sessionId/end - End a chat session
+/**
+ * @swagger
+ * /chat/session/{sessionId}/end:
+ *   put:
+ *     summary: End a chat session
+ *     description: Mark a chat session as ended
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Chat session ID
+ *     responses:
+ *       200:
+ *         description: Session ended successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.put('/session/:sessionId/end', 
   validateId('sessionId'),
   asyncHandler(chatController.endSession)
 );
 
-// DELETE /api/v1/chat/session/:sessionId - Delete a chat session
+/**
+ * @swagger
+ * /chat/session/{sessionId}:
+ *   delete:
+ *     summary: Delete a chat session
+ *     description: Permanently delete a chat session and all its messages
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Chat session ID
+ *     responses:
+ *       200:
+ *         description: Session deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.delete('/session/:sessionId', 
   validateId('sessionId'),
   asyncHandler(chatController.deleteSession)
 );
 
-// POST /api/v1/chat/upload - Upload files and analyze with AI
+/**
+ * @swagger
+ * /chat/upload:
+ *   post:
+ *     summary: Upload files and analyze with AI
+ *     description: Upload files (resume, documents) and get AI-powered analysis
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 maxItems: 5
+ *                 description: Files to upload (max 5 files)
+ *     responses:
+ *       200:
+ *         description: Files uploaded and analyzed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     analysis:
+ *                       type: string
+ *                     files:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
 router.post('/upload',
   upload.array('files', 5), // Allow up to 5 files
   preventConcurrentOperations('upload'),
   asyncHandler(chatController.uploadAndAnalyze)
 );
 
-// GET /api/v1/chat/models - Get available AI models
+/**
+ * @swagger
+ * /chat/models:
+ *   get:
+ *     summary: Get available AI models
+ *     description: Retrieve list of available AI models for chat
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Available models retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     models:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/models',
   asyncHandler(chatController.getAvailableModels)
 );

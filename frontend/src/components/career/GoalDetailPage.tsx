@@ -86,12 +86,12 @@ export default function GoalDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
+        <div className="mx-auto max-w-7xl">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
-            <div className="h-64 bg-gray-300 dark:bg-gray-700 rounded mb-6"></div>
-            <div className="h-96 bg-gray-300 dark:bg-gray-700 rounded"></div>
+            <div className="w-1/4 h-8 mb-6 bg-gray-300 rounded dark:bg-gray-700"></div>
+            <div className="h-64 mb-6 bg-gray-300 rounded dark:bg-gray-700"></div>
+            <div className="bg-gray-300 rounded h-96 dark:bg-gray-700"></div>
           </div>
         </div>
       </div>
@@ -102,19 +102,19 @@ export default function GoalDetailPage() {
   
   if (!goal) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+      <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
+        <div className="mx-auto max-w-7xl">
+          <div className="py-12 text-center">
+            <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
               Goal Not Found
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="mb-6 text-gray-600 dark:text-gray-400">
               The career goal you're looking for doesn't exist or has been deleted.
             </p>
             <Link
               to="/career"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+              className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg bg-emerald-600 hover:bg-emerald-700"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Career Goals
@@ -138,20 +138,20 @@ export default function GoalDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-6">
           <Link
             to="/career"
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+            className="inline-flex items-center gap-2 mb-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Career Goals
           </Link>
 
           {/* Goal Header Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -159,7 +159,7 @@ export default function GoalDetailPage() {
                     {goal.targetRole}
                   </h1>
                   {goal.aiGenerated && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full dark:bg-purple-900/30 dark:text-purple-300">
                       <Sparkles className="w-3 h-3" />
                       AI Generated
                     </span>
@@ -181,14 +181,8 @@ export default function GoalDetailPage() {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => navigate(`/career/edit/${goalId}`)}
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                >
-                  <Edit className="w-5 h-5" />
-                </button>
-                <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="p-2 text-gray-600 rounded-lg dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -196,8 +190,8 @@ export default function GoalDetailPage() {
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-4">
+              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-4 h-4 text-emerald-600" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Progress</span>
@@ -205,15 +199,15 @@ export default function GoalDetailPage() {
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {Math.round(goal.progress)}%
                 </div>
-                <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full h-2 mt-2 bg-gray-200 rounded-full dark:bg-gray-700">
                   <div
-                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full transition-all duration-300"
+                    className="h-2 transition-all duration-300 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600"
                     style={{ width: `${goal.progress}%` }}
                   />
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="w-4 h-4 text-blue-600" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Milestones</span>
@@ -221,12 +215,12 @@ export default function GoalDetailPage() {
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {completedMilestones}/{totalMilestones}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {totalMilestones > 0 ? `${Math.round((completedMilestones / totalMilestones) * 100)}% complete` : 'No milestones yet'}
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="w-4 h-4 text-amber-600" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Skills</span>
@@ -234,12 +228,12 @@ export default function GoalDetailPage() {
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {goal.skillGaps?.length || 0}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   skills to develop
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className={`w-4 h-4 ${isOverdue ? 'text-red-600' : 'text-green-600'}`} />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Timeline</span>
@@ -247,7 +241,7 @@ export default function GoalDetailPage() {
                 <div className={`text-2xl font-bold ${isOverdue ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
                   {Math.abs(daysRemaining)}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {isOverdue ? 'days overdue' : 'days remaining'}
                 </div>
               </div>
@@ -256,7 +250,7 @@ export default function GoalDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-t-xl shadow-sm border border-gray-200 dark:border-gray-700 border-b-0">
+        <div className="bg-white border border-b-0 border-gray-200 shadow-sm dark:bg-gray-800 rounded-t-xl dark:border-gray-700">
           <div className="flex gap-1 p-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -288,12 +282,12 @@ export default function GoalDetailPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-b-xl dark:border-gray-700">
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* Trajectory Visualization */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                   Career Trajectory
                 </h3>
                 <TrajectoryVisualization goal={goal} />
@@ -302,7 +296,7 @@ export default function GoalDetailPage() {
               {/* Milestone Timeline */}
               {totalMilestones > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                     Milestone Timeline
                   </h3>
                   <MilestoneTimeline milestones={goal.milestones || []} />
@@ -312,7 +306,7 @@ export default function GoalDetailPage() {
               {/* Skill Gap Matrix */}
               {goal.skillGaps && goal.skillGaps.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                     Skill Gap Analysis
                   </h3>
                   <SkillGapMatrix skillGaps={goal.skillGaps} />
@@ -321,7 +315,7 @@ export default function GoalDetailPage() {
 
               {/* Progress Chart */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                   Progress Over Time
                 </h3>
                 <ProgressChart goalId={goal.id} />
@@ -344,7 +338,7 @@ export default function GoalDetailPage() {
           {activeTab === 'resources' && (
             <div data-tab="resources">
               {isGeneratingResources && (
-                <div className="mb-4 p-3 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200">
+                <div className="p-3 mb-4 text-yellow-800 border border-yellow-100 rounded-md bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200">
                   Generating learning resources... this may take a moment.
                 </div>
               )}
@@ -361,29 +355,29 @@ export default function GoalDetailPage() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md p-6 bg-white shadow-xl dark:bg-gray-800 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <div className="p-2 bg-red-100 rounded-lg dark:bg-red-900/30">
                 <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Delete Career Goal
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="mb-6 text-gray-600 dark:text-gray-400">
               Are you sure you want to delete this career goal? This action cannot be undone and will also delete all associated milestones, skill gaps, and learning resources.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                className="px-4 py-2 text-gray-700 rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg"
+                className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
               >
                 Delete Goal
               </button>

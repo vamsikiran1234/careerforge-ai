@@ -1,91 +1,196 @@
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
-const YAML = require('yamljs');
-const path = require('path');
-const fs = require('fs');
+const swaggerSpec = require('../config/swagger');
 
 const router = express.Router();
 
-// Load OpenAPI specification
-const openApiPath = path.join(__dirname, '../../docs/api/openapi.yaml');
-const openApiSpec = fs.existsSync(openApiPath) 
-  ? YAML.load(openApiPath) 
-  : { openapi: '3.0.0', info: { title: 'CareerForge AI API', version: '1.0.0' }, paths: {} };
-
-// Swagger UI options
+// Enhanced Swagger UI options with better UI
 const swaggerOptions = {
   explorer: true,
   swaggerOptions: {
     url: '/api/v1/docs/openapi.json',
     displayRequestDuration: true,
-    docExpansion: 'none',
+    docExpansion: 'list', // Shows tags expanded by default
     filter: true,
     showExtensions: true,
     showCommonExtensions: true,
     defaultModelsExpandDepth: 3,
     defaultModelExpandDepth: 3,
     displayOperationId: false,
-    tryItOutEnabled: true
+    tryItOutEnabled: true,
+    persistAuthorization: true, // Keeps authorization between refreshes
+    tagsSorter: 'alpha',
+    operationsSorter: 'alpha'
   },
-  customSiteTitle: 'CareerForge AI API Documentation',
+  customSiteTitle: 'CareerForge AI - API Documentation',
   customfavIcon: '/favicon.ico',
   customCss: `
     .swagger-ui .topbar { 
-      background-color: #2563eb; 
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      padding: 15px 0;
     }
     .swagger-ui .topbar .download-url-wrapper { 
       display: none; 
     }
+    .swagger-ui .info {
+      margin: 30px 0;
+    }
     .swagger-ui .info .title {
       color: #1e40af;
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+    .swagger-ui .info .description {
+      font-size: 1.1rem;
+      color: #475569;
+      line-height: 1.6;
     }
     .swagger-ui .scheme-container {
       background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
     }
     .swagger-ui .btn.authorize {
-      background-color: #059669;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
       border-color: #059669;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 6px;
+    }
+    .swagger-ui .btn.authorize svg {
+      fill: white;
     }
     .swagger-ui .btn.authorize:hover {
-      background-color: #047857;
+      background: linear-gradient(135deg, #047857 0%, #065f46 100%);
       border-color: #047857;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .swagger-ui .opblock-tag {
+      font-size: 1.4rem;
+      font-weight: 700;
+      border-bottom: 3px solid #2563eb;
+      padding: 15px 20px;
+      margin: 20px 0;
+      background: #f8fafc;
+      border-radius: 8px 8px 0 0;
+    }
+    .swagger-ui .opblock {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin: 10px 0;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s;
+    }
+    .swagger-ui .opblock:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
     }
     .swagger-ui .opblock-summary-description {
       font-weight: 500;
+      font-size: 0.95rem;
     }
-    .swagger-ui .opblock.opblock-get .opblock-summary {
+    .swagger-ui .opblock-summary-method {
+      font-weight: 700;
+      min-width: 80px;
+      text-align: center;
+      border-radius: 4px;
+      padding: 6px 15px;
+    }
+    .swagger-ui .opblock.opblock-get {
       border-color: #10b981;
     }
-    .swagger-ui .opblock.opblock-post .opblock-summary {
+    .swagger-ui .opblock.opblock-get .opblock-summary {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: #10b981;
+    }
+    .swagger-ui .opblock.opblock-post {
       border-color: #3b82f6;
     }
-    .swagger-ui .opblock.opblock-put .opblock-summary {
+    .swagger-ui .opblock.opblock-post .opblock-summary {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: #3b82f6;
+    }
+    .swagger-ui .opblock.opblock-put {
       border-color: #f59e0b;
     }
-    .swagger-ui .opblock.opblock-delete .opblock-summary {
+    .swagger-ui .opblock.opblock-put .opblock-summary {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: #f59e0b;
+    }
+    .swagger-ui .opblock.opblock-delete {
       border-color: #ef4444;
+    }
+    .swagger-ui .opblock.opblock-delete .opblock-summary {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+    }
+    .swagger-ui .opblock.opblock-patch {
+      border-color: #8b5cf6;
+    }
+    .swagger-ui .opblock.opblock-patch .opblock-summary {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: #8b5cf6;
     }
     .swagger-ui .model-box {
       background: #f8fafc;
+      border-radius: 6px;
+      padding: 15px;
     }
     .swagger-ui .model .model-title {
       color: #374151;
+      font-weight: 600;
     }
     .swagger-ui .highlight-code .microlight {
       background: #1f2937;
+      border-radius: 6px;
+    }
+    .swagger-ui .response-col_status {
+      font-weight: 700;
+    }
+    .swagger-ui section.models {
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .swagger-ui .tab {
+      padding: 10px 20px;
+    }
+    .swagger-ui .try-out__btn {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+      border-radius: 6px;
+      padding: 6px 15px;
+      font-weight: 600;
+    }
+    .swagger-ui .try-out__btn:hover {
+      background: #1d4ed8;
+    }
+    .swagger-ui .btn.execute {
+      background: #059669;
+      border-color: #059669;
+      border-radius: 6px;
+      padding: 8px 20px;
+      font-weight: 600;
+    }
+    .swagger-ui .btn.execute:hover {
+      background: #047857;
     }
   `
 };
 
 // Serve OpenAPI spec as JSON
 router.get('/openapi.json', (req, res) => {
-  res.json(openApiSpec);
+  res.json(swaggerSpec);
 });
 
 // Serve Swagger UI
 router.use('/ui', swaggerUi.serve);
-router.get('/ui', swaggerUi.setup(openApiSpec, swaggerOptions));
+router.get('/ui', swaggerUi.setup(swaggerSpec, swaggerOptions));
 
 // Serve ReDoc alternative
 router.get('/redoc', (req, res) => {

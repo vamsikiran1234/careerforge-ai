@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCareerStore } from '../../../store/career';
 import { 
   ArrowRight, 
@@ -30,10 +30,12 @@ const steps: WizardStep[] = [
 
 const GoalCreationWizard = () => {
   const navigate = useNavigate();
-  const { createGoal, generateTrajectory, isLoading, isAnalyzing, error } = useCareerStore();
+  const { goalId } = useParams();
+  const { createGoal, updateGoal, fetchGoalById, goals, generateTrajectory, isLoading, isAnalyzing, error } = useCareerStore();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [generateAI, setGenerateAI] = useState(false);
+  const isEditMode = !!goalId;
 
   // Form data
   const [formData, setFormData] = useState({
@@ -48,6 +50,30 @@ const GoalCreationWizard = () => {
     timeframeMonths: '12',
     notes: ''
   });
+
+  // Load existing goal data in edit mode
+  useEffect(() => {
+    if (isEditMode && goalId) {
+      const existingGoal = goals.find(g => g.id === goalId);
+      if (existingGoal) {
+        setFormData({
+          currentRole: existingGoal.currentRole || '',
+          currentCompany: existingGoal.currentCompany || '',
+          currentLevel: existingGoal.currentLevel || '',
+          yearsExperience: existingGoal.yearsExperience?.toString() || '',
+          targetRole: existingGoal.targetRole || '',
+          targetCompany: existingGoal.targetCompany || '',
+          targetLevel: existingGoal.targetLevel || '',
+          targetSalary: existingGoal.targetSalary?.toString() || '',
+          timeframeMonths: existingGoal.timeframeMonths?.toString() || '12',
+          notes: existingGoal.notes || ''
+        });
+      } else {
+        // Fetch goal if not in store
+        fetchGoalById(goalId);
+      }
+    }
+  }, [isEditMode, goalId, goals, fetchGoalById]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -101,7 +127,26 @@ const GoalCreationWizard = () => {
         notes: formData.notes || undefined
       };
 
-      const newGoal = await createGoal(goalData);
+      if (isEditMode && goalId) {
+        // Update existing goal
+        await updateGoal(goalId, goalData);
+        navigate(`/app/career/${goalId}`);
+      } else {
+        // Create new goal
+        const newGoal = await createGoal(goalData);
+
+        // Generate AI trajectory if requested
+        if (generateAI && newGoal?.id) {
+          try {
+            await generateTrajectory(newGoal.id);
+          } catch (aiError) {
+            console.error('AI generation failed, but goal created:', aiError);
+            // Continue to goal page even if AI generation fails
+          }
+        }
+
+        navigate(`/app/career/${newGoal.id}`);
+      }
 
       // Generate AI trajectory if requested
       if (generateAI && newGoal?.id) {
@@ -142,10 +187,13 @@ const GoalCreationWizard = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Create Your Career Goal
+              {isEditMode ? 'Edit Your Career Goal' : 'Create Your Career Goal'}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Define your career trajectory and let AI help you get there
+              {isEditMode 
+                ? 'Update your career trajectory details'
+                : 'Define your career trajectory and let AI help you get there'
+              }
             </p>
           </div>
 

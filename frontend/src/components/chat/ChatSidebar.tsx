@@ -93,12 +93,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   }, [isResizing, handleMouseMove, handleMouseUp]);
   return (
     <div
-      className={`chat-sidebar-fixed fixed top-0 left-0 h-full overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700`}
+      className={`chat-sidebar-fixed fixed top-0 left-0 h-screen overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700`}
       style={{ width: isCollapsed ? '64px' : `${sidebarWidth}px`, zIndex: 60 }}
     >
       {/* Main Sidebar Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header Section - ChatGPT-like minimal */}
+      <div className="flex flex-col h-full">{/* Header Section - ChatGPT-like minimal */}
         <div className={`border-b border-gray-200 dark:border-gray-700 ${isCollapsed ? 'p-3' : 'p-4'}`}>
           {!isCollapsed ? (
             <div className="flex items-center justify-between">
@@ -171,7 +170,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
         {/* Sessions List - ChatGPT-like with custom scrollbar */}
         <div className="relative flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-500">
+          <div className="h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
             {isLoading ? (
               <div className={`text-center ${isCollapsed ? 'p-3' : 'p-6'}`}>
                 <div className="relative">
@@ -212,7 +211,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               </div>
             ) : (
               /* Expanded Sessions List - ChatGPT-like clean design */
-              <div className="p-2 space-y-1">
+              <div className="p-2 pb-6 space-y-1">
                 {sessions.filter(session => session.messages.length > 0).map((session) => (
                   <div
                     key={session.id}

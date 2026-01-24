@@ -1,60 +1,30 @@
-﻿const OpenAI = require('openai');
-const Groq = require('groq-sdk');
+﻿const Groq = require('groq-sdk');
 const { withCache } = require('./cacheService');
 
-// Initialize AI clients
-const openai = process.env.GROQ_API_KEY ? new OpenAI({
-  apiKey: process.env.GROQ_API_KEY
-}) : null;
-
+// Initialize Groq client only
 const groq = process.env.GROQ_API_KEY ? new Groq({
   apiKey: process.env.GROQ_API_KEY
 }) : null;
 
-// Use Groq for speed, fallback to OpenAI for quality
-const AI_PROVIDER = process.env.AI_PROVIDER || 'groq';
-
 /**
- * Get AI completion with fallback
+ * Get AI completion using Groq
  */
 async function getAICompletion(messages, options = {}) {
   try {
-    if (AI_PROVIDER === 'groq' && groq) {
-      console.log('🤖 Using Groq for AI analysis');
-      const response = await groq.chat.completions.create({
-        model: options.model || 'llama-3.3-70b-versatile',  // Updated to supported model
-        messages,
-        temperature: options.temperature || 0.7,
-        max_tokens: options.max_tokens || 2000
-      });
-      return response.choices[0].message.content;
-    } else if (openai) {
-      console.log('🤖 Using OpenAI for AI analysis');
-      const response = await openai.chat.completions.create({
-        model: options.model || 'gpt-4',
-        messages,
-        temperature: options.temperature || 0.7,
-        max_tokens: options.max_tokens || 2000
-      });
-      return response.choices[0].message.content;
-    } else {
-      throw new Error('No AI provider configured');
+    if (!groq) {
+      throw new Error('Groq API is not configured. Please set GROQ_API_KEY in .env');
     }
+
+    console.log('🤖 Using Groq AI for analysis');
+    const response = await groq.chat.completions.create({
+      model: options.model || 'llama-3.3-70b-versatile',
+      messages,
+      temperature: options.temperature || 0.7,
+      max_tokens: options.max_tokens || 2000
+    });
+    return response.choices[0].message.content;
   } catch (error) {
-    console.error('❌ AI completion error:', error.message);
-    
-    // Try fallback provider
-    if (AI_PROVIDER === 'groq' && openai) {
-      console.log('🔄 Falling back to OpenAI');
-      const response = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages,
-        temperature: 0.7,
-        max_tokens: 2000
-      });
-      return response.choices[0].message.content;
-    }
-    
+    console.error('❌ Groq AI completion error:', error.message);
     throw error;
   }
 }

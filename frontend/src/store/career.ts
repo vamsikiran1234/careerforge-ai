@@ -239,6 +239,7 @@ interface CareerState {
   updateGoal: (id: string, data: Partial<CareerGoal>) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   setCurrentGoal: (id: string) => Promise<void>;
+  fetchGoalById: (id: string) => Promise<void>;
   updateGoalProgress: (id: string, progress: number) => Promise<void>;
   
   // Actions - Milestones
@@ -359,13 +360,15 @@ const useCareerStore = create<CareerState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await apiClient.get(`/career/goals/${id}`);
-      set({
-        currentGoal: (response.data as any).goal,
-        milestones: (response.data as any).goal.milestones || [],
-        skillGaps: (response.data as any).goal.skillGaps || [],
-        resources: (response.data as any).goal.learningResources || [],
+      const goalData = (response.data as any).goal;
+      set((state) => ({
+        currentGoal: goalData,
+        goals: state.goals.map(g => g.id === id ? goalData : g),
+        milestones: goalData.milestones || [],
+        skillGaps: goalData.skillGaps || [],
+        resources: goalData.learningResources || [],
         isLoading: false
-      });
+      }));
     } catch (error: any) {
       set({ error: error.response?.data?.error || 'Failed to load goal', isLoading: false });
       throw error;
@@ -460,10 +463,16 @@ const useCareerStore = create<CareerState>((set, get) => ({
         milestones: state.milestones.map(m => m.id === milestoneId ? updatedMilestone : m),
         isLoading: false
       }));
+      // Reload the goal to update progress
+      await get().setCurrentGoal(goalId);
     } catch (error: any) {
       set({ error: error.response?.data?.error || 'Failed to complete milestone', isLoading: false });
       throw error;
     }
+  },
+
+  fetchGoalById: async (id: string) => {
+    return get().setCurrentGoal(id);
   },
 
   updateMilestoneProgress: async (goalId: string, milestoneId: string, progress: number) => {
@@ -705,6 +714,8 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const response = await apiClient.post(`/career/goals/${goalId}/generate`);
       // Reload goal to get updated milestones and skills
       await get().setCurrentGoal(goalId);
+      // Also reload all goals to update the list
+      await get().loadGoals();
       set({ isAnalyzing: false });
       return (response.data as any).trajectory;
     } catch (error: any) {
