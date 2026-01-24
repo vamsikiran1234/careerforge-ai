@@ -89,7 +89,7 @@ Remember: You're not just providing information - you're mentoring their entire 
         { role: 'user', content: message },
       ];
 
-      // Call Groq API (Much faster than OpenAI!)
+      // Call Groq API (Lightning fast AI responses!)
       const response = await this.client.chat.completions.create({
         model: 'llama-3.1-8b-instant', // Updated to current model (faster and available)
         messages,

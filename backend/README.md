@@ -95,7 +95,7 @@ backend/
 - Express.js
 - Prisma ORM
 - PostgreSQL / SQLite
-- Groq AI / OpenAI
+- Groq AI (Lightning Fast AI)
 - JWT Authentication
 - Jest (Testing)
 

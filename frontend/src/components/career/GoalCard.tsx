@@ -78,7 +78,7 @@ const GoalCard = ({ goal }: GoalCardProps) => {
               e.stopPropagation();
               setShowMenu(!showMenu);
             }}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <MoreVertical className="w-4 h-4 text-gray-500" />
           </button>
@@ -91,17 +91,17 @@ const GoalCard = ({ goal }: GoalCardProps) => {
                   setShowMenu(false);
                 }}
               />
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
+              <div className="absolute right-0 z-20 w-48 py-1 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
                 <button
                   onClick={handleEdit}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                  className="flex items-center w-full gap-2 px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <Edit className="w-4 h-4" />
                   Edit Goal
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                  className="flex items-center w-full gap-2 px-4 py-2 text-sm text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete Goal
@@ -114,14 +114,14 @@ const GoalCard = ({ goal }: GoalCardProps) => {
 
       {/* Current -> Target */}
       <div className="mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+        <div className="flex items-center gap-2 mb-1 text-sm text-gray-600 dark:text-gray-400">
           <span className="font-medium">{goal.currentRole}</span>
           {goal.currentCompany && (
             <span className="text-xs">@ {goal.currentCompany}</span>
           )}
         </div>
         <div className="flex items-center gap-2 my-2">
-          <ArrowRight className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+          <ArrowRight className="flex-shrink-0 w-5 h-5 text-emerald-500" />
         </div>
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
           <span>{goal.targetRole}</span>
@@ -133,13 +133,13 @@ const GoalCard = ({ goal }: GoalCardProps) => {
 
       {/* Progress Bar */}
       <div className="mb-4">
-        <div className="flex items-center justify-between text-sm mb-2">
+        <div className="flex items-center justify-between mb-2 text-sm">
           <span className="text-gray-600 dark:text-gray-400">Progress</span>
           <span className="font-semibold text-gray-900 dark:text-white">{goal.progress}%</span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div className="w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700">
           <div
-            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full transition-all duration-500"
+            className="h-2 transition-all duration-500 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600"
             style={{ width: `${goal.progress}%` }}
           />
         </div>
@@ -147,32 +147,32 @@ const GoalCard = ({ goal }: GoalCardProps) => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+        <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
           <div className="flex items-center justify-center mb-1">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 text-center mb-1">Milestones</p>
-          <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">
+          <p className="mb-1 text-xs text-center text-gray-600 dark:text-gray-400">Milestones</p>
+          <p className="text-sm font-semibold text-center text-gray-900 dark:text-white">
             {completedMilestones}/{milestonesFromCount}
           </p>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+        <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
           <div className="flex items-center justify-center mb-1">
             <Target className="w-4 h-4 text-blue-500" />
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 text-center mb-1">Skills</p>
-          <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">
+          <p className="mb-1 text-xs text-center text-gray-600 dark:text-gray-400">Skills</p>
+          <p className="text-sm font-semibold text-center text-gray-900 dark:text-white">
             {skillsCount}
           </p>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+        <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
           <div className="flex items-center justify-center mb-1">
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 text-center mb-1">Timeline</p>
-          <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">
+          <p className="mb-1 text-xs text-center text-gray-600 dark:text-gray-400">Timeline</p>
+          <p className="text-sm font-semibold text-center text-gray-900 dark:text-white">
             {goal.timeframeMonths}mo
           </p>
         </div>
@@ -197,14 +197,14 @@ const GoalCard = ({ goal }: GoalCardProps) => {
 
       {/* AI Generated Badge */}
       {goal.aiGenerated && (
-        <div className="absolute top-4 right-16 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
+        <div className="absolute flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full top-4 right-16 dark:bg-purple-900/30 dark:text-purple-400">
           <TrendingUp className="w-3 h-3" />
           AI
         </div>
       )}
 
       {/* Hover Effect */}
-      <div className="absolute inset-0 border-2 border-emerald-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      <div className="absolute inset-0 transition-opacity border-2 opacity-0 pointer-events-none border-emerald-500 rounded-xl group-hover:opacity-100" />
     </div>
   );
 };

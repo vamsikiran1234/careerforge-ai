@@ -207,6 +207,17 @@ exports.updateGoal = async (req, res) => {
 
     const updateData = { ...req.body };
     
+    // Parse numeric fields to ensure correct types
+    if (updateData.timeframeMonths) {
+      updateData.timeframeMonths = parseInt(updateData.timeframeMonths);
+    }
+    if (updateData.yearsExperience) {
+      updateData.yearsExperience = parseInt(updateData.yearsExperience);
+    }
+    if (updateData.targetSalary) {
+      updateData.targetSalary = parseFloat(updateData.targetSalary);
+    }
+    
     // Handle target date recalculation if timeframe changes
     if (updateData.timeframeMonths) {
       const goal = await prisma.careerGoal.findUnique({
@@ -214,7 +225,7 @@ exports.updateGoal = async (req, res) => {
       });
       
       const targetDate = new Date(goal.startDate);
-      targetDate.setMonth(targetDate.getMonth() + parseInt(updateData.timeframeMonths));
+      targetDate.setMonth(targetDate.getMonth() + updateData.timeframeMonths);
       updateData.targetDate = targetDate;
     }
 

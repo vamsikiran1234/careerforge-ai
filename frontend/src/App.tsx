@@ -306,9 +306,17 @@ function App() {
                     } 
                   />
                   <Route 
-                    path="/app/career/new" 
+                    path="career/new" 
                     element={
                       <Suspense fallback={<LoadingPage message="Creating Goal..." />}>
+                        <GoalCreationWizard />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="career/:goalId/edit" 
+                    element={
+                      <Suspense fallback={<LoadingPage message="Loading Editor..." />}>
                         <GoalCreationWizard />
                       </Suspense>
                     } 

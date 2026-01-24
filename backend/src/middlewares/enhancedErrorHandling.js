@@ -69,7 +69,7 @@ const errorHandler = (err, req, res) => {
     }
   }
 
-  // OpenAI/AI service errors
+  // Groq AI service errors
   if (err.name === 'APIError' || err.type === 'invalid_request_error') {
     switch (err.code) {
       case 'insufficient_quota':

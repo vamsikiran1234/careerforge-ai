@@ -1,4 +1,4 @@
-// Mock AI responses for development/testing when OpenAI quota is exhausted
+// Mock AI responses for development/testing when Groq quota is exhausted
 const mockAIResponses = {
   careerAdvice: [
     "Great question! For data science, I'd recommend focusing on Python, SQL, and statistics. Start with libraries like pandas, numpy, and scikit-learn. Practice on datasets from Kaggle to build your portfolio.",
