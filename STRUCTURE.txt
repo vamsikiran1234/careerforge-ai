@@ -1,0 +1,188 @@
+CareerForge AI - Clean Professional Structure
+================================================
+
+DIRECTORY STRUCTURE
+===================
+
+careerforge-ai/
+├── backend/                          # Backend Application
+│   ├── src/                          # Source Code
+│   │   ├── config/                   # Configuration files
+│   │   ├── controllers/              # Request handlers
+│   │   ├── middlewares/              # Express middlewares
+│   │   ├── models/                   # Data models
+│   │   ├── routes/                   # API routes
+│   │   ├── services/                 # Business logic
+│   │   ├── utils/                    # Utilities
+│   │   ├── workers/                  # Background workers
+│   │   ├── app.js                    # Express app
+│   │   └── server.js                 # Entry point
+│   │
+│   ├── prisma/                       # Database
+│   │   ├── schema.prisma             # Schema definition
+│   │   └── dev.db                    # SQLite database
+│   │
+│   ├── tests/                        # Test Suite
+│   │   ├── setup.js                  # Test config
+│   │   ├── health.test.js            # Health tests
+│   │   ├── quiz.test.js              # Quiz tests
+│   │   ├── mentor.test.js            # Mentor tests
+│   │   └── chat.test.js              # Chat tests
+│   │
+│   ├── package.json                  # Dependencies
+│   ├── Dockerfile                    # Docker config
+│   ├── docker-compose.yml            # Docker compose
+│   ├── .eslintrc.json                # ESLint config
+│   ├── .prettierrc.json              # Prettier config
+│   ├── railway.toml                  # Railway config
+│   ├── vercel.json                   # Vercel config
+│   ├── .env.example                  # Env template
+│   └── README.md                     # Backend docs
+│
+└── frontend/                         # Frontend Application
+    ├── src/                          # Source Code
+    │   ├── assets/                   # Static assets
+    │   ├── components/               # React components
+    │   │   ├── admin/                # Admin components
+    │   │   ├── auth/                 # Auth components
+    │   │   ├── chat/                 # Chat components
+    │   │   ├── common/               # Shared components
+    │   │   ├── mentor/               # Mentor components
+    │   │   └── quiz/                 # Quiz components
+    │   ├── contexts/                 # React contexts
+    │   ├── data/                     # Static data
+    │   ├── hooks/                    # Custom hooks
+    │   ├── layouts/                  # Layout components
+    │   ├── lib/                      # Libraries
+    │   ├── pages/                    # Page components
+    │   │   ├── admin/                # Admin pages
+    │   │   ├── auth/                 # Auth pages
+    │   │   ├── career/               # Career pages
+    │   │   ├── chat/                 # Chat pages
+    │   │   ├── mentor/               # Mentor pages
+    │   │   └── student/              # Student pages
+    │   ├── store/                    # State management
+    │   ├── styles/                   # Global styles
+    │   ├── types/                    # TypeScript types
+    │   ├── utils/                    # Utilities
+    │   ├── App.tsx                   # Main component
+    │   ├── main.tsx                  # Entry point
+    │   └── index.css                 # Global CSS
+    │
+    ├── public/                       # Public assets
+    ├── package.json                  # Dependencies
+    ├── vite.config.ts                # Vite config
+    ├── tailwind.config.js            # Tailwind config
+    ├── tsconfig.json                 # TypeScript config
+    └── index.html                    # HTML template
+
+
+ROOT LEVEL FILES
+================
+├── .env.example                      # Environment template
+├── .env.production.example           # Production template
+├── .gitignore                        # Git ignore rules
+├── .dockerignore                     # Docker ignore rules
+├── README.md                         # Main documentation
+└── STRUCTURE.txt                     # This file
+
+
+KEY FEATURES
+============
+
+Backend Features
+----------------
+✓ RESTful API with Express.js
+✓ AI Integration (Groq AI, OpenAI)
+✓ Real-time Chat (Socket.IO)
+✓ JWT Authentication
+✓ Role-Based Access Control
+✓ Mentor Matching System
+✓ Adaptive Quiz Generation
+✓ Prisma ORM + PostgreSQL/SQLite
+✓ Comprehensive Test Suite (Jest)
+✓ Email Notifications
+✓ Session Management
+✓ Review & Rating System
+
+Frontend Features
+-----------------
+✓ React 19 + TypeScript
+✓ Vite Build Tool (Fast HMR)
+✓ Tailwind CSS Styling
+✓ Zustand State Management
+✓ Admin Dashboard & Analytics
+✓ Real-time Chat Interface
+✓ Mentor/Student Portals
+✓ Quiz Assessment UI
+✓ Responsive Design
+✓ Dark Mode Support
+✓ Session Booking
+✓ Notification System
+
+
+TECH STACK
+==========
+
+Backend:
+- Node.js 18+
+- Express.js
+- Prisma ORM
+- PostgreSQL / SQLite
+- Groq AI / OpenAI
+- JWT + bcrypt
+- Socket.IO
+- Jest
+
+Frontend:
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Zustand
+- Axios
+- Recharts
+
+
+QUICK START
+===========
+
+Backend Setup:
+-------------
+cd backend
+npm install
+cp .env.example .env
+npm run db:generate
+npm run dev
+
+Frontend Setup:
+--------------
+cd frontend
+npm install
+npm run dev
+
+
+DEPLOYMENT
+==========
+
+Backend runs on: http://localhost:3000
+Frontend runs on: http://localhost:5173
+
+Deploy Backend:
+- Railway: railway up
+- Vercel: vercel deploy
+- Docker: docker-compose up
+
+Deploy Frontend:
+- Vercel: vercel deploy
+- Build: npm run build
+
+
+NOTES
+=====
+✓ Clean, minimal structure
+✓ Backend and Frontend completely separated
+✓ Independent package.json files
+✓ No extra folders or scripts
+✓ Production-ready architecture
+✓ Easy to understand and maintain
