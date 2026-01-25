@@ -269,7 +269,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
       )}
 
       {/* Learning Path Timeline */}
-      {learningPath && (
+      {learningPath && learningPath.phases && learningPath.phases.length > 0 && (
         <Card className="p-8">
           <div className="flex items-center space-x-3 mb-6">
             <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -277,25 +277,58 @@ const QuizResults: React.FC<QuizResultsProps> = ({
           </div>
           
           <div className="space-y-6">
-            {Object.entries(learningPath).map(([phase, description], index) => {
+            {learningPath.phases.map((phaseData: any, index: number) => {
               const phaseNum = index + 1;
               return (
-                <div key={phase} className="flex items-start space-x-4">
+                <div key={index} className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
                       {phaseNum}
                     </div>
-                    {index < Object.keys(learningPath).length - 1 && (
+                    {index < learningPath.phases.length - 1 && (
                       <div className="w-0.5 h-16 bg-gradient-to-b from-purple-300 to-blue-300 dark:from-purple-700 dark:to-blue-700 mx-auto mt-2"></div>
                     )}
                   </div>
                   <div className="flex-1 pt-1">
-                    <h3 className="text-sm font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide mb-1">
-                      Phase {phaseNum}
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                      {phaseData.phase}
                     </h3>
-                    <p className="text-gray-900 dark:text-white font-medium text-base">
-                      {String(description)}
-                    </p>
+                    {phaseData.duration && (
+                      <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-3 flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {phaseData.duration}
+                      </p>
+                    )}
+                    
+                    {phaseData.topics && phaseData.topics.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Topics to Cover:</p>
+                        <ul className="space-y-1">
+                          {phaseData.topics.map((topic: string, tIndex: number) => (
+                            <li key={tIndex} className="text-sm text-gray-600 dark:text-gray-400 flex items-start">
+                              <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                              {topic}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {phaseData.resources && phaseData.resources.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Learning Resources:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {phaseData.resources.map((resource: string, rIndex: number) => (
+                            <span 
+                              key={rIndex}
+                              className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs font-medium rounded-full"
+                            >
+                              {resource}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -316,19 +349,49 @@ const QuizResults: React.FC<QuizResultsProps> = ({
           </p>
           
           <div className="space-y-3">
-            {nextSteps.map((step: string, index: number) => (
-              <div 
-                key={index}
-                className="flex items-start space-x-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 rounded-lg border border-yellow-200 dark:border-yellow-800 hover:shadow-md transition-shadow"
-              >
-                <div className="flex-shrink-0 w-6 h-6 bg-yellow-500 dark:bg-yellow-600 rounded-full flex items-center justify-center mt-0.5">
-                  <CheckCircle className="w-4 h-4 text-white" />
+            {nextSteps.map((step: any, index: number) => {
+              // Handle both string and object formats
+              const stepText = typeof step === 'string' ? step : step.step;
+              const timeline = typeof step === 'object' ? step.timeline : null;
+              const priority = typeof step === 'object' ? step.priority : null;
+              
+              return (
+                <div 
+                  key={index}
+                  className="flex items-start space-x-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 rounded-lg border border-yellow-200 dark:border-yellow-800 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex-shrink-0 w-6 h-6 bg-yellow-500 dark:bg-yellow-600 rounded-full flex items-center justify-center mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-gray-900 dark:text-white font-medium">
+                      {stepText}
+                    </p>
+                    {(timeline || priority) && (
+                      <div className="flex items-center gap-3 mt-2 text-sm">
+                        {timeline && (
+                          <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                            <Clock className="w-4 h-4" />
+                            {timeline}
+                          </span>
+                        )}
+                        {priority && (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            priority === 'High' 
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              : priority === 'Medium'
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          }`}>
+                            {priority} Priority
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="flex-1 text-gray-900 dark:text-white font-medium">
-                  {step}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}

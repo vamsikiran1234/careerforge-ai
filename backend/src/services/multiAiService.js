@@ -310,9 +310,345 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
   }
 };
 
+/**
+ * Generate next quiz question or complete quiz
+ * @param {string} sessionId - Quiz session ID
+ * @param {string|null} previousAnswer - User's previous answer (null for first question)
+ * @returns {Promise<{question: string, options: string[], stage: string, isComplete: boolean, recommendations?: object}>}
+ */
+const quizNext = async (sessionId, previousAnswer) => {
+  const { prisma } = require('../config/database');
+  
+  try {
+    // Get quiz session with all questions and answers
+    const session = await prisma.quizSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        quizQuestions: {
+          orderBy: { order: 'asc' }
+        }
+      }
+    });
+
+    if (!session) {
+      throw new Error('Quiz session not found');
+    }
+
+    // Parse answers
+    const answers = typeof session.answers === 'string' 
+      ? JSON.parse(session.answers || '{}') 
+      : (session.answers || {});
+
+    const currentStage = session.currentStage;
+    const stageOrder = ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
+    const currentStageIndex = stageOrder.indexOf(currentStage);
+    const questionsInStage = answers[currentStage]?.length || 0;
+
+    // Determine if we should move to next stage (5 questions per stage)
+    const shouldMoveToNextStage = questionsInStage >= 5;
+    const isLastStage = currentStageIndex === stageOrder.length - 1;
+
+    // If completed all stages, generate recommendations
+    if (shouldMoveToNextStage && isLastStage) {
+      const prompt = `Based on the following career assessment quiz responses, provide personalized career recommendations:
+
+${JSON.stringify(answers, null, 2)}
+
+Analyze the responses and provide detailed career recommendations in JSON format with this EXACT structure:
+{
+  "topCareers": [
+    {
+      "title": "Career Title",
+      "match_percentage": 90,
+      "description": "Detailed description of the career",
+      "why_match": "Why this career matches their skills and interests",
+      "salary_range": "$80,000 - $120,000",
+      "growth_potential": "High",
+      "learning_timeline": "6-12 months",
+      "skills_required": ["Skill 1", "Skill 2", "Skill 3"]
+    }
+  ],
+  "skillsToFocus": [
+    {
+      "skill": "Skill Name",
+      "priority": "High",
+      "description": "Why this skill is important",
+      "resources": ["Resource 1", "Resource 2"]
+    }
+  ],
+  "learningPath": {
+    "phases": [
+      {
+        "phase": "Foundation",
+        "duration": "2-3 months",
+        "topics": ["Topic 1", "Topic 2"],
+        "resources": ["Resource 1", "Resource 2"]
+      }
+    ]
+  },
+  "nextSteps": [
+    {
+      "step": "Step description",
+      "timeline": "1-2 weeks",
+      "priority": "High"
+    }
+  ],
+  "marketInsights": {
+    "demand": "High",
+    "competition": "Moderate",
+    "trends": ["Trend 1", "Trend 2"]
+  }
+}
+
+Provide 3-5 top career matches, 4-6 skills to focus on, and 5-7 next steps.`;
+
+      const response = await chatWithAI(prompt, [], {
+        userId: session.userId,
+        userName: 'Quiz User',
+        userRole: 'Professional',
+        taskType: 'quiz_completion'
+      });
+
+      // Try to parse JSON from response
+      let recommendations;
+      try {
+        const jsonMatch = response.response.match(/\{[\s\S]*\}/);
+        recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+      } catch {
+        recommendations = null;
+      }
+
+      // Provide detailed fallback if parsing fails
+      if (!recommendations || !recommendations.topCareers) {
+        recommendations = {
+          topCareers: [
+            {
+              title: "Software Developer",
+              match_percentage: 85,
+              description: "Design, develop, and maintain software applications. Work with various programming languages and frameworks to create innovative solutions.",
+              why_match: "Your technical skills and problem-solving abilities align well with software development. Your interest in continuous learning is essential in this rapidly evolving field.",
+              salary_range: "$70,000 - $130,000",
+              growth_potential: "Very High",
+              learning_timeline: "6-12 months",
+              skills_required: ["Programming", "Problem Solving", "System Design", "Version Control"]
+            },
+            {
+              title: "Data Analyst",
+              match_percentage: 80,
+              description: "Analyze complex data sets to help organizations make informed business decisions. Use statistical tools and visualization techniques.",
+              why_match: "Your analytical thinking and attention to detail make you well-suited for data analysis. This career offers strong growth opportunities.",
+              salary_range: "$60,000 - $100,000",
+              growth_potential: "High",
+              learning_timeline: "4-8 months",
+              skills_required: ["Data Analysis", "SQL", "Excel", "Statistical Thinking"]
+            },
+            {
+              title: "UX/UI Designer",
+              match_percentage: 75,
+              description: "Create intuitive and engaging user experiences for digital products. Combine creativity with user research and design principles.",
+              why_match: "Your creative mindset and user-centric thinking align with UX/UI design. This role offers a blend of art and technology.",
+              salary_range: "$65,000 - $110,000",
+              growth_potential: "High",
+              learning_timeline: "4-10 months",
+              skills_required: ["Design Tools", "User Research", "Prototyping", "Visual Design"]
+            }
+          ],
+          skillsToFocus: [
+            {
+              skill: "Technical Proficiency",
+              priority: "High",
+              description: "Develop strong technical skills in your chosen field through hands-on practice and projects.",
+              resources: ["Online Courses (Coursera, Udemy)", "Practice Projects", "Coding Bootcamps"]
+            },
+            {
+              skill: "Communication",
+              priority: "High",
+              description: "Effective communication is crucial for collaborating with teams and explaining technical concepts.",
+              resources: ["Public Speaking Courses", "Technical Writing Guides", "Team Collaboration Tools"]
+            },
+            {
+              skill: "Problem Solving",
+              priority: "Medium",
+              description: "Strengthen your ability to break down complex problems and find creative solutions.",
+              resources: ["LeetCode", "HackerRank", "Project Euler", "Case Study Practice"]
+            },
+            {
+              skill: "Continuous Learning",
+              priority: "Medium",
+              description: "Stay updated with industry trends and emerging technologies in your field.",
+              resources: ["Tech Blogs", "Industry Newsletters", "Professional Networks", "Conferences"]
+            }
+          ],
+          learningPath: {
+            phases: [
+              {
+                phase: "Foundation Building",
+                duration: "2-3 months",
+                topics: ["Core concepts", "Fundamental tools", "Basic projects"],
+                resources: ["FreeCodeCamp", "Codecademy", "YouTube tutorials"]
+              },
+              {
+                phase: "Skill Development",
+                duration: "3-4 months",
+                topics: ["Advanced concepts", "Real-world projects", "Portfolio building"],
+                resources: ["Udemy", "Coursera", "GitHub", "Personal projects"]
+              },
+              {
+                phase: "Professional Growth",
+                duration: "2-3 months",
+                topics: ["Industry practices", "Networking", "Job preparation"],
+                resources: ["LinkedIn Learning", "Professional communities", "Mock interviews"]
+              }
+            ]
+          },
+          nextSteps: [
+            {
+              step: "Set clear, measurable learning goals for the next 3 months",
+              timeline: "This week",
+              priority: "High"
+            },
+            {
+              step: "Enroll in a foundational course for your chosen career path",
+              timeline: "1-2 weeks",
+              priority: "High"
+            },
+            {
+              step: "Start building a portfolio with small projects",
+              timeline: "2-4 weeks",
+              priority: "High"
+            },
+            {
+              step: "Join professional communities and networking groups",
+              timeline: "2-3 weeks",
+              priority: "Medium"
+            },
+            {
+              step: "Connect with mentors or professionals in your target field",
+              timeline: "3-4 weeks",
+              priority: "Medium"
+            },
+            {
+              step: "Practice daily with coding challenges or design exercises",
+              timeline: "Ongoing",
+              priority: "Medium"
+            },
+            {
+              step: "Update your resume and LinkedIn profile to reflect your learning journey",
+              timeline: "1 month",
+              priority: "Medium"
+            }
+          ],
+          marketInsights: {
+            demand: "High - Growing demand across industries",
+            competition: "Moderate - Competitive but many opportunities available",
+            trends: [
+              "Remote work opportunities expanding",
+              "AI and automation creating new roles",
+              "Continuous upskilling becoming essential",
+              "Cross-functional skills increasingly valued"
+            ]
+          }
+        };
+      }
+
+      return {
+        isComplete: true,
+        recommendations
+      };
+    }
+
+    // Move to next stage if needed
+    let nextStage = currentStage;
+    if (shouldMoveToNextStage && !isLastStage) {
+      nextStage = stageOrder[currentStageIndex + 1];
+    }
+
+    // Generate next question using AI
+    const stageDescriptions = {
+      'SKILLS_ASSESSMENT': 'technical and professional skills',
+      'CAREER_INTERESTS': 'career interests and industry preferences',
+      'PERSONALITY_TRAITS': 'personality traits and work style',
+      'LEARNING_STYLE': 'learning preferences and development approach',
+      'CAREER_GOALS': 'career goals and aspirations'
+    };
+
+    const prompt = `Generate a career assessment quiz question for ${stageDescriptions[nextStage]}.
+Previous answers in this stage: ${JSON.stringify(answers[nextStage] || [])}
+Question number: ${(answers[nextStage]?.length || 0) + 1}
+
+Create ONE multiple choice question with 4 options.
+Format as JSON:
+{
+  "question": "Question text here?",
+  "options": ["Option 1", "Option 2", "Option 3", "Option 4"]
+}`;
+
+    const response = await chatWithAI(prompt, [], {
+      userId: session.userId,
+      userName: 'Quiz User',
+      userRole: 'Professional',
+      taskType: 'quiz_generation'
+    });
+
+    // Parse question from AI response
+    let questionData;
+    try {
+      const jsonMatch = response.response.match(/\{[\s\S]*\}/);
+      questionData = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+    } catch {
+      questionData = null;
+    }
+
+    // Fallback questions if parsing fails
+    if (!questionData || !questionData.question) {
+      const fallbacks = {
+        'SKILLS_ASSESSMENT': {
+          question: "Which technical skill are you most proficient in?",
+          options: ["Programming/Development", "Data Analysis", "Design/Creative", "Project Management"]
+        },
+        'CAREER_INTERESTS': {
+          question: "Which industry excites you the most?",
+          options: ["Technology", "Healthcare", "Finance", "Education"]
+        },
+        'PERSONALITY_TRAITS': {
+          question: "How do you prefer to work?",
+          options: ["Independently", "In small teams", "In large groups", "Flexible mix"]
+        },
+        'LEARNING_STYLE': {
+          question: "How do you learn best?",
+          options: ["Hands-on practice", "Reading documentation", "Video tutorials", "Mentorship"]
+        },
+        'CAREER_GOALS': {
+          question: "What is your primary career goal?",
+          options: ["Leadership role", "Technical expertise", "Entrepreneurship", "Work-life balance"]
+        }
+      };
+      questionData = fallbacks[nextStage] || fallbacks['SKILLS_ASSESSMENT'];
+    }
+
+    return {
+      question: questionData.question,
+      options: questionData.options,
+      stage: nextStage,
+      isComplete: false
+    };
+
+  } catch (error) {
+    console.error('Error in quizNext:', error);
+    // Return fallback question on error
+    return {
+      question: "What aspect of your career is most important to you?",
+      options: ["Growth opportunities", "Work environment", "Compensation", "Impact and purpose"],
+      stage: session?.currentStage || 'SKILLS_ASSESSMENT',
+      isComplete: false
+    };
+  }
+};
+
 module.exports = {
   chatWithAI,
   getAvailableModels,
   selectBestModel,
+  quizNext,
   models
 };
