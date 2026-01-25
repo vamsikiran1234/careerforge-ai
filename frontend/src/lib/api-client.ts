@@ -38,7 +38,10 @@ class ApiClient {
         return response;
       },
       (error) => {
-        if (error.response?.status === 401) {
+        // Don't redirect on 401 for share endpoints (they might need password)
+        const isShareEndpoint = error.config?.url?.includes('/share/');
+        
+        if (error.response?.status === 401 && !isShareEndpoint) {
           // Handle unauthorized access
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
@@ -49,19 +52,21 @@ class ApiClient {
     );
   }
 
-  async get<T>(url: string, params?: any): Promise<ApiResponse<T>> {
+  async get<T>(url: string, config?: { params?: any; headers?: any }): Promise<ApiResponse<T>> {
     try {
       console.log('🔵 [API] GET Request:', {
         url: `${this.client.defaults.baseURL}${url}`,
-        params,
+        params: config?.params,
+        headers: config?.headers,
       });
       
       const response = await this.client.get(url, { 
-        params,
+        params: config?.params,
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache',
           'Expires': '0',
+          ...config?.headers, // Merge custom headers
         }
       });
       
@@ -84,14 +89,15 @@ class ApiClient {
     }
   }
 
-  async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: any, config?: { headers?: any }): Promise<ApiResponse<T>> {
     try {
       console.log('🔵 [API] POST Request:', {
         url: `${this.client.defaults.baseURL}${url}`,
         data,
+        headers: config?.headers,
       });
       
-      const response = await this.client.post(url, data);
+      const response = await this.client.post(url, data, config);
       
       console.log('🔵 [API] POST Response:', {
         status: response.status,
@@ -148,6 +154,7 @@ class ApiClient {
       return {
         status: 'error',
         message: error.response.data?.message || 'Server error occurred',
+        data: error.response.data?.data, // Preserve data field (e.g., requiresPassword flag)
         errors: error.response.data?.errors || [],
       };
     } else if (error.request) {

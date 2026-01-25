@@ -106,6 +106,7 @@ export default function LearningResourceList({ goalId, resources, highlightSkill
             label: 'Undo',
             onClick: undoDelete
           },
+          undefined,
           5000
         );
       } catch (error) {

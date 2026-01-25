@@ -15,6 +15,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
 
   return (
     <button
+      data-theme-toggle
       onClick={toggleTheme}
       className={`
         relative p-2 rounded-lg transition-all duration-300 

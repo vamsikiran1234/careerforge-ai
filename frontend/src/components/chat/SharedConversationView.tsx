@@ -9,6 +9,16 @@ import {
   AlertTriangle,
   ArrowUp,
   ArrowDown,
+  MessageSquare,
+  Calendar,
+  User,
+  Clock,
+  Info,
+  Home,
+  Sun,
+  Moon,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { CareerForgeAvatar } from '@/components/ui/CareerForgeAvatar';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +50,8 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
   const [needsPassword, setNeedsPassword] = useState(false);
 
   const [allowScroll, setAllowScroll] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   
   // Interactive chat state
 
@@ -77,7 +89,9 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
       console.log('API Response:', response);
       console.log('API Response data:', response.data);
 
-      if (response.status === 'error' && response.message === 'Password required') {
+      // Check if password is required (from direct response or error handler)
+      if (response.status === 'error' && 
+          (response.message === 'Password required' || response.data?.requiresPassword)) {
         console.log('Password required');
         setNeedsPassword(true);
         setLoading(false);
@@ -123,9 +137,19 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
         console.log('No conversation data received');
         throw new Error('No conversation data received');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.log('=== ERROR IN LOAD SHARED CONVERSATION ===');
       console.error('Error details:', err);
+      console.error('Error response:', err.response);
+      
+      // Check if it's a 401 error with password requirement
+      if (err.response?.status === 401 && err.response?.data?.data?.requiresPassword) {
+        console.log('Password required (from error response)');
+        setNeedsPassword(true);
+        setLoading(false);
+        return;
+      }
+      
       setError(err instanceof Error ? err.message : 'Failed to load conversation');
       setLoading(false);
     } finally {
@@ -153,10 +177,20 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
     setMessages(updatedMessages);
     
     try {
+      // Prepare headers with password if set
+      const headers: Record<string, string> = {};
+      if (password) {
+        headers['X-Share-Password'] = password;
+      }
+
       // Send message to the shared conversation endpoint using apiClient
-      const response = await apiClient.post<MessageResponse>(`/share/${shareCode}/message`, {
-        message: message.trim(),
-      });
+      const response = await apiClient.post<MessageResponse>(
+        `/share/${shareCode}/message`, 
+        {
+          message: message.trim(),
+        },
+        { headers }
+      );
 
       if (response.status === 'success' && response.data) {
         // Add AI response
@@ -352,94 +386,187 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Privacy Notice - Compact banner */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800/50 px-4 py-2">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <p className="text-xs text-blue-700 dark:text-blue-300">
-            <span className="font-medium">Shared Career Conversation</span> - 
-            This conversation was shared by {conversation.createdBy?.name || 'a CareerForge AI user'}. 
-            All data is secured and shared with privacy controls.
-          </p>
+    <div className="h-screen flex bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Minimal Professional Sidebar */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex-shrink-0`}>
+        <div className="h-full flex flex-col p-4">
+          {/* Sidebar Header - Conversation Title with Close Button */}
+          <div className="mb-6">
+            <div className="flex items-start justify-between mb-2">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex-1 pr-2">
+                {conversation?.title || 'Shared Career Chat'}
+              </h2>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors flex-shrink-0"
+                title="Close sidebar"
+              >
+                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+            </p>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="space-y-2 mb-4">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={() => {
+                const themeToggle = document.querySelector('[data-theme-toggle]') as HTMLButtonElement;
+                themeToggle?.click();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <Sun className="w-4 h-4 dark:hidden" />
+              <Moon className="w-4 h-4 hidden dark:block" />
+              <span>Toggle theme</span>
+            </button>
+
+            {/* Open CareerForge AI Button */}
+            <button
+              onClick={() => window.location.href = '/'}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <Home className="w-4 h-4" />
+              <span>Open CareerForge AI</span>
+            </button>
+          </div>
+
+          {/* Details Collapsible Button */}
+          <button
+            onClick={() => setDetailsOpen(!detailsOpen)}
+            className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors mb-2"
+          >
+            <div className="flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              <span>Details</span>
+            </div>
+            {detailsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {/* Conversation Info - Collapsible */}
+          {detailsOpen && (
+          <div className="space-y-3 flex-1 overflow-y-auto mb-4">
+            {/* Shared By */}
+            <div className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
+              <User className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Shared by</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {conversation?.createdBy?.name || 'CareerForge User'}
+                </p>
+              </div>
+            </div>
+
+            {/* Messages Count */}
+            <div className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
+              <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Messages</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+                </p>
+              </div>
+            </div>
+
+            {/* Created Date */}
+            <div className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
+              <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Created</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {conversation?.createdAt ? new Date(conversation.createdAt).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Shared Date */}
+            <div className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
+              <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Shared on</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {conversation?.sharedAt ? new Date(conversation.sharedAt).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* View Count */}
+            <div className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
+              <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Views</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {conversation?.viewCount || 0} {conversation?.viewCount === 1 ? 'view' : 'views'}
+                </p>
+              </div>
+            </div>
+
+            {/* Expiration */}
+            {conversation?.expiresAt && (
+              <div className="flex items-start gap-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mb-1">Expires</p>
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                    {new Date(conversation.expiresAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          )}
+
+          {/* Sidebar Actions */}
+          <div className="pt-4 border-t border-gray-200 dark:border-slate-700 space-y-2 mt-auto">
+            <button
+              onClick={handleCopyConversation}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+                copied 
+                  ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20' 
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              <Copy className="w-4 h-4" />
+              <span>{copied ? 'Copied!' : 'Copy conversation'}</span>
+            </button>
+            <button
+              onClick={handleDownload}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download as Markdown</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Chat Container - Match the main interface layout */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-slate-800 shadow-xl min-h-screen">
-        {/* Professional Header - Match main interface */}
-        <div className="bg-gradient-to-r from-white to-gray-50 dark:from-slate-800 dark:to-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 lg:px-8 py-4 lg:py-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 lg:space-x-4">
-              {/* AI Avatar */}
-              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center shadow-lg">
-                <CareerForgeAvatar size="lg" />
-              </div>
-              
-              <div className="min-w-0 flex-1">
-                <h1 className="text-lg lg:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                  {conversation?.title || 'Shared Career Chat'}
-                </h1>
-                <div className="flex items-center gap-2 lg:gap-4 mt-1">
-                  <div className="flex items-center gap-2 text-xs lg:text-sm text-gray-600 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-sm"></div>
-                    <span className="font-medium hidden sm:inline">AI Career Mentor Online</span>
-                    <span className="font-medium sm:hidden">Online</span>
-                  </div>
-                  <span className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 border-l border-gray-300 dark:border-slate-600 pl-2 lg:pl-4 hidden sm:inline">
-                    {messages.length} messages in this session
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Header Actions */}
-            <div className="flex items-center gap-2 lg:gap-4">
-              {/* Theme Toggle */}
-              <ThemeToggle className="hidden sm:flex" />
-              
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">{conversation?.viewCount || 0} views</span>
-              </div>
-              
-              {/* Copy Button */}
-              <button
-                onClick={handleCopyConversation}
-                className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors rounded-lg ${
-                  copied 
-                    ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20' 
-                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                }`}
-                title="Copy conversation"
-              >
-                <Copy className="w-4 h-4" />
-                <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
-              </button>
-
-              {/* Download Button */}
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-                title="Download conversation"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Download</span>
-              </button>
-
-              {/* Open CareerForge AI Button */}
-              <button
-                onClick={() => window.location.href = '/'}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
-                title="Open CareerForge AI"
-              >
-                <CareerForgeAvatar size="xs" showGradient={false} className="bg-white/20" />
-                <span className="hidden sm:inline">Open CareerForge AI</span>
-                <span className="sm:hidden">Open App</span>
-              </button>
-            </div>
-          </div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Hidden ThemeToggle for sidebar button to trigger */}
+        <div className="hidden">
+          <ThemeToggle />
         </div>
+
+        {/* Floating Sidebar Toggle Button - Only shown when sidebar is closed */}
+        {!sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="fixed top-4 left-4 z-50 p-2 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors shadow-lg border border-gray-200 dark:border-slate-700"
+            title="Open sidebar"
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+
+        {/* Main Chat Container */}
+        <div className="flex-1 flex flex-col bg-white dark:bg-slate-800 shadow-xl min-h-screen">
 
         {/* Messages Area - Match main interface */}
         <div className="flex-1 overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
@@ -530,29 +657,10 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
 
               {/* Messages List */}
               {messages.map((message, index) => (
-                <div key={message.id || index}>
-                  <MessageItem
-                    message={message}
-                  />
-                  
-                  {/* Custom Message Reactions for Shared Conversations */}
-                  {message.role === 'assistant' && conversation && (
-                    <div className="ml-12 mt-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center gap-1 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors">
-                          👍 <span>Helpful</span>
-                        </span>
-                        <span className="flex items-center gap-1 cursor-pointer hover:text-red-600 dark:hover:text-red-400 transition-colors">
-                          👎 <span>Not helpful</span>
-                        </span>
-                        <span className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                          💡 <span>Insightful</span>
-                        </span>
-                        <span className="text-xs ml-2">Share your feedback on this AI response</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <MessageItem
+                  key={message.id || index}
+                  message={message}
+                />
               ))}
               
               {/* Typing Indicator */}
@@ -578,7 +686,7 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
           </div>
         </div>
 
-        {/* Professional Message Input - Match main interface */}
+        {/* Professional Message Input */}
         <div className="border-t border-gray-200 dark:border-slate-700 bg-gradient-to-r from-white to-gray-50 dark:from-slate-800 dark:to-slate-900">
           <div className="max-w-4xl mx-auto px-4 lg:px-8">
             <MessageInput
@@ -586,6 +694,18 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
               isLoading={isSending}
               placeholder="Continue your conversation with your AI career mentor..."
             />
+          </div>
+        </div>
+        
+        {/* Privacy Notice - Below input */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800/50 px-4 py-2">
+          <div className="max-w-4xl mx-auto flex items-center gap-2">
+            <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              <span className="font-medium">Shared Career Conversation</span> - 
+              This conversation was shared by {conversation.createdBy?.name || 'a CareerForge AI user'}. 
+              All data is secured and shared with privacy controls.
+            </p>
           </div>
         </div>
         
@@ -625,6 +745,7 @@ const SharedConversationView: React.FC<SharedConversationViewProps> = ({
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
