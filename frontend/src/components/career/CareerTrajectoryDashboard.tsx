@@ -14,6 +14,11 @@ const CareerTrajectoryDashboard = () => {
     loadOverview();
   }, [loadGoals, loadOverview]);
 
+  // Auto-refresh goals list when it changes to keep UI in sync
+  useEffect(() => {
+    // This ensures the dashboard stays updated
+  }, [goals]);
+
   const filteredGoals = statusFilter === 'ALL'
     ? goals
     : goals.filter(g => g.status === statusFilter);

@@ -233,6 +233,16 @@ interface CareerState {
   isAnalyzing: boolean;
   error: string | null;
   
+  // Undo state
+  undoStack: {
+    type: 'milestone' | 'skill' | 'resource' | 'goal';
+    data: any;
+    goalId: string;
+    timeout?: NodeJS.Timeout;
+  } | null;
+  
+  // Actions
+  
   // Actions - Goals
   loadGoals: (status?: string) => Promise<void>;
   createGoal: (data: CreateGoalInput) => Promise<CareerGoal>;
@@ -274,6 +284,9 @@ interface CareerState {
   loadOverview: () => Promise<void>;
   loadStats: () => Promise<void>;
   
+  // Actions - Undo
+  undoDelete: () => void;
+  
   // Utility
   clearError: () => void;
   resetState: () => void;
@@ -291,6 +304,7 @@ const useCareerStore = create<CareerState>((set, get) => ({
   isLoading: false,
   isAnalyzing: false,
   error: null,
+  undoStack: null,
 
   // ========================================
   // GOALS ACTIONS
@@ -413,6 +427,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const newMilestone = (response.data as any).milestone;
       set((state) => ({
         milestones: [...state.milestones, newMilestone],
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          milestones: [...(state.currentGoal.milestones || []), newMilestone]
+        } : null,
         isLoading: false
       }));
       return newMilestone;
@@ -429,6 +447,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const updatedMilestone = (response.data as any).milestone;
       set((state) => ({
         milestones: state.milestones.map(m => m.id === milestoneId ? updatedMilestone : m),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          milestones: state.currentGoal.milestones?.map(m => m.id === milestoneId ? updatedMilestone : m)
+        } : null,
         isLoading: false
       }));
     } catch (error: any) {
@@ -440,11 +462,45 @@ const useCareerStore = create<CareerState>((set, get) => ({
   deleteMilestone: async (goalId: string, milestoneId: string) => {
     set({ isLoading: true, error: null });
     try {
-      await apiClient.delete(`/career/goals/${goalId}/milestones/${milestoneId}`);
+      // Find and store the milestone for undo
+      const milestone = get().milestones.find(m => m.id === milestoneId);
+      if (!milestone) throw new Error('Milestone not found');
+
+      // Optimistically remove from UI
       set((state) => ({
         milestones: state.milestones.filter(m => m.id !== milestoneId),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          milestones: state.currentGoal.milestones?.filter(m => m.id !== milestoneId)
+        } : null,
         isLoading: false
       }));
+
+      // Clear any existing undo timeout
+      if (get().undoStack?.timeout) {
+        clearTimeout(get().undoStack!.timeout);
+      }
+
+      // Set up undo state with auto-delete after 5 seconds
+      const timeout = setTimeout(async () => {
+        try {
+          // Permanently delete after timeout
+          await apiClient.delete(`/career/goals/${goalId}/milestones/${milestoneId}`);
+          set({ undoStack: null });
+        } catch (error) {
+          console.error('Failed to permanently delete milestone:', error);
+          set({ undoStack: null });
+        }
+      }, 5000);
+
+      set({ 
+        undoStack: { 
+          type: 'milestone', 
+          data: milestone, 
+          goalId,
+          timeout 
+        } 
+      });
     } catch (error: any) {
       set({ error: error.response?.data?.error || 'Failed to delete milestone', isLoading: false });
       throw error;
@@ -461,10 +517,12 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const updatedMilestone = (response.data as any).milestone;
       set((state) => ({
         milestones: state.milestones.map(m => m.id === milestoneId ? updatedMilestone : m),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          milestones: state.currentGoal.milestones?.map(m => m.id === milestoneId ? updatedMilestone : m)
+        } : null,
         isLoading: false
       }));
-      // Reload the goal to update progress
-      await get().setCurrentGoal(goalId);
     } catch (error: any) {
       set({ error: error.response?.data?.error || 'Failed to complete milestone', isLoading: false });
       throw error;
@@ -485,6 +543,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const updatedMilestone = (response.data as any).milestone;
       set((state) => ({
         milestones: state.milestones.map(m => m.id === milestoneId ? updatedMilestone : m),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          milestones: state.currentGoal.milestones?.map(m => m.id === milestoneId ? updatedMilestone : m)
+        } : null,
         isLoading: false
       }));
     } catch (error: any) {
@@ -515,6 +577,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const newSkill = (response.data as any).skillGap;
       set((state) => ({
         skillGaps: [...state.skillGaps, newSkill],
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          skillGaps: [...(state.currentGoal.skillGaps || []), newSkill]
+        } : null,
         isLoading: false
       }));
       return newSkill;
@@ -531,6 +597,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const updatedSkill = (response.data as any).skillGap;
       set((state) => ({
         skillGaps: state.skillGaps.map(s => s.id === skillId ? updatedSkill : s),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          skillGaps: state.currentGoal.skillGaps?.map(s => s.id === skillId ? updatedSkill : s)
+        } : null,
         isLoading: false
       }));
     } catch (error: any) {
@@ -542,11 +612,44 @@ const useCareerStore = create<CareerState>((set, get) => ({
   deleteSkillGap: async (goalId: string, skillId: string) => {
     set({ isLoading: true, error: null });
     try {
-      await apiClient.delete(`/career/goals/${goalId}/skills/${skillId}`);
+      // Find and store the skill for undo
+      const skill = get().skillGaps.find(s => s.id === skillId);
+      if (!skill) throw new Error('Skill not found');
+
+      // Optimistically remove from UI
       set((state) => ({
         skillGaps: state.skillGaps.filter(s => s.id !== skillId),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          skillGaps: state.currentGoal.skillGaps?.filter(s => s.id !== skillId)
+        } : null,
         isLoading: false
       }));
+
+      // Clear any existing undo timeout
+      if (get().undoStack?.timeout) {
+        clearTimeout(get().undoStack!.timeout);
+      }
+
+      // Set up undo state with auto-delete after 5 seconds
+      const timeout = setTimeout(async () => {
+        try {
+          await apiClient.delete(`/career/goals/${goalId}/skills/${skillId}`);
+          set({ undoStack: null });
+        } catch (error) {
+          console.error('Failed to permanently delete skill:', error);
+          set({ undoStack: null });
+        }
+      }, 5000);
+
+      set({ 
+        undoStack: { 
+          type: 'skill', 
+          data: skill, 
+          goalId,
+          timeout 
+        } 
+      });
     } catch (error: any) {
       set({ error: error.response?.data?.error || 'Failed to delete skill gap', isLoading: false });
       throw error;
@@ -563,6 +666,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const updatedSkill = (response.data as any).skillGap;
       set((state) => ({
         skillGaps: state.skillGaps.map(s => s.id === skillId ? updatedSkill : s),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          skillGaps: state.currentGoal.skillGaps?.map(s => s.id === skillId ? updatedSkill : s)
+        } : null,
         isLoading: false
       }));
     } catch (error: any) {
@@ -596,6 +703,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const newResource = (response.data as any).resource;
       set((state) => ({
         resources: [...state.resources, newResource],
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          learningResources: [...(state.currentGoal.learningResources || []), newResource]
+        } : null,
         isLoading: false
       }));
       return newResource;
@@ -612,6 +723,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const updatedResource = (response.data as any).resource;
       set((state) => ({
         resources: state.resources.map(r => r.id === resourceId ? updatedResource : r),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          learningResources: state.currentGoal.learningResources?.map(r => r.id === resourceId ? updatedResource : r)
+        } : null,
         isLoading: false
       }));
     } catch (error: any) {
@@ -623,11 +738,44 @@ const useCareerStore = create<CareerState>((set, get) => ({
   deleteResource: async (goalId: string, resourceId: string) => {
     set({ isLoading: true, error: null });
     try {
-      await apiClient.delete(`/career/goals/${goalId}/resources/${resourceId}`);
+      // Find and store the resource for undo
+      const resource = get().resources.find(r => r.id === resourceId);
+      if (!resource) throw new Error('Resource not found');
+
+      // Optimistically remove from UI
       set((state) => ({
         resources: state.resources.filter(r => r.id !== resourceId),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          learningResources: state.currentGoal.learningResources?.filter(r => r.id !== resourceId)
+        } : null,
         isLoading: false
       }));
+
+      // Clear any existing undo timeout
+      if (get().undoStack?.timeout) {
+        clearTimeout(get().undoStack!.timeout);
+      }
+
+      // Set up undo state with auto-delete after 5 seconds
+      const timeout = setTimeout(async () => {
+        try {
+          await apiClient.delete(`/career/goals/${goalId}/resources/${resourceId}`);
+          set({ undoStack: null });
+        } catch (error) {
+          console.error('Failed to permanently delete resource:', error);
+          set({ undoStack: null });
+        }
+      }, 5000);
+
+      set({ 
+        undoStack: { 
+          type: 'resource', 
+          data: resource, 
+          goalId,
+          timeout 
+        } 
+      });
     } catch (error: any) {
       set({ error: error.response?.data?.error || 'Failed to delete resource', isLoading: false });
       throw error;
@@ -644,6 +792,10 @@ const useCareerStore = create<CareerState>((set, get) => ({
       const updatedResource = (response.data as any).resource;
       set((state) => ({
         resources: state.resources.map(r => r.id === resourceId ? updatedResource : r),
+        currentGoal: state.currentGoal ? {
+          ...state.currentGoal,
+          learningResources: state.currentGoal.learningResources?.map(r => r.id === resourceId ? updatedResource : r)
+        } : null,
         isLoading: false
       }));
     } catch (error: any) {
@@ -756,6 +908,50 @@ const useCareerStore = create<CareerState>((set, get) => ({
 
   clearError: () => set({ error: null }),
 
+  undoDelete: () => {
+    const undoData = get().undoStack;
+    if (!undoData) return;
+
+    // Clear the timeout to prevent permanent deletion
+    if (undoData.timeout) {
+      clearTimeout(undoData.timeout);
+    }
+
+    // Restore the item to the appropriate array
+    switch (undoData.type) {
+      case 'milestone':
+        set((state) => ({
+          milestones: [...state.milestones, undoData.data].sort((a, b) => a.order - b.order),
+          currentGoal: state.currentGoal ? {
+            ...state.currentGoal,
+            milestones: [...(state.currentGoal.milestones || []), undoData.data].sort((a, b) => a.order - b.order)
+          } : null,
+          undoStack: null
+        }));
+        break;
+      case 'skill':
+        set((state) => ({
+          skillGaps: [...state.skillGaps, undoData.data],
+          currentGoal: state.currentGoal ? {
+            ...state.currentGoal,
+            skillGaps: [...(state.currentGoal.skillGaps || []), undoData.data]
+          } : null,
+          undoStack: null
+        }));
+        break;
+      case 'resource':
+        set((state) => ({
+          resources: [...state.resources, undoData.data],
+          currentGoal: state.currentGoal ? {
+            ...state.currentGoal,
+            learningResources: [...(state.currentGoal.learningResources || []), undoData.data]
+          } : null,
+          undoStack: null
+        }));
+        break;
+    }
+  },
+
   resetState: () => set({
     currentGoal: null,
     goals: [],
@@ -766,7 +962,8 @@ const useCareerStore = create<CareerState>((set, get) => ({
     stats: null,
     isLoading: false,
     isAnalyzing: false,
-    error: null
+    error: null,
+    undoStack: null
   })
 }));
 

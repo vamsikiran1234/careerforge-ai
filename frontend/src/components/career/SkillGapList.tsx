@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { SkillGap } from '../../store/career';
 import { useCareerStore } from '../../store/career';
+import { useToast } from '../ui/Toast';
 import { Target, Plus, TrendingUp, BookOpen, Edit, Trash2 } from 'lucide-react';
 import AddSkillModal from './modals/AddSkillModal';
 import EditSkillModal from './modals/EditSkillModal';
@@ -12,7 +13,8 @@ interface SkillGapListProps {
 }
 
 export default function SkillGapList({ goalId, skillGaps, onFindResources }: SkillGapListProps) {
-  const { updateSkillProgress, isLoading } = useCareerStore();
+  const { updateSkillProgress, deleteSkillGap, undoDelete, isLoading } = useCareerStore();
+  const toast = useToast();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSkill, setEditingSkill] = useState<SkillGap | null>(null);
@@ -29,6 +31,28 @@ export default function SkillGapList({ goalId, skillGaps, onFindResources }: Ski
 
   const handleProgressUpdate = async (skillId: string, newLevel: number) => {
     await updateSkillProgress(goalId, skillId, newLevel);
+  };
+
+  const handleDelete = async (skillId: string, skillName: string) => {
+    if (window.confirm(`Are you sure you want to delete skill "${skillName}"?`)) {
+      try {
+        await deleteSkillGap(goalId, skillId);
+        
+        // Show undo toast
+        toast.custom(
+          'Skill deleted',
+          'success',
+          {
+            label: 'Undo',
+            onClick: undoDelete
+          },
+          5000
+        );
+      } catch (error) {
+        console.error('Failed to delete skill:', error);
+        toast.error('Failed to delete skill');
+      }
+    }
   };
 
   const getGapSeverity = (gap: number) => {
@@ -237,7 +261,11 @@ export default function SkillGapList({ goalId, skillGaps, onFindResources }: Ski
                     >
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                    <button 
+                      onClick={() => handleDelete(skill.id, skill.skillName)}
+                      disabled={isLoading}
+                      className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg disabled:opacity-50"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

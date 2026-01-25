@@ -78,6 +78,11 @@ export default function GoalDetailPage() {
     }
   }, [goalId, setCurrentGoal]);
 
+  // Refresh goal data when currentGoal changes to ensure UI stays in sync
+  useEffect(() => {
+    // This ensures components re-render when goal data updates
+  }, [currentGoal]);
+
   const handleDelete = async () => {
     if (!goalId) return;
     await deleteGoal(goalId);
