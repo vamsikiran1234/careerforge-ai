@@ -59,7 +59,7 @@ export default function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-md">
+    <div className="fixed z-50 max-w-md space-y-2 top-4 right-4">
       {toasts.map(t => (
         <div
           key={t.id}
@@ -73,14 +73,14 @@ export default function ToastContainer() {
                 t.action!.onClick();
                 removeToast(t.id);
               }}
-              className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded font-semibold transition-colors"
+              className="px-3 py-1 font-semibold transition-colors rounded bg-white/20 hover:bg-white/30"
             >
               {t.action.label}
             </button>
           )}
           <button
             onClick={() => removeToast(t.id)}
-            className="hover:bg-white/20 rounded p-1 transition-colors"
+            className="p-1 transition-colors rounded hover:bg-white/20"
           >
             <X className="w-4 h-4" />
           </button>
