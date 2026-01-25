@@ -46,6 +46,7 @@ export default function SkillGapList({ goalId, skillGaps, onFindResources }: Ski
             label: 'Undo',
             onClick: undoDelete
           },
+          undefined,
           5000
         );
       } catch (error) {

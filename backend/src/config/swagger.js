@@ -83,6 +83,106 @@ const swaggerDefinition = {
         },
       },
       // Auth schemas
+      // Share schemas
+      ShareSettings: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Share ID',
+          },
+          shareLink: {
+            type: 'string',
+            description: 'Full share URL',
+          },
+          shareCode: {
+            type: 'string',
+            description: 'Unique share code',
+          },
+          title: {
+            type: 'string',
+            description: 'Conversation title',
+          },
+          isPublic: {
+            type: 'boolean',
+            description: 'Whether the share is public',
+          },
+          allowComments: {
+            type: 'boolean',
+            description: 'Allow comments on shared conversation',
+          },
+          allowScroll: {
+            type: 'boolean',
+            description: 'Allow scroll controls',
+          },
+          expiresAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            description: 'Share expiration date',
+          },
+          viewCount: {
+            type: 'integer',
+            description: 'Number of views',
+          },
+        },
+      },
+      SharedConversation: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Share ID',
+          },
+          title: {
+            type: 'string',
+            description: 'Conversation title',
+          },
+          messages: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'string',
+                },
+                role: {
+                  type: 'string',
+                  enum: ['user', 'assistant'],
+                },
+                content: {
+                  type: 'string',
+                },
+                timestamp: {
+                  type: 'string',
+                  format: 'date-time',
+                },
+              },
+            },
+          },
+          createdBy: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+              },
+              avatar: {
+                type: 'string',
+                nullable: true,
+              },
+            },
+          },
+          viewCount: {
+            type: 'integer',
+          },
+          allowScroll: {
+            type: 'boolean',
+          },
+          isPublic: {
+            type: 'boolean',
+          },
+        },
+      },
       RegisterRequest: {
         type: 'object',
         required: ['name', 'email', 'password'],

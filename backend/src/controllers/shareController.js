@@ -170,6 +170,27 @@ const getSharedConversation = async (req, res) => {
 
     console.log('Found shared conversation:', sharedConversation.id, sharedConversation.title);
 
+    // Check if password is required
+    if (sharedConversation.password) {
+      const providedPassword = req.headers['x-share-password'];
+      
+      if (!providedPassword) {
+        console.log('Password required but not provided');
+        return res.status(401).json(
+          createResponse('error', 'Password required', { requiresPassword: true })
+        );
+      }
+
+      if (providedPassword !== sharedConversation.password) {
+        console.log('Invalid password provided');
+        return res.status(401).json(
+          createResponse('error', 'Invalid password')
+        );
+      }
+
+      console.log('Password validated successfully');
+    }
+
     // Increment view count
     await prisma.sharedConversation.update({
       where: { id: sharedConversation.id },
@@ -241,6 +262,23 @@ const sendMessageInSharedConversation = async (req, res) => {
       );
     }
 
+    // Check password if required
+    if (sharedConversation.password) {
+      const providedPassword = req.headers['x-share-password'];
+      
+      if (!providedPassword) {
+        return res.status(401).json(
+          createResponse('error', 'Password required')
+        );
+      }
+      
+      if (providedPassword !== sharedConversation.password) {
+        return res.status(401).json(
+          createResponse('error', 'Invalid password')
+        );
+      }
+    }
+
     // Parse existing messages
     const existingMessages = JSON.parse(sharedConversation.careerSession.messages);
     
@@ -261,7 +299,7 @@ const sendMessageInSharedConversation = async (req, res) => {
       select: {
         id: true,
         name: true,
-        role: true,
+        roles: true,
         bio: true,
       },
     });
@@ -273,7 +311,7 @@ const sendMessageInSharedConversation = async (req, res) => {
       {
         userId: sessionUser?.id || 'shared-user',
         userName: sessionUser?.name || 'Guest',
-        userRole: sessionUser?.role || 'Professional',
+        userRole: sessionUser?.roles?.[0] || 'Professional',
         userBio: sessionUser?.bio || 'Continuing a shared career conversation',
         taskType: 'general'
       }

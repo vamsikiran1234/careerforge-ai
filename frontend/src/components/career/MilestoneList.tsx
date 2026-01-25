@@ -51,6 +51,7 @@ export default function MilestoneList({ goalId, milestones }: MilestoneListProps
             label: 'Undo',
             onClick: undoDelete
           },
+          undefined,
           5000
         );
       } catch (error) {

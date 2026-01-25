@@ -6,7 +6,6 @@ import {
   Target, 
   Calendar, 
   TrendingUp, 
-  Edit, 
   Trash2,
   Sparkles,
   CheckCircle2,
