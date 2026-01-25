@@ -9,6 +9,10 @@ export interface Toast {
   title: string;
   description?: string;
   duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 interface ToastContextValue {
@@ -19,6 +23,7 @@ interface ToastContextValue {
   error: (title: string, description?: string) => void;
   warning: (title: string, description?: string) => void;
   info: (title: string, description?: string) => void;
+  custom: (title: string, type: ToastType, action?: { label: string; onClick: () => void }, description?: string, duration?: number) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
@@ -67,6 +72,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     addToast({ type: 'info', title, description });
   }, [addToast]);
 
+  const custom = useCallback((title: string, type: ToastType, action?: { label: string; onClick: () => void }, description?: string, duration?: number) => {
+    addToast({ type, title, description, duration, action });
+  }, [addToast]);
+
   return (
     <ToastContext.Provider value={{
       toasts,
@@ -76,6 +85,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       error,
       warning,
       info,
+      custom,
     }}>
       {children}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -144,6 +154,18 @@ const ToastItem: React.FC<{
             </div>
           )}
         </div>
+        {toast.action && (
+          <button
+            type="button"
+            onClick={() => {
+              toast.action!.onClick();
+              onRemove(toast.id);
+            }}
+            className="ml-3 px-3 py-1 text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 rounded transition-colors"
+          >
+            {toast.action.label}
+          </button>
+        )}
         <div className="ml-4 flex-shrink-0">
           <button
             type="button"

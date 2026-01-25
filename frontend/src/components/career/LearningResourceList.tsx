@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { LearningResource } from '../../store/career';
 import { useCareerStore } from '../../store/career';
+import { useToast } from '../ui/Toast';
 import { 
   BookOpen, 
   Video, 
@@ -29,7 +30,8 @@ type ResourceType = 'COURSE' | 'BOOK' | 'VIDEO' | 'ARTICLE' | 'CERTIFICATION' | 
 type ResourceStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export default function LearningResourceList({ goalId, resources, highlightSkill, onClearFilter }: LearningResourceListProps) {
-  const { updateResourceStatus, isLoading } = useCareerStore();
+  const { updateResourceStatus, deleteResource, undoDelete, isLoading } = useCareerStore();
+  const toast = useToast();
   const [filterType, setFilterType] = useState<ResourceType | 'ALL'>('ALL');
   const [filterStatus, setFilterStatus] = useState<ResourceStatus | 'ALL'>('ALL');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -89,6 +91,28 @@ export default function LearningResourceList({ goalId, resources, highlightSkill
 
   const handleStatusChange = async (resourceId: string, status: ResourceStatus) => {
     await updateResourceStatus(goalId, resourceId, status);
+  };
+
+  const handleDelete = async (resourceId: string, resourceTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${resourceTitle}"?`)) {
+      try {
+        await deleteResource(goalId, resourceId);
+        
+        // Show undo toast
+        toast.custom(
+          'Resource deleted',
+          'success',
+          {
+            label: 'Undo',
+            onClick: undoDelete
+          },
+          5000
+        );
+      } catch (error) {
+        console.error('Failed to delete resource:', error);
+        toast.error('Failed to delete resource');
+      }
+    }
   };
 
   // Filter resources
@@ -408,7 +432,11 @@ export default function LearningResourceList({ goalId, resources, highlightSkill
                 >
                   <Edit className="w-4 h-4" />
                 </button>
-                <button className="px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                <button 
+                  onClick={() => handleDelete(resource.id, resource.title)}
+                  disabled={isLoading}
+                  className="px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg disabled:opacity-50"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

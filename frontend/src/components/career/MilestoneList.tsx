@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Milestone } from '../../store/career';
 import { useCareerStore } from '../../store/career';
+import { useToast } from '../ui/Toast';
 import { 
   CheckCircle2, 
   Circle, 
@@ -21,7 +22,8 @@ interface MilestoneListProps {
 }
 
 export default function MilestoneList({ goalId, milestones }: MilestoneListProps) {
-  const { completeMilestone, updateMilestoneProgress, isLoading } = useCareerStore();
+  const { completeMilestone, updateMilestoneProgress, deleteMilestone, updateMilestone, undoDelete, isLoading } = useCareerStore();
+  const toast = useToast();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -34,6 +36,40 @@ export default function MilestoneList({ goalId, milestones }: MilestoneListProps
 
   const handleProgressUpdate = async (milestoneId: string, progress: number) => {
     await updateMilestoneProgress(goalId, milestoneId, progress);
+  };
+
+  const handleDelete = async (milestoneId: string, milestoneTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete milestone "${milestoneTitle}"?`)) {
+      try {
+        await deleteMilestone(goalId, milestoneId);
+        
+        // Show undo toast
+        toast.custom(
+          'Milestone deleted',
+          'success',
+          {
+            label: 'Undo',
+            onClick: undoDelete
+          },
+          5000
+        );
+      } catch (error) {
+        console.error('Failed to delete milestone:', error);
+        toast.error('Failed to delete milestone');
+      }
+    }
+  };
+
+  const handleRevert = async (milestoneId: string) => {
+    try {
+      await updateMilestone(goalId, milestoneId, { 
+        status: 'IN_PROGRESS',
+        completedAt: null,
+        progress: 50 // Reset to 50% when reverting
+      });
+    } catch (error) {
+      console.error('Failed to revert milestone:', error);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -329,7 +365,7 @@ export default function MilestoneList({ goalId, milestones }: MilestoneListProps
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    {milestone.status !== 'COMPLETED' && (
+                    {milestone.status !== 'COMPLETED' ? (
                       <button
                         onClick={() => handleComplete(milestone.id)}
                         disabled={isLoading}
@@ -338,6 +374,15 @@ export default function MilestoneList({ goalId, milestones }: MilestoneListProps
                         <CheckCircle2 className="w-4 h-4" />
                         Mark Complete
                       </button>
+                    ) : (
+                      <button
+                        onClick={() => handleRevert(milestone.id)}
+                        disabled={isLoading}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
+                      >
+                        <Circle className="w-4 h-4" />
+                        Mark Incomplete
+                      </button>
                     )}
                     <button 
                       onClick={() => setEditingMilestone(milestone)}
@@ -345,7 +390,11 @@ export default function MilestoneList({ goalId, milestones }: MilestoneListProps
                     >
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                    <button 
+                      onClick={() => handleDelete(milestone.id, milestone.title)}
+                      disabled={isLoading}
+                      className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg disabled:opacity-50"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

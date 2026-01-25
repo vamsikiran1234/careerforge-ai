@@ -10,6 +10,10 @@ export interface Toast {
   type: ToastType;
   message: string;
   duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 let toastId = 0;
@@ -31,6 +35,10 @@ export const toast = {
   info: (message: string, duration = 3000) => {
     const id = `toast-${++toastId}`;
     listeners.forEach(listener => listener({ id, type: 'info', message, duration }));
+  },
+  custom: (message: string, type: ToastType, action?: { label: string; onClick: () => void }, duration = 5000) => {
+    const id = `toast-${++toastId}`;
+    listeners.forEach(listener => listener({ id, type, message, duration, action }));
   },
 };
 
