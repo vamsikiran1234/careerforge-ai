@@ -222,17 +222,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             placeholder={`Hi ${mentor.user.name},\n\nI'm a student interested in ${mentor.industry}. I'd love to learn from your experience at ${mentor.company}...\n\nI'm particularly interested in:\n- [Your specific interests]\n- [Career goals]\n\nLooking forward to connecting!`}
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows={8}
-            maxLength={500}
           />
           <div className="flex justify-between items-center mt-2">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {message.length}/500 characters
+              {message.length} characters • {message.trim().split(/\s+/).filter(word => word.length > 0).length} words
             </p>
-            {message.length > 450 && (
-              <p className="text-xs text-orange-600 dark:text-orange-400">
-                {500 - message.length} characters remaining
-              </p>
-            )}
           </div>
         </div>
 
@@ -270,7 +264,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             variant="primary"
             onClick={handleSubmit}
             className="flex-1"
-            disabled={loading || selectedGoals.length === 0 || !message.trim()}
+            disabled={loading}
           >
             {loading ? (
               <>

@@ -16,7 +16,9 @@ import { LoadingPage } from '@/components/ui/Loading';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { RoleProvider } from '@/contexts/RoleContext';
 import { MentorPortalLayout } from '@/layouts/MentorPortalLayout';
+import { AdminPortalLayout } from '@/layouts/AdminPortalLayout';
 import { ProtectedMentorRoute } from '@/components/ProtectedMentorRoute';
+import { ProtectedAdminRoute } from '@/components/ProtectedAdminRoute';
 import { LandingPage } from '@/components/landing/LandingPage';
 
 // Lazy load components for better performance
@@ -37,6 +39,11 @@ const SharedConversationView = React.lazy(() => import('./components/chat/Shared
 // Admin Components
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
 const AdminMentorVerification = React.lazy(() => import('./components/admin/AdminMentorVerification').then(module => ({ default: module.AdminMentorVerification })));
+const AdminUserManagement = React.lazy(() => import('./components/admin/AdminUserManagement'));
+const AnalyticsCharts = React.lazy(() => import('./components/admin/AnalyticsCharts'));
+const AdminActivityMonitor = React.lazy(() => import('./components/admin/AdminActivityMonitor').then(module => ({ default: module.AdminActivityMonitor })));
+const AdminSettings = React.lazy(() => import('./components/admin/AdminSettings').then(module => ({ default: module.AdminSettings })));
+const DebugRoles = React.lazy(() => import('./pages/DebugRoles'));
 
 // Mentor Portal Components
 const MentorDashboard = React.lazy(() => import('./pages/mentor/MentorDashboard').then(module => ({ default: module.MentorDashboard })));
@@ -330,20 +337,14 @@ function App() {
                     } 
                   />
                   
-                  {/* Admin Routes */}
+
+                  
+                  {/* Debug Route */}
                   <Route 
-                    path="admin" 
+                    path="debug-roles" 
                     element={
-                      <Suspense fallback={<LoadingPage message="Loading Admin..." />}>
-                        <AdminDashboard />
-                      </Suspense>
-                    } 
-                  />
-                  <Route 
-                    path="admin/mentors" 
-                    element={
-                      <Suspense fallback={<LoadingPage message="Loading Mentor Verification..." />}>
-                        <AdminMentorVerification />
+                      <Suspense fallback={<LoadingPage message="Loading..." />}>
+                        <DebugRoles />
                       </Suspense>
                     } 
                   />
@@ -411,6 +412,64 @@ function App() {
                       element={
                         <Suspense fallback={<LoadingPage message="Loading Profile..." />}>
                           <MentorProfile />
+                        </Suspense>
+                      } 
+                    />
+                  </Route>
+                </Route>
+                
+                {/* Admin Portal Routes - Protected with ProtectedAdminRoute */}
+                <Route element={<ProtectedAdminRoute />}>
+                  <Route element={<AdminPortalLayout />}>
+                    <Route 
+                      path="admin" 
+                      element={<Navigate to="/admin/dashboard" replace />} 
+                    />
+                    <Route 
+                      path="admin/dashboard" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Admin Dashboard..." />}>
+                          <AdminDashboard />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="admin/users" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading User Management..." />}>
+                          <AdminUserManagement />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="admin/mentors" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Mentor Verification..." />}>
+                          <AdminMentorVerification />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="admin/analytics" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Analytics..." />}>
+                          <AnalyticsCharts />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="admin/activity" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Activity Monitor..." />}>
+                          <AdminActivityMonitor />
+                        </Suspense>
+                      } 
+                    />
+                    <Route 
+                      path="admin/settings" 
+                      element={
+                        <Suspense fallback={<LoadingPage message="Loading Settings..." />}>
+                          <AdminSettings />
                         </Suspense>
                       } 
                     />

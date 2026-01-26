@@ -140,28 +140,28 @@ const AdminDashboard = () => {
       description: 'Manage all platform users',
       icon: Users,
       color: 'blue',
-      route: '/admin/users',
+      route: '/app/admin/users',
     },
     {
       title: 'Mentor Verification',
       description: `${stats?.mentors.pending || 0} pending verifications`,
       icon: UserCheck,
       color: 'green',
-      route: '/admin/mentor-verification',
+      route: '/app/admin/mentors',
     },
     {
       title: 'Analytics',
       description: 'View detailed analytics',
       icon: TrendingUp,
       color: 'purple',
-      route: '/admin/analytics',
+      route: '/app/admin/analytics',
     },
     {
       title: 'Activity Monitor',
       description: 'Recent platform activity',
       icon: Activity,
       color: 'orange',
-      route: '/admin/activity',
+      route: '/app/admin',
     },
   ];
 
