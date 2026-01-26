@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/utils';
 import { useAuthStore } from '@/store/auth';
-import { isAdmin } from '@/utils/roleHelpers';
 import axios from 'axios';
 import { 
   MessageSquare, 
@@ -16,7 +15,6 @@ import {
   UserCheck,
   GraduationCap,
   Calendar,
-  Shield,
   Link2,
   Target
 } from 'lucide-react';
@@ -36,19 +34,12 @@ const navigation = [
   { name: 'Become a Mentor', href: '/app/mentorship/register', icon: GraduationCap },
 ];
 
-const adminNavigation = [
-  { name: 'Admin Dashboard', href: '/app/admin', icon: Shield },
-  { name: 'Verify Mentors', href: '/app/admin/mentors', icon: UserCheck },
-];
-
 export const Sidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMentor, setIsMentor] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user } = useAuthStore();
-  
-  const userIsAdmin = isAdmin(user);
 
   const checkMentorStatus = async () => {
     if (!user) {
@@ -83,10 +74,14 @@ export const Sidebar: React.FC = () => {
     }
   };
 
-  // Check if user is a mentor
+  // Check if user is a mentor - only run once on mount
   useEffect(() => {
-    checkMentorStatus();
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+    let mounted = true;
+    if (mounted && user) {
+      checkMentorStatus();
+    }
+    return () => { mounted = false; };
+  }, []); // Only run once on mount
 
   const handleLogout = () => {
     logout();
@@ -174,45 +169,6 @@ export const Sidebar: React.FC = () => {
               <span className="text-sm font-medium">My Connections</span>
             )}
           </Link>
-        )}
-        
-        {/* Admin Section */}
-        {userIsAdmin && (
-          <>
-            {!isCollapsed && (
-              <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="px-4 text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-2">
-                  Admin
-                </p>
-              </div>
-            )}
-            {adminNavigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group',
-                    isActive
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/50'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
-                    isCollapsed && 'justify-center'
-                  )}
-                  title={isCollapsed ? item.name : undefined}
-                >
-                  <item.icon className={cn(
-                    'h-5 w-5 flex-shrink-0',
-                    isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
-                  )} />
-                  {!isCollapsed && (
-                    <span className="text-sm font-medium">{item.name}</span>
-                  )}
-                </Link>
-              );
-            })}
-          </>
         )}
       </nav>
 

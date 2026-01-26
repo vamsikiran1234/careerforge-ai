@@ -5,28 +5,6 @@ const emailService = require('../services/emailService');
 
 const prisma = new PrismaClient();
 
-// Email transporter configuration (lazy-loaded to avoid startup errors)
-let transporter = null;
-
-const getEmailTransporter = () => {
-  if (!transporter && process.env.EMAIL_USER && (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD)) {
-    try {
-      const nodemailer = require('nodemailer');
-      transporter = nodemailer.createTransport({
-        service: process.env.EMAIL_SERVICE || 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD,
-        },
-      });
-    } catch (error) {
-      console.warn('Email transporter initialization failed:', error.message);
-      return null;
-    }
-  }
-  return transporter;
-};
-
 // @desc    Register as a mentor (alumni only)
 // @route   POST /api/v1/mentorship/register
 // @access  Private (authenticated users)
@@ -676,47 +654,20 @@ const sendConnectionRequest = async (req, res) => {
     });
 
     // Send email notification to mentor
-    const emailTransporter = getEmailTransporter();
-    if (emailTransporter) {
-      try {
-        const student = await prisma.user.findUnique({
-          where: { id: studentId },
-          select: { name: true, email: true },
-        });
+    try {
+      const student = await prisma.user.findUnique({
+        where: { id: studentId },
+        select: { name: true, email: true },
+      });
 
-        const notificationEmail = {
-          from: process.env.EMAIL_USER,
-          to: mentor.user.email,
-          subject: 'New Mentorship Connection Request - CareerForge AI',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">New Connection Request</h2>
-              <p>Hi ${mentor.user.name},</p>
-              <p>You have received a new mentorship connection request from <strong>${student.name}</strong>.</p>
-              ${message ? `
-                <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                  <p style="margin: 0; color: #374151;"><strong>Student's Message:</strong></p>
-                  <p style="margin: 10px 0 0 0; color: #374151;">${message}</p>
-                </div>
-              ` : ''}
-              <div style="margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentor/connections" 
-                   style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                  View Connection Request
-                </a>
-              </div>
-              <p style="color: #666; font-size: 14px;">
-                Please review and respond to this request in your mentor dashboard.
-              </p>
-            </div>
-          `,
-        };
-
-        await emailTransporter.sendMail(notificationEmail);
-        console.log('Connection request email sent to mentor:', mentor.user.email);
-      } catch (emailError) {
-        console.error('Failed to send connection request email:', emailError);
-      }
+      await emailService.sendConnectionRequestEmail(
+        mentor.user.email,
+        mentor.user.name,
+        student.name,
+        message
+      );
+    } catch (emailError) {
+      console.error('Failed to send connection request email:', emailError);
     }
 
     // Create notification for mentor
@@ -953,42 +904,19 @@ const acceptConnectionRequest = async (req, res) => {
     ]);
 
     // Send email notification to student
-    const emailTransporter = getEmailTransporter();
-    if (emailTransporter) {
-      try {
-        const student = await prisma.user.findUnique({
-          where: { id: connection.studentId },
-          select: { name: true, email: true },
-        });
+    try {
+      const student = await prisma.user.findUnique({
+        where: { id: connection.studentId },
+        select: { name: true, email: true },
+      });
 
-        const notificationEmail = {
-          from: process.env.EMAIL_USER,
-          to: student.email,
-          subject: 'Connection Request Accepted - CareerForge AI',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #10b981;">Connection Request Accepted!</h2>
-              <p>Hi ${student.name},</p>
-              <p><strong>${connection.mentor.user.name}</strong> has accepted your mentorship connection request.</p>
-              <p>You can now start chatting with your mentor and schedule sessions.</p>
-              <div style="margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/connections" 
-                   style="background-color: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                  Start Chatting
-                </a>
-              </div>
-              <p style="color: #666; font-size: 14px;">
-                Make the most of your mentorship experience!
-              </p>
-            </div>
-          `,
-        };
-
-        await emailTransporter.sendMail(notificationEmail);
-        console.log('Connection accepted email sent to student:', student.email);
-      } catch (emailError) {
-        console.error('Failed to send connection accepted email:', emailError);
-      }
+      await emailService.sendConnectionAcceptedEmail(
+        student.email,
+        student.name,
+        connection.mentor.user.name
+      );
+    } catch (emailError) {
+      console.error('Failed to send connection accepted email:', emailError);
     }
 
     // Create notification for student
@@ -1088,45 +1016,19 @@ const declineConnectionRequest = async (req, res) => {
     });
 
     // Send email notification to student (optional, with reason)
-    const emailTransporter = getEmailTransporter();
-    if (emailTransporter) {
-      try {
-        const student = await prisma.user.findUnique({
-          where: { id: connection.studentId },
-          select: { name: true, email: true },
-        });
+    try {
+      const student = await prisma.user.findUnique({
+        where: { id: connection.studentId },
+        select: { name: true, email: true },
+      });
 
-        const notificationEmail = {
-          from: process.env.EMAIL_USER,
-          to: student.email,
-          subject: 'Connection Request Update - CareerForge AI',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #dc2626;">Connection Request Update</h2>
-              <p>Hi ${student.name},</p>
-              <p>${connection.mentor.user.name} is unable to accept your connection request at this time.</p>
-              ${reason ? `
-                <div style="background-color: #fee2e2; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                  <p style="margin: 0; color: #991b1b;"><strong>Message:</strong></p>
-                  <p style="margin: 10px 0 0 0; color: #991b1b;">${reason}</p>
-                </div>
-              ` : ''}
-              <p>Don't be discouraged! There are many other great mentors available on our platform.</p>
-              <div style="margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentors" 
-                   style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                  Browse Mentors
-                </a>
-              </div>
-            </div>
-          `,
-        };
-
-        await emailTransporter.sendMail(notificationEmail);
-        console.log('Connection declined email sent to student:', student.email);
-      } catch (emailError) {
-        console.error('Failed to send connection declined email:', emailError);
-      }
+      await emailService.sendConnectionRejectedEmail(
+        student.email,
+        student.name,
+        connection.mentor.user.name
+      );
+    } catch (emailError) {
+      console.error('Failed to send connection declined email:', emailError);
     }
 
     // Create notification for student
@@ -1322,37 +1224,14 @@ const approveMentor = async (req, res) => {
     });
 
     // Send approval email
-    const emailTransporter = getEmailTransporter();
-    if (emailTransporter) {
-      try {
-        const approvalEmail = {
-          from: process.env.EMAIL_USER,
-          to: mentorProfile.user.email,
-          subject: 'Mentor Application Approved - CareerForge AI',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">Congratulations, ${mentorProfile.user.name}!</h2>
-              <p>Your mentor application has been approved by our team.</p>
-              <p>You can now start connecting with students and help them achieve their career goals.</p>
-              <div style="margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard" 
-                   style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                  Go to Dashboard
-                </a>
-              </div>
-              <p style="color: #666; font-size: 14px;">
-                Thank you for joining our mentorship platform!
-              </p>
-            </div>
-          `,
-        };
-
-        await emailTransporter.sendMail(approvalEmail);
-        console.log('Approval email sent to:', mentorProfile.user.email);
-      } catch (emailError) {
-        console.error('Failed to send approval email:', emailError);
-        // Don't fail the request if email fails
-      }
+    try {
+      await emailService.sendMentorApprovalEmail(
+        mentorProfile.user.email,
+        mentorProfile.user.name
+      );
+    } catch (emailError) {
+      console.error('Failed to send approval email:', emailError);
+      // Don't fail the request if email fails
     }
 
     res.json({
@@ -1413,38 +1292,15 @@ const rejectMentor = async (req, res) => {
     });
 
     // Send rejection email
-    const emailTransporter = getEmailTransporter();
-    if (emailTransporter) {
-      try {
-        const rejectionEmail = {
-          from: process.env.EMAIL_USER,
-          to: mentorProfile.user.email,
-          subject: 'Mentor Application Update - CareerForge AI',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #dc2626;">Mentor Application Status</h2>
-              <p>Dear ${mentorProfile.user.name},</p>
-              <p>Thank you for your interest in becoming a mentor on CareerForge AI.</p>
-              <p>Unfortunately, we are unable to approve your application at this time.</p>
-              <div style="background-color: #fee2e2; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 0; color: #991b1b;"><strong>Reason:</strong></p>
-                <p style="margin: 10px 0 0 0; color: #991b1b;">${reason}</p>
-              </div>
-              <p>If you believe this was an error or would like to reapply in the future, please contact our support team.</p>
-              <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                Best regards,<br/>
-                The CareerForge AI Team
-              </p>
-            </div>
-          `,
-        };
-
-        await emailTransporter.sendMail(rejectionEmail);
-        console.log('Rejection email sent to:', mentorProfile.user.email);
-      } catch (emailError) {
-        console.error('Failed to send rejection email:', emailError);
-        // Don't fail the request if email fails
-      }
+    try {
+      await emailService.sendMentorRejectionEmail(
+        mentorProfile.user.email,
+        mentorProfile.user.name,
+        reason
+      );
+    } catch (emailError) {
+      console.error('Failed to send rejection email:', emailError);
+      // Don't fail the request if email fails
     }
 
     res.json({

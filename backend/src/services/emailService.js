@@ -1,13 +1,24 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 class EmailService {
   constructor() {
     this.transporter = null;
+    this.resend = null;
     this.isReady = false;
     this.initializeTransporter();
   }
 
   initializeTransporter() {
+    // Check if Resend is configured
+    if (process.env.EMAIL_SERVICE === 'resend' && process.env.RESEND_API_KEY) {
+      console.log('📧 Initializing Resend for email sending...');
+      this.resend = new Resend(process.env.RESEND_API_KEY);
+      this.isReady = true;
+      console.log('✅ Resend configured successfully');
+      return;
+    }
+    
     // Check if Gmail credentials are configured
     if (process.env.EMAIL_SERVICE === 'gmail' && process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
       console.log('📧 Initializing Gmail SMTP for real email sending...');
@@ -71,15 +82,47 @@ class EmailService {
 
   async sendPasswordResetEmail(email, resetToken, userName) {
     try {
-      // Ensure transporter is ready
+      // Ensure service is ready
       if (!this.isReady) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
       const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
       
+      // Use Resend if configured
+      if (this.resend) {
+        console.log('📧 Attempting to send email via Resend...');
+        console.log('   From:', 'onboarding@resend.dev');
+        console.log('   To:', email);
+        
+        const { data, error } = await this.resend.emails.send({
+          from: 'onboarding@resend.dev',
+          to: [email],
+          subject: 'Password Reset Request - CareerForge AI',
+          html: this.generatePasswordResetEmailTemplate(userName, resetUrl, resetToken, email),
+        });
+
+        if (error) {
+          console.error('❌ Resend error object:', JSON.stringify(error, null, 2));
+          console.error('❌ Resend error.message:', error.message);
+          console.error('❌ Resend error.name:', error.name);
+          throw new Error(`Resend error: ${error.message || JSON.stringify(error)}`);
+        }
+
+        console.log('📧 Password reset email sent successfully via Resend');
+        console.log(`   To: ${email}`);
+        console.log(`   Message ID: ${data.id}`);
+
+        return {
+          success: true,
+          messageId: data.id,
+          resetUrl,
+        };
+      }
+      
+      // Fallback to Gmail/SMTP
       const mailOptions = {
-        from: process.env.EMAIL_FROM || 'CareerForge AI <noreply@careerforge.ai>',
+        from: process.env.EMAIL_FROM || 'CareerForge AI <onboarding@resend.dev>',
         to: email,
         subject: 'Password Reset Request - CareerForge AI',
         html: this.generatePasswordResetEmailTemplate(userName, resetUrl, resetToken, email),
@@ -230,8 +273,57 @@ The CareerForge AI Team
       
       const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentorship/verify/${verificationToken}`;
       
+      // Use Resend if configured
+      if (this.resend) {
+        const htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">🎓 Welcome to CareerForge Mentorship!</h2>
+            <p>Hi ${userName},</p>
+            <p>Thank you for registering as a mentor. Please verify your email to activate your profile.</p>
+            <div style="margin: 30px 0;">
+              <a href="${verificationUrl}" 
+                 style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                ✓ Verify Email Address
+              </a>
+            </div>
+            <p style="color: #666; font-size: 14px;">
+              ⏰ This link expires in 24 hours<br/>
+              📝 After verification, admin will review your profile<br/>
+              🔔 You'll be notified once approved
+            </p>
+            <p style="color: #999; font-size: 12px;">
+              Link: <a href="${verificationUrl}">${verificationUrl}</a>
+            </p>
+          </div>
+        `;
+
+        const { data, error } = await this.resend.emails.send({
+          from: 'onboarding@resend.dev',
+          to: [email],
+          subject: 'Verify Your Mentor Profile - CareerForge AI',
+          html: htmlContent,
+        });
+
+        if (error) {
+          console.error('❌ Resend error:', error);
+          throw new Error(`Resend error: ${JSON.stringify(error)}`);
+        }
+
+        console.log('📧 Mentor verification email sent successfully via Resend');
+        console.log(`   To: ${email}`);
+        console.log(`   🔗 Verification URL: ${verificationUrl}`);
+        console.log(`   Message ID: ${data.id}`);
+
+        return {
+          success: true,
+          messageId: data.id,
+          verificationUrl,
+        };
+      }
+      
+      // Fallback to Gmail/SMTP
       const mailOptions = {
-        from: process.env.EMAIL_FROM || 'CareerForge AI <noreply@careerforge.ai>',
+        from: process.env.EMAIL_FROM || 'CareerForge AI <onboarding@resend.dev>',
         to: email,
         subject: 'Verify Your Mentor Profile - CareerForge AI',
         html: `
@@ -286,6 +378,160 @@ CareerForge AI Team
     } catch (error) {
       console.error('❌ Error sending mentor verification email:', error);
       console.error('   For development, use this URL:', `${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentorship/verify/${verificationToken}`);
+      throw error;
+    }
+  }
+
+  async sendConnectionRequestEmail(mentorEmail, mentorName, studentName, message) {
+    try {
+      const subject = 'New Mentorship Connection Request - CareerForge AI';
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">New Connection Request</h2>
+          <p>Hi ${mentorName},</p>
+          <p>You have received a new mentorship connection request from <strong>${studentName}</strong>.</p>
+          ${message ? `
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 0; color: #374151;"><strong>Student's Message:</strong></p>
+              <p style="margin: 10px 0 0 0; color: #374151;">${message}</p>
+            </div>
+          ` : ''}
+          <div style="margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentor/connections" 
+               style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              View Connection Request
+            </a>
+          </div>
+          <p style="color: #666; font-size: 14px;">
+            Please review and respond to this request in your mentor dashboard.
+          </p>
+        </div>
+      `;
+
+      const result = await this.sendEmail(mentorEmail, subject, html);
+      console.log('Connection request email sent to:', mentorEmail);
+      return result;
+    } catch (error) {
+      console.error('Error sending connection request email:', error);
+      throw error;
+    }
+  }
+
+  async sendConnectionAcceptedEmail(studentEmail, studentName, mentorName) {
+    try {
+      const subject = 'Connection Request Accepted - CareerForge AI';
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #10b981;">Connection Accepted!</h2>
+          <p>Hi ${studentName},</p>
+          <p><strong>${mentorName}</strong> has accepted your mentorship connection request!</p>
+          <div style="margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/app/connections" 
+               style="background-color: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              View Connection
+            </a>
+          </div>
+          <p style="color: #666; font-size: 14px;">
+            You can now start messaging and scheduling sessions with your mentor.
+          </p>
+        </div>
+      `;
+
+      const result = await this.sendEmail(studentEmail, subject, html);
+      console.log('Connection accepted email sent to:', studentEmail);
+      return result;
+    } catch (error) {
+      console.error('Error sending connection accepted email:', error);
+      throw error;
+    }
+  }
+
+  async sendConnectionRejectedEmail(studentEmail, studentName, mentorName) {
+    try {
+      const subject = 'Connection Request Update - CareerForge AI';
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #6b7280;">Connection Request Update</h2>
+          <p>Hi ${studentName},</p>
+          <p>${mentorName} is unable to accept your mentorship connection request at this time.</p>
+          <p style="color: #666;">
+            Don't be discouraged! There are many other mentors who would love to help you on your journey.
+          </p>
+          <div style="margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/app/mentors" 
+               style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Find Other Mentors
+            </a>
+          </div>
+        </div>
+      `;
+
+      const result = await this.sendEmail(studentEmail, subject, html);
+      console.log('Connection rejected email sent to:', studentEmail);
+      return result;
+    } catch (error) {
+      console.error('Error sending connection rejected email:', error);
+      throw error;
+    }
+  }
+
+  async sendMentorApprovalEmail(email, userName) {
+    try {
+      const subject = 'Mentor Application Approved - CareerForge AI';
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Congratulations, ${userName}!</h2>
+          <p>Your mentor application has been approved by our team.</p>
+          <p>You can now start connecting with students and help them achieve their career goals.</p>
+          <div style="margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mentor/dashboard" 
+               style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Go to Mentor Dashboard
+            </a>
+          </div>
+          <p style="color: #666; font-size: 14px;">
+            Thank you for joining our mentorship platform!
+          </p>
+        </div>
+      `;
+
+      const result = await this.sendEmail(email, subject, html);
+      console.log('Mentor approval email sent to:', email);
+      return result;
+    } catch (error) {
+      console.error('Error sending mentor approval email:', error);
+      throw error;
+    }
+  }
+
+  async sendMentorRejectionEmail(email, userName, reason) {
+    try {
+      const subject = 'Mentor Application Update - CareerForge AI';
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #dc2626;">Mentor Application Status</h2>
+          <p>Dear ${userName},</p>
+          <p>Thank you for your interest in becoming a mentor on CareerForge AI.</p>
+          <p>Unfortunately, we are unable to approve your application at this time.</p>
+          ${reason ? `
+            <div style="background-color: #fee2e2; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 0; color: #991b1b;"><strong>Reason:</strong></p>
+              <p style="margin: 10px 0 0 0; color: #991b1b;">${reason}</p>
+            </div>
+          ` : ''}
+          <p>If you believe this was an error or would like to reapply in the future, please contact our support team.</p>
+          <p style="color: #666; font-size: 14px; margin-top: 30px;">
+            Best regards,<br/>
+            The CareerForge AI Team
+          </p>
+        </div>
+      `;
+
+      const result = await this.sendEmail(email, subject, html);
+      console.log('Mentor rejection email sent to:', email);
+      return result;
+    } catch (error) {
+      console.error('Error sending mentor rejection email:', error);
       throw error;
     }
   }

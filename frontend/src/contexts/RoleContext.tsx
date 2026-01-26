@@ -136,12 +136,12 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
       localStorage.setItem('currentRole', 'MENTOR');
     }
     // If on admin routes, ensure we're in admin mode
-    else if (path.startsWith('/admin') && currentRole !== 'ADMIN' && availableRoles.includes('ADMIN')) {
+    else if (path.includes('/admin') && currentRole !== 'ADMIN' && availableRoles.includes('ADMIN')) {
       setCurrentRole('ADMIN');
       localStorage.setItem('currentRole', 'ADMIN');
     }
     // Otherwise default to student for main app routes
-    else if (!path.startsWith('/mentor') && !path.startsWith('/admin') && currentRole !== 'STUDENT') {
+    else if (!path.startsWith('/mentor') && !path.includes('/admin') && currentRole !== 'STUDENT') {
       setCurrentRole('STUDENT');
       localStorage.setItem('currentRole', 'STUDENT');
     }
@@ -166,7 +166,7 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
         navigate('/mentor/dashboard');
         break;
       case 'ADMIN':
-        navigate('/app/admin');
+        navigate('/admin/dashboard');
         break;
     }
   };

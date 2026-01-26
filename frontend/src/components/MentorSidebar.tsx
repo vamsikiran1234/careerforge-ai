@@ -83,7 +83,8 @@ export const MentorSidebar: React.FC = () => {
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 60000); // Refresh every 60s
+    // Increase interval to 5 minutes to reduce API calls
+    const interval = setInterval(fetchStats, 300000); // Refresh every 5 minutes
     return () => clearInterval(interval);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
