@@ -355,6 +355,124 @@ const swaggerDefinition = {
           },
         },
       },
+      // Session schemas
+      MentorSession: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Session ID',
+          },
+          mentorId: {
+            type: 'string',
+            description: 'Mentor profile ID',
+          },
+          studentId: {
+            type: 'string',
+            description: 'Student user ID',
+          },
+          scheduledAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Scheduled session date and time',
+          },
+          duration: {
+            type: 'integer',
+            description: 'Session duration in minutes',
+            example: 60,
+          },
+          status: {
+            type: 'string',
+            enum: ['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'],
+            description: 'Session status',
+          },
+          meetingLink: {
+            type: 'string',
+            description: 'Jitsi meeting room link',
+            nullable: true,
+          },
+          topic: {
+            type: 'string',
+            description: 'Session topic/purpose',
+          },
+          notes: {
+            type: 'string',
+            description: 'Session notes or agenda',
+            nullable: true,
+          },
+          cancellationReason: {
+            type: 'string',
+            description: 'Reason for cancellation if cancelled',
+            nullable: true,
+          },
+          completedAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Session completion timestamp',
+            nullable: true,
+          },
+          mentor: {
+            type: 'object',
+            description: 'Mentor profile information',
+            properties: {
+              id: {
+                type: 'string',
+              },
+              userId: {
+                type: 'string',
+              },
+              company: {
+                type: 'string',
+              },
+              jobTitle: {
+                type: 'string',
+              },
+              user: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                  },
+                  email: {
+                    type: 'string',
+                  },
+                  avatar: {
+                    type: 'string',
+                    nullable: true,
+                  },
+                },
+              },
+            },
+          },
+          student: {
+            type: 'object',
+            description: 'Student user information',
+            properties: {
+              id: {
+                type: 'string',
+              },
+              name: {
+                type: 'string',
+              },
+              email: {
+                type: 'string',
+              },
+              avatar: {
+                type: 'string',
+                nullable: true,
+              },
+            },
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+          updatedAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+        },
+      },
       // Error schemas
       Error: {
         type: 'object',
