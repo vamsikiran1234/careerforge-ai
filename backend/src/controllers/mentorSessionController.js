@@ -411,6 +411,7 @@ const getMySessions = async (req, res) => {
               select: {
                 name: true,
                 email: true,
+                avatar: true,
               },
             },
           },
@@ -421,18 +422,37 @@ const getMySessions = async (req, res) => {
       },
     });
 
+    // Fetch student information separately for each session
+    const sessionsWithStudent = await Promise.all(
+      sessions.map(async (session) => {
+        const student = await prisma.user.findUnique({
+          where: { id: session.studentId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        });
+        return {
+          ...session,
+          student,
+        };
+      })
+    );
+
     // Categorize sessions
     const now = new Date();
     const categorized = {
-      upcoming: sessions.filter(s => s.status === 'SCHEDULED' && new Date(s.scheduledAt) > now),
-      past: sessions.filter(s => s.status === 'COMPLETED' || (s.status === 'SCHEDULED' && new Date(s.scheduledAt) < now)),
-      cancelled: sessions.filter(s => s.status === 'CANCELLED'),
+      upcoming: sessionsWithStudent.filter(s => s.status === 'SCHEDULED' && new Date(s.scheduledAt) > now),
+      past: sessionsWithStudent.filter(s => s.status === 'COMPLETED' || (s.status === 'SCHEDULED' && new Date(s.scheduledAt) < now)),
+      cancelled: sessionsWithStudent.filter(s => s.status === 'CANCELLED'),
     };
 
     res.status(200).json({
       success: true,
       data: {
-        all: sessions,
+        all: sessionsWithStudent,
         categorized,
         isMentor: !!mentorProfile,
       },
