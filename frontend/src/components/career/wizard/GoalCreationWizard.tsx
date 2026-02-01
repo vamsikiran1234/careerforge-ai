@@ -18,7 +18,7 @@ interface WizardStep {
   id: number;
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const steps: WizardStep[] = [
@@ -147,7 +147,7 @@ const GoalCreationWizard = () => {
 
         navigate(`/app/career/${newGoal.id}`);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to create goal:', err);
       // Error is handled by the store and displayed in UI
     }

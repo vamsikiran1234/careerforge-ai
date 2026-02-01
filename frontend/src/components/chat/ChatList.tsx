@@ -73,7 +73,7 @@ export const ChatList: React.FC = () => {
 
   // Listen for new messages and update room list
   useEffect(() => {
-    const cleanup = onNewMessage?.((message: any) => {
+    const cleanup = onNewMessage?.((message: { roomId: string; content: string; createdAt: string; senderId: string }) => {
       // Update the lastMessage and unread count for the room
       setRooms((prevRooms) =>
         prevRooms.map((room) => {
@@ -99,6 +99,7 @@ export const ChatList: React.FC = () => {
     });
 
     return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUserId]);
 
   const getCurrentUser = () => {

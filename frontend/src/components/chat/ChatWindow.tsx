@@ -78,6 +78,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   // Fetch initial messages
   useEffect(() => {
     fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   // Join room and set up listeners
@@ -98,7 +99,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Listen for new messages
   useEffect(() => {
-    const cleanup = onNewMessage?.((message: any) => {
+    const cleanup = onNewMessage?.((message: Message) => {
       if (message.roomId === roomId) {
         setMessages((prev) => [...prev, message]);
         scrollToBottom();
@@ -111,11 +112,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     });
 
     return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, currentUserId]);
 
   // Listen for typing indicators
   useEffect(() => {
-    const cleanupTyping = onUserTyping?.((data: any) => {
+    const cleanupTyping = onUserTyping?.((data: { roomId: string; userId: string; isTyping: boolean }) => {
       if (data.roomId === roomId && data.userId !== currentUserId) {
         setIsTyping(true);
       }
