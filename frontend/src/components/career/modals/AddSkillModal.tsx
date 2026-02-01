@@ -63,7 +63,7 @@ export default function AddSkillModal({ goalId, isOpen, onClose }: AddSkillModal
     }
   };
 
-  const handleChange = (field: keyof CreateSkillGapInput, value: string | number) => {
+  const handleChange = (field: keyof CreateSkillGapInput, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
   };

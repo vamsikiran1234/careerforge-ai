@@ -65,7 +65,7 @@ export default function MilestoneList({ goalId, milestones }: MilestoneListProps
     try {
       await updateMilestone(goalId, milestoneId, { 
         status: 'IN_PROGRESS',
-        completedAt: null,
+        completedAt: undefined,
         progress: 50 // Reset to 50% when reverting
       });
     } catch (error) {

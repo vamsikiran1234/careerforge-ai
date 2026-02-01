@@ -61,7 +61,7 @@ export default function AddResourceModal({ goalId, isOpen, onClose }: AddResourc
     }
   };
 
-  const handleChange = (field: keyof CreateResourceInput, value: string) => {
+  const handleChange = (field: keyof CreateResourceInput, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
   };

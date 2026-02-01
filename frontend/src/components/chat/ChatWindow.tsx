@@ -99,13 +99,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Listen for new messages
   useEffect(() => {
-    const cleanup = onNewMessage?.((message: Message) => {
-      if (message.roomId === roomId) {
-        setMessages((prev) => [...prev, message]);
+    const cleanup = onNewMessage?.((socketMessage) => {
+      if (socketMessage.roomId === roomId) {
+        // Convert SocketMessage to Message format
+        fetchMessages(); // Refetch to get complete message with all fields
         scrollToBottom();
         
         // Mark as read if it's from other user
-        if (message.senderId !== currentUserId) {
+        if (socketMessage.senderId !== currentUserId) {
           markMessagesAsRead();
         }
       }
@@ -117,7 +118,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Listen for typing indicators
   useEffect(() => {
-    const cleanupTyping = onUserTyping?.((data: { roomId: string; userId: string; isTyping: boolean }) => {
+    const cleanupTyping = onUserTyping?.((data) => {
       if (data.roomId === roomId && data.userId !== currentUserId) {
         setIsTyping(true);
       }

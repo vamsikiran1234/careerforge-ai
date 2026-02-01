@@ -55,7 +55,7 @@ export default function AddMilestoneModal({ goalId, isOpen, onClose }: AddMilest
     }
   };
 
-  const handleChange = (field: keyof CreateMilestoneInput, value: string) => {
+  const handleChange = (field: keyof CreateMilestoneInput, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError(''); // Clear error on change
   };
