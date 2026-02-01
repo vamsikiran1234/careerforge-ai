@@ -1,0 +1,71 @@
+name: Pull Request Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: PR Info
+        run: |
+          echo "PR Title: ${{ github.event.pull_request.title }}"
+          echo "PR Author: ${{ github.event.pull_request.user.login }}"
+          echo "Base Branch: ${{ github.event.pull_request.base.ref }}"
+          echo "Head Branch: ${{ github.event.pull_request.head.ref }}"
+      
+      - name: Check PR title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if [[ ${#PR_TITLE} -lt 10 ]]; then
+            echo "::warning::PR title is too short. Consider adding more details."
+          fi
+      
+      - name: Check for changes
+        run: |
+          FILES_CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | wc -l)
+          echo "Files changed: $FILES_CHANGED"
+          
+          if [ $FILES_CHANGED -eq 0 ]; then
+            echo "::error::No files changed in this PR"
+            exit 1
+          fi
+      
+      - name: Validate commit messages
+        run: |
+          git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -v '^$' | while read msg; do
+            echo "Commit message: $msg"
+          done
+
+  quick-build:
+    name: Quick Build Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Check Backend
+        run: |
+          cd backend
+          npm ci
+          npx prisma generate
+          echo "✓ Backend dependencies installed"
+      
+      - name: Check Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          echo "✓ Frontend build successful"
