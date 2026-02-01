@@ -317,7 +317,6 @@ export default function SessionBooking() {
               ) : (
                 <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
                   {timeSlots.map((slot) => {
-                    const slotTime = format(new Date(slot.start), 'HH:mm');
                     const isSelected = selectedTime === slot.start;
 
                     return (

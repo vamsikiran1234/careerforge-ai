@@ -61,6 +61,7 @@ const AnalyticsCharts = () => {
 
   useEffect(() => {
     fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period]);
 
   const fetchAnalytics = async () => {
@@ -85,7 +86,7 @@ const AnalyticsCharts = () => {
       // Session data by status
       const sessionData = sessionsRes.data.sessionsByStatus || [];
       setSessionStats(
-        sessionData.map((item: any) => ({
+        sessionData.map((item: { status: string; _count?: { id: number }; count?: number }) => ({
           status: item.status,
           count: item._count?.id || item.count || 0,
         }))

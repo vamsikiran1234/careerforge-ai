@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Video, Clock, User, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Calendar, Video, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import axios from 'axios';
 import { format, isPast, isFuture } from 'date-fns';

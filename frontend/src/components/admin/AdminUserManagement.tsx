@@ -46,6 +46,7 @@ const AdminUserManagement = () => {
 
   useEffect(() => {
     filterUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users, searchTerm, roleFilter, statusFilter]);
 
   const fetchUsers = async () => {
@@ -116,8 +117,9 @@ const AdminUserManagement = () => {
           ? 'User has been unbanned successfully'
           : 'User has been banned successfully'
       );
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to update user status');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      alert(err.response?.data?.message || 'Failed to update user status');
     }
   };
 
