@@ -55,12 +55,13 @@ export default function AddResourceModal({ goalId, isOpen, onClose }: AddResourc
       });
       
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create resource');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to create resource');
     }
   };
 
-  const handleChange = (field: keyof CreateResourceInput, value: any) => {
+  const handleChange = (field: keyof CreateResourceInput, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
   };

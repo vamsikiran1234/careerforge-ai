@@ -110,14 +110,14 @@ const AnalyticsCharts = () => {
     }
   };
 
-  const exportToCSV = (data: Record<string, unknown>[], filename: string) => {
+  const exportToCSV = (data: unknown[], filename: string) => {
     if (!data || data.length === 0) return;
 
-    const headers = Object.keys(data[0]);
+    const headers = Object.keys(data[0] as Record<string, unknown>);
     const csv = [
       headers.join(','),
       ...data.map((row) =>
-        headers.map((header) => JSON.stringify(row[header] || '')).join(',')
+        headers.map((header) => JSON.stringify((row as Record<string, unknown>)[header] || '')).join(',')
       ),
     ].join('\n');
 

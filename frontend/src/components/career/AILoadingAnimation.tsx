@@ -66,6 +66,7 @@ const AILoadingAnimation = () => {
       clearInterval(stageInterval);
       clearInterval(progressInterval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStage]);
 
   return (

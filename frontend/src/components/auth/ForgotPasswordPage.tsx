@@ -39,7 +39,7 @@ export const ForgotPasswordPage: React.FC = () => {
         setIsSubmitted(true);
         // Store preview URL for development testing
         if (response.data && typeof response.data === 'object' && 'previewUrl' in response.data) {
-          setPreviewUrl((response.data as { previewUrl?: string }).previewUrl);
+          setPreviewUrl((response.data as { previewUrl?: string }).previewUrl || '');
         }
       } else {
         setError(response.message || 'Failed to send password reset email');

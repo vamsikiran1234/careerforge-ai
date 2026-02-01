@@ -83,13 +83,13 @@ export const ResetPasswordPage: React.FC = () => {
       }
     } catch (error: unknown) {
       console.error('Reset password error:', error);
-      const err = error as { response?: { data?: { message?: string; errors?: Array<{ msg: string }> } } };
+      const err = error as { response?: { data?: { message?: string; errors?: Array<{ msg?: string; message?: string }> } } };
       
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else if (err.response?.data?.errors?.length) {
         const validationErrors = err.response.data.errors
-          .map((err: any) => err.message)
+          .map((err) => err.message || err.msg || 'Validation error')
           .join(', ');
         setError(validationErrors);
       } else {

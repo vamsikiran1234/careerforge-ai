@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Video, Phone, Users, ArrowLeft, AlertCircle } from 'lucide-react';
 import axios from 'axios';
-import { format, addDays, startOfWeek, addMinutes, isBefore, isAfter } from 'date-fns';
+import { format, addDays, startOfWeek, isBefore } from 'date-fns';
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 

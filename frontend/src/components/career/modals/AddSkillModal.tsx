@@ -57,12 +57,13 @@ export default function AddSkillModal({ goalId, isOpen, onClose }: AddSkillModal
       });
       
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create skill gap');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to create skill gap');
     }
   };
 
-  const handleChange = (field: keyof CreateSkillGapInput, value: any) => {
+  const handleChange = (field: keyof CreateSkillGapInput, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
   };
