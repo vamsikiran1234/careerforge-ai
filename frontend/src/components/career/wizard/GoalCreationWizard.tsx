@@ -18,7 +18,7 @@ interface WizardStep {
   id: number;
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const steps: WizardStep[] = [
@@ -147,19 +147,7 @@ const GoalCreationWizard = () => {
 
         navigate(`/app/career/${newGoal.id}`);
       }
-
-      // Generate AI trajectory if requested
-      if (generateAI && newGoal?.id) {
-        try {
-          await generateTrajectory(newGoal.id);
-        } catch (aiError) {
-          console.error('AI generation failed, but goal created:', aiError);
-          // Continue to goal page even if AI generation fails
-        }
-      }
-
-      navigate(`/app/career/${newGoal.id}`);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to create goal:', err);
       // Error is handled by the store and displayed in UI
     }

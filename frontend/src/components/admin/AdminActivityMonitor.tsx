@@ -37,6 +37,7 @@ export const AdminActivityMonitor: React.FC = () => {
 
   useEffect(() => {
     fetchActivityData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchActivityData = async () => {

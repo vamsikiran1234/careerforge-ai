@@ -74,8 +74,9 @@ export const AdminMentorVerification: React.FC = () => {
       if (response.data.success) {
         setPendingMentors(response.data.data);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch pending mentors');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to fetch pending mentors');
       console.error('Error fetching pending mentors:', err);
     } finally {
       setLoading(false);
@@ -100,8 +101,9 @@ export const AdminMentorVerification: React.FC = () => {
         setShowDetailModal(false);
         setSelectedMentor(null);
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to approve mentor');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      alert(error.response?.data?.message || 'Failed to approve mentor');
       console.error('Error approving mentor:', err);
     } finally {
       setActionLoading(false);
@@ -133,8 +135,9 @@ export const AdminMentorVerification: React.FC = () => {
         setSelectedMentor(null);
         setRejectionReason('');
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to reject mentor');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      alert(error.response?.data?.message || 'Failed to reject mentor');
       console.error('Error rejecting mentor:', err);
     } finally {
       setActionLoading(false);

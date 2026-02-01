@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Video, Phone, Users, ArrowLeft, AlertCircle } from 'lucide-react';
 import axios from 'axios';
-import { format, addDays, startOfWeek, addMinutes, isBefore, isAfter } from 'date-fns';
+import { format, addDays, startOfWeek, isBefore } from 'date-fns';
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 
@@ -107,32 +107,6 @@ export default function SessionBooking() {
     });
 
     return slotsForDate;
-  };
-
-  const isSlotBooked = (date: Date, time: string) => {
-    if (!availability) return false;
-
-    const [hours, minutes] = time.split(':').map(Number);
-    const slotDateTime = new Date(date);
-    slotDateTime.setHours(hours, minutes, 0, 0);
-
-    return availability.bookedSlots.some((slot) => {
-      const slotStart = new Date(slot.scheduledAt);
-      const slotEnd = addMinutes(slotStart, slot.duration);
-      
-      return (
-        (isAfter(slotDateTime, slotStart) || slotDateTime.getTime() === slotStart.getTime()) &&
-        isBefore(slotDateTime, slotEnd)
-      );
-    });
-  };
-
-  const isSlotInPast = (date: Date, time: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const slotDateTime = new Date(date);
-    slotDateTime.setHours(hours, minutes, 0, 0);
-    
-    return isBefore(slotDateTime, new Date());
   };
 
   const handleBookSession = async (e: React.FormEvent) => {
@@ -317,7 +291,6 @@ export default function SessionBooking() {
               ) : (
                 <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
                   {timeSlots.map((slot) => {
-                    const slotTime = format(new Date(slot.start), 'HH:mm');
                     const isSelected = selectedTime === slot.start;
 
                     return (

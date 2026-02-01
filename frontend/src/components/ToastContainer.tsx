@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Info, X } from 'lucide-react';
 import type { Toast, ToastType } from '../utils/toast';
-import { addToastListener, toast } from '../utils/toast';
-
-// Re-export toast for backward compatibility
-export { toast };
+import { addToastListener } from '../utils/toast';
 
 export default function ToastContainer() {
   const [toasts, setToasts] = useState<Toast[]>([]);

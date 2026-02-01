@@ -78,6 +78,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   // Fetch initial messages
   useEffect(() => {
     fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   // Join room and set up listeners
@@ -98,24 +99,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Listen for new messages
   useEffect(() => {
-    const cleanup = onNewMessage?.((message: any) => {
-      if (message.roomId === roomId) {
-        setMessages((prev) => [...prev, message]);
+    const cleanup = onNewMessage?.((socketMessage) => {
+      if (socketMessage.roomId === roomId) {
+        // Convert SocketMessage to Message format
+        fetchMessages(); // Refetch to get complete message with all fields
         scrollToBottom();
         
         // Mark as read if it's from other user
-        if (message.senderId !== currentUserId) {
+        if (socketMessage.senderId !== currentUserId) {
           markMessagesAsRead();
         }
       }
     });
 
     return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, currentUserId]);
 
   // Listen for typing indicators
   useEffect(() => {
-    const cleanupTyping = onUserTyping?.((data: any) => {
+    const cleanupTyping = onUserTyping?.((data) => {
       if (data.roomId === roomId && data.userId !== currentUserId) {
         setIsTyping(true);
       }

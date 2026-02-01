@@ -957,7 +957,6 @@ const acceptConnectionRequest = async (req, res) => {
 const declineConnectionRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { reason } = req.body;
     const userId = req.user.userId;
 
     // Get mentor profile

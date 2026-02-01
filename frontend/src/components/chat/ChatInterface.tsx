@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
@@ -70,7 +70,8 @@ export const ChatInterface: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [user?.id]); // Removed loadSessions from dependencies to prevent re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Removed loadSessions and currentSession from dependencies to prevent re-renders
 
   // Keyboard shortcut for sidebar toggle
   useEffect(() => {
@@ -129,7 +130,7 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
-  const handleNewSession = async () => {
+  const handleNewSession = useCallback(async () => {
     // Clear current session first to ensure clean state and prevent mixing
     console.log('ChatInterface: Creating new session, clearing current session first');
     useChatStore.setState({
@@ -142,7 +143,7 @@ export const ChatInterface: React.FC = () => {
     // Small delay to ensure state is cleared
     await new Promise(resolve => setTimeout(resolve, 50));
     await createNewSession();
-  };
+  }, [createNewSession]);
 
   const handleSidebarResize = (width: number) => {
     setSidebarWidth(width);

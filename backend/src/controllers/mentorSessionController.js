@@ -135,7 +135,7 @@ const setAvailability = async (req, res) => {
     });
 
     // Create new availability slots
-    const createdSlots = await prisma.mentorAvailability.createMany({
+    await prisma.mentorAvailability.createMany({
       data: availability.map(slot => ({
         mentorId: mentorProfile.id,
         dayOfWeek: slot.dayOfWeek,

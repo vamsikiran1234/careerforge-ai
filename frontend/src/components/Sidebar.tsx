@@ -15,7 +15,6 @@ import {
   UserCheck,
   GraduationCap,
   Calendar,
-  Link2,
   Target
 } from 'lucide-react';
 import { Logo } from './ui/Logo';
@@ -80,7 +79,7 @@ export const Sidebar: React.FC = () => {
       checkMentorStatus();
     }
     return () => { mounted = false; };
-  }, []); // Only run once on mount
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = () => {
     logout();

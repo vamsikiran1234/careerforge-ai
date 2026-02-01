@@ -316,7 +316,7 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
  * @param {string|null} previousAnswer - User's previous answer (null for first question)
  * @returns {Promise<{question: string, options: string[], stage: string, isComplete: boolean, recommendations?: object}>}
  */
-const quizNext = async (sessionId, previousAnswer) => {
+const quizNext = async (sessionId) => {
   const { prisma } = require('../config/database');
   
   try {
@@ -639,7 +639,7 @@ Format as JSON:
     return {
       question: "What aspect of your career is most important to you?",
       options: ["Growth opportunities", "Work environment", "Compensation", "Impact and purpose"],
-      stage: session?.currentStage || 'SKILLS_ASSESSMENT',
+      stage: 'SKILLS_ASSESSMENT',
       isComplete: false
     };
   }
