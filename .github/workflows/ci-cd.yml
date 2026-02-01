@@ -184,8 +184,6 @@ jobs:
         run: npx prisma migrate status || echo "Migration check completed"
         env:
           DATABASE_URL: "file:./prisma/dev.db"
-        env:
-          DATABASE_URL: file:./dev.db
 
   # Deployment readiness check
   deployment-check:
