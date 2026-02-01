@@ -58,8 +58,7 @@ const setAvailability = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { availability, timezone } = req.body;
-    // availability format: [{ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }]
-
+    
     // Verify user is a verified mentor
     const mentorProfile = await prisma.mentorProfile.findUnique({
       where: { userId },
@@ -87,22 +86,87 @@ const setAvailability = async (req, res) => {
       });
     }
 
-    // Update mentor profile with availability info
-    const updatedProfile = await prisma.mentorProfile.update({
-      where: { userId },
-      data: {
+    // Validate each availability slot
+    for (const slot of availability) {
+      if (
+        typeof slot.dayOfWeek !== 'number' ||
+        slot.dayOfWeek < 0 ||
+        slot.dayOfWeek > 6
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid day of week. Must be 0-6 (Sunday-Saturday)',
+        });
+      }
+
+      if (!slot.startTime || !slot.endTime) {
+        return res.status(400).json({
+          success: false,
+          message: 'Start time and end time are required',
+        });
+      }
+
+      // Validate time format (HH:mm)
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid time format. Use HH:mm (24-hour format)',
+        });
+      }
+
+      // Validate end time is after start time
+      const [startHour, startMin] = slot.startTime.split(':').map(Number);
+      const [endHour, endMin] = slot.endTime.split(':').map(Number);
+      const startMinutes = startHour * 60 + startMin;
+      const endMinutes = endHour * 60 + endMin;
+
+      if (endMinutes <= startMinutes) {
+        return res.status(400).json({
+          success: false,
+          message: 'End time must be after start time',
+        });
+      }
+    }
+
+    // Delete existing availability for this mentor
+    await prisma.mentorAvailability.deleteMany({
+      where: { mentorId: mentorProfile.id },
+    });
+
+    // Create new availability slots
+    const createdSlots = await prisma.mentorAvailability.createMany({
+      data: availability.map(slot => ({
+        mentorId: mentorProfile.id,
+        dayOfWeek: slot.dayOfWeek,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
         timezone: timezone || 'UTC',
-        // Store availability in expertiseAreas temporarily or create separate table
-        // For now, we'll return success and handle availability in session booking
-      },
+        isActive: true,
+      })),
+    });
+
+    // Update mentor profile timezone
+    await prisma.mentorProfile.update({
+      where: { userId },
+      data: { timezone: timezone || 'UTC' },
+    });
+
+    // Fetch the created availability to return
+    const savedAvailability = await prisma.mentorAvailability.findMany({
+      where: { mentorId: mentorProfile.id },
+      orderBy: [
+        { dayOfWeek: 'asc' },
+        { startTime: 'asc' },
+      ],
     });
 
     res.status(200).json({
       success: true,
       message: 'Availability updated successfully',
       data: {
-        availability,
-        timezone: updatedProfile.timezone,
+        availability: savedAvailability,
+        timezone: timezone || 'UTC',
       },
     });
   } catch (error) {
@@ -124,19 +188,20 @@ const getAvailability = async (req, res) => {
 
     const mentorProfile = await prisma.mentorProfile.findUnique({
       where: { id: mentorId },
-      select: {
-        id: true,
-        userId: true,
-        timezone: true,
-        availableHoursPerWeek: true,
-        preferredMeetingType: true,
-        status: true,
-        isVerified: true,
+      include: {
         user: {
           select: {
             name: true,
             email: true,
+            avatar: true,
           },
+        },
+        availability: {
+          where: { isActive: true },
+          orderBy: [
+            { dayOfWeek: 'asc' },
+            { startTime: 'asc' },
+          ],
         },
       },
     });
@@ -149,29 +214,53 @@ const getAvailability = async (req, res) => {
     }
 
     // Get upcoming booked sessions to show unavailable slots
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     const bookedSessions = await prisma.mentorSession.findMany({
       where: {
         mentorId,
         status: 'SCHEDULED',
         scheduledAt: {
-          gte: new Date(),
+          gte: today,
         },
       },
       select: {
         id: true,
         scheduledAt: true,
         duration: true,
+        status: true,
       },
       orderBy: {
         scheduledAt: 'asc',
       },
     });
 
+    // Calculate available time slots for next 30 days
+    const availableSlots = generateAvailableSlots(
+      mentorProfile.availability,
+      bookedSessions,
+      mentorProfile.timezone,
+      30 // days to look ahead
+    );
+
     res.status(200).json({
       success: true,
       data: {
-        mentor: mentorProfile,
+        mentor: {
+          id: mentorProfile.id,
+          name: mentorProfile.user.name,
+          email: mentorProfile.user.email,
+          avatar: mentorProfile.user.avatar,
+          company: mentorProfile.company,
+          jobTitle: mentorProfile.jobTitle,
+          timezone: mentorProfile.timezone,
+          availableHoursPerWeek: mentorProfile.availableHoursPerWeek,
+          preferredMeetingType: mentorProfile.preferredMeetingType,
+        },
+        weeklySchedule: mentorProfile.availability,
         bookedSlots: bookedSessions,
+        availableSlots: availableSlots,
       },
     });
   } catch (error) {
@@ -182,6 +271,85 @@ const getAvailability = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+// Helper function to generate available time slots
+const generateAvailableSlots = (weeklyAvailability, bookedSessions, timezone, daysAhead) => {
+  const slots = [];
+  const now = new Date();
+  
+  for (let dayOffset = 0; dayOffset < daysAhead; dayOffset++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + dayOffset);
+    date.setHours(0, 0, 0, 0);
+    
+    const dayOfWeek = date.getDay(); // 0-6
+    
+    // Find availability for this day of week
+    const dayAvailability = weeklyAvailability.filter(
+      slot => slot.dayOfWeek === dayOfWeek && slot.isActive
+    );
+    
+    for (const availSlot of dayAvailability) {
+      const [startHour, startMin] = availSlot.startTime.split(':').map(Number);
+      const [endHour, endMin] = availSlot.endTime.split(':').map(Number);
+      
+      // Generate 30-minute slots
+      let currentHour = startHour;
+      let currentMin = startMin;
+      
+      while (
+        currentHour < endHour ||
+        (currentHour === endHour && currentMin < endMin)
+      ) {
+        const slotStart = new Date(date);
+        slotStart.setHours(currentHour, currentMin, 0, 0);
+        
+        const slotEnd = new Date(slotStart);
+        slotEnd.setMinutes(slotEnd.getMinutes() + 30); // 30-minute slots
+        
+        // Check if slot is in the past
+        if (slotStart <= now) {
+          currentMin += 30;
+          if (currentMin >= 60) {
+            currentHour += 1;
+            currentMin = 0;
+          }
+          continue;
+        }
+        
+        // Check if slot overlaps with booked sessions
+        const isBooked = bookedSessions.some(session => {
+          const sessionStart = new Date(session.scheduledAt);
+          const sessionEnd = new Date(sessionStart);
+          sessionEnd.setMinutes(sessionEnd.getMinutes() + session.duration);
+          
+          return (
+            (slotStart >= sessionStart && slotStart < sessionEnd) ||
+            (slotEnd > sessionStart && slotEnd <= sessionEnd) ||
+            (slotStart <= sessionStart && slotEnd >= sessionEnd)
+          );
+        });
+        
+        if (!isBooked) {
+          slots.push({
+            start: slotStart.toISOString(),
+            end: slotEnd.toISOString(),
+            dayOfWeek: dayOfWeek,
+            displayTime: `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`,
+          });
+        }
+        
+        currentMin += 30;
+        if (currentMin >= 60) {
+          currentHour += 1;
+          currentMin = 0;
+        }
+      }
+    }
+  }
+  
+  return slots;
 };
 
 // @desc    Book a session with a mentor
@@ -281,7 +449,7 @@ const bookSession = async (req, res) => {
     const session = await prisma.mentorSession.create({
       data: {
         mentorId,
-        studentId: mentorProfile.userId,
+        studentId: studentId,
         title,
         description,
         sessionType,
@@ -833,9 +1001,171 @@ const startSession = async (req, res) => {
   }
 };
 
+// @desc    Get mentor's own availability slots
+// @route   GET /api/v1/sessions/my-availability
+// @access  Private (mentor only)
+const getMyAvailability = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const mentorProfile = await prisma.mentorProfile.findUnique({
+      where: { userId },
+      include: {
+        availability: {
+          where: { isActive: true },
+          orderBy: [
+            { dayOfWeek: 'asc' },
+            { startTime: 'asc' },
+          ],
+        },
+      },
+    });
+
+    if (!mentorProfile) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only registered mentors can view availability',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        availability: mentorProfile.availability,
+        timezone: mentorProfile.timezone,
+      },
+    });
+  } catch (error) {
+    console.error('Get my availability error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch availability',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Update a specific availability slot
+// @route   PUT /api/v1/sessions/availability/:slotId
+// @access  Private (mentor only)
+const updateAvailabilitySlot = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { slotId } = req.params;
+    const { dayOfWeek, startTime, endTime, isActive } = req.body;
+
+    const mentorProfile = await prisma.mentorProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!mentorProfile) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only registered mentors can update availability',
+      });
+    }
+
+    // Verify the slot belongs to this mentor
+    const slot = await prisma.mentorAvailability.findUnique({
+      where: { id: slotId },
+    });
+
+    if (!slot || slot.mentorId !== mentorProfile.id) {
+      return res.status(404).json({
+        success: false,
+        message: 'Availability slot not found',
+      });
+    }
+
+    // Validate if provided
+    if (dayOfWeek !== undefined && (dayOfWeek < 0 || dayOfWeek > 6)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid day of week. Must be 0-6',
+      });
+    }
+
+    const updateData = {};
+    if (dayOfWeek !== undefined) updateData.dayOfWeek = dayOfWeek;
+    if (startTime) updateData.startTime = startTime;
+    if (endTime) updateData.endTime = endTime;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
+    const updatedSlot = await prisma.mentorAvailability.update({
+      where: { id: slotId },
+      data: updateData,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Availability slot updated successfully',
+      data: updatedSlot,
+    });
+  } catch (error) {
+    console.error('Update availability slot error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update availability slot',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Delete an availability slot
+// @route   DELETE /api/v1/sessions/availability/:slotId
+// @access  Private (mentor only)
+const deleteAvailabilitySlot = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { slotId } = req.params;
+
+    const mentorProfile = await prisma.mentorProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!mentorProfile) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only registered mentors can delete availability',
+      });
+    }
+
+    // Verify the slot belongs to this mentor
+    const slot = await prisma.mentorAvailability.findUnique({
+      where: { id: slotId },
+    });
+
+    if (!slot || slot.mentorId !== mentorProfile.id) {
+      return res.status(404).json({
+        success: false,
+        message: 'Availability slot not found',
+      });
+    }
+
+    await prisma.mentorAvailability.delete({
+      where: { id: slotId },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Availability slot deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete availability slot error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete availability slot',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   setAvailability,
   getAvailability,
+  getMyAvailability,
+  updateAvailabilitySlot,
+  deleteAvailabilitySlot,
   bookSession,
   getMySessions,
   cancelSession,

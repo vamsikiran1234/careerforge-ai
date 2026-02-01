@@ -37,6 +37,16 @@ interface ConnectionStatus {
   connectionId: string | null;
 }
 
+interface WeeklySchedule {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+}
+
+const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export const MentorProfile: React.FC<MentorProfileProps> = ({
   mentor,
   isOpen,
@@ -51,12 +61,31 @@ export const MentorProfile: React.FC<MentorProfileProps> = ({
     connectionId: null,
   });
   const [checkingConnection, setCheckingConnection] = useState(true);
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<number>(0);
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
 
   useEffect(() => {
     if (isOpen && mentor.id) {
       checkConnectionStatus();
+      fetchAvailability();
     }
   }, [isOpen, mentor.id]);
+
+  const fetchAvailability = async () => {
+    try {
+      setLoadingSchedule(true);
+      const response = await axios.get(`${API_URL}/sessions/availability/${mentor.id}`);
+      if (response.data.success) {
+        setWeeklySchedule(response.data.data.weeklySchedule || []);
+        setAvailableSlots(response.data.data.availableSlots?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error);
+    } finally {
+      setLoadingSchedule(false);
+    }
+  };
 
   const checkConnectionStatus = async () => {
     setCheckingConnection(true);
@@ -383,8 +412,84 @@ export const MentorProfile: React.FC<MentorProfileProps> = ({
                 </p>
               </div>
             </div>
+
+            <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  Available Slots
+                </p>
+                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                  {loadingSchedule ? 'Loading...' : `${availableSlots} slots (30 days)`}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Weekly Schedule */}
+        {!loadingSchedule && weeklySchedule.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+              <Calendar className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+              Weekly Schedule
+            </h3>
+            <div className="grid grid-cols-7 gap-2">
+              {DAYS_OF_WEEK.map((day, index) => {
+                const daySlots = weeklySchedule.filter(
+                  (s) => s.dayOfWeek === index && s.isActive
+                );
+                const hasSlots = daySlots.length > 0;
+
+                return (
+                  <div
+                    key={day}
+                    className={`p-2 rounded-lg border-2 ${
+                      hasSlots
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                        : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <p className={`text-center font-semibold text-xs mb-1 ${
+                      hasSlots ? 'text-green-700 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
+                    }`}>
+                      {day}
+                    </p>
+                    {hasSlots ? (
+                      <div className="space-y-1">
+                        {daySlots.map((slot, idx) => (
+                          <p
+                            key={idx}
+                            className="text-xs text-center text-green-600 dark:text-green-400 leading-tight"
+                          >
+                            {slot.startTime}
+                            <br />-<br />
+                            {slot.endTime}
+                          </p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+                        N/A
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+              Times shown in {mentor.timezone || 'mentor\'s timezone'}
+            </p>
+          </div>
+        )}
+
+        {!loadingSchedule && weeklySchedule.length === 0 && (
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm text-yellow-800 dark:text-yellow-400 text-center">
+              This mentor hasn't configured their availability schedule yet.
+            </p>
+          </div>
+        )}
 
         {/* Reviews Section */}
         <div className="mb-6">

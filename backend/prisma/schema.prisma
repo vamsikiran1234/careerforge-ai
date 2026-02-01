@@ -89,6 +89,7 @@ model MentorProfile {
   chatRoomsAsMentor   ChatRoom[]            @relation("MentorChatRooms")
   sessionsAsMentor    MentorSession[]       @relation("MentorSessions")
   receivedReviews     MentorReview[]        @relation("MentorReviews")
+  availability        MentorAvailability[]  @relation("MentorAvailability")
 
   @@map("mentor_profiles")
 }
@@ -263,6 +264,35 @@ model MentorReview {
 
   @@unique([mentorId, studentId, sessionId])
   @@map("mentor_reviews")
+}
+
+// MentorAvailability model - Mentor's weekly recurring availability schedule
+model MentorAvailability {
+  id          String   @id @default(cuid())
+  mentorId    String
+  
+  // Time slot details
+  dayOfWeek   Int      // 0-6 (Sunday=0, Monday=1, ..., Saturday=6)
+  startTime   String   // HH:mm format (24-hour), e.g., "09:00"
+  endTime     String   // HH:mm format (24-hour), e.g., "17:00"
+  
+  // Status
+  isActive    Boolean  @default(true) // Allow temporary disable without deleting
+  
+  // Metadata
+  timezone    String   @default("UTC")
+  slotType    String   @default("REGULAR") // REGULAR, ONE_TIME, RECURRING
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  mentor      MentorProfile @relation("MentorAvailability", fields: [mentorId], references: [id], onDelete: Cascade)
+  
+  @@index([mentorId])
+  @@index([dayOfWeek])
+  @@index([isActive])
+  @@map("mentor_availability")
 }
 
 // Notification model - System notifications for users

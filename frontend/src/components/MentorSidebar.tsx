@@ -70,11 +70,12 @@ export const MentorSidebar: React.FC = () => {
 
       // Fetch upcoming sessions
       const sessionsResponse = await axios.get(
-        `${API_URL}/mentorship/sessions?status=SCHEDULED`,
+        `${API_URL}/sessions/my-sessions?status=SCHEDULED&upcoming=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (sessionsResponse.data.success) {
-        setUpcomingSessionsCount(sessionsResponse.data.count || sessionsResponse.data.data?.length || 0);
+        const upcomingSessions = sessionsResponse.data.data?.categorized?.upcoming || [];
+        setUpcomingSessionsCount(upcomingSessions.length);
       }
     } catch (error) {
       console.debug('Error fetching mentor stats:', error);

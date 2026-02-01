@@ -356,6 +356,88 @@ const swaggerDefinition = {
         },
       },
       // Session schemas
+      MentorAvailability: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Availability slot ID',
+          },
+          mentorId: {
+            type: 'string',
+            description: 'Mentor profile ID',
+          },
+          dayOfWeek: {
+            type: 'integer',
+            minimum: 0,
+            maximum: 6,
+            description: 'Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)',
+            example: 1,
+          },
+          startTime: {
+            type: 'string',
+            pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$',
+            description: 'Start time in HH:mm format (24-hour)',
+            example: '09:00',
+          },
+          endTime: {
+            type: 'string',
+            pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$',
+            description: 'End time in HH:mm format (24-hour)',
+            example: '17:00',
+          },
+          isActive: {
+            type: 'boolean',
+            description: 'Whether this availability slot is active',
+            default: true,
+          },
+          timezone: {
+            type: 'string',
+            description: 'Timezone for the availability slot',
+            example: 'UTC',
+          },
+          slotType: {
+            type: 'string',
+            enum: ['REGULAR', 'ONE_TIME', 'RECURRING'],
+            description: 'Type of availability slot',
+            default: 'REGULAR',
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+          updatedAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+        },
+      },
+      AvailableSlot: {
+        type: 'object',
+        properties: {
+          start: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Slot start time (ISO 8601)',
+          },
+          end: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Slot end time (ISO 8601)',
+          },
+          dayOfWeek: {
+            type: 'integer',
+            minimum: 0,
+            maximum: 6,
+            description: 'Day of week',
+          },
+          displayTime: {
+            type: 'string',
+            description: 'Time in HH:mm format for display',
+            example: '09:00',
+          },
+        },
+      },
       MentorSession: {
         type: 'object',
         properties: {

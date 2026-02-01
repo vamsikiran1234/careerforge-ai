@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -10,8 +10,12 @@ import {
   MapPin, 
   Clock,
   CheckCircle,
-  Users
+  Users,
+  Calendar
 } from 'lucide-react';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
 interface MentorCardProps {
   mentor: MentorProfile;
@@ -19,12 +23,33 @@ interface MentorCardProps {
 }
 
 export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onClick }) => {
+  const [availableSlots, setAvailableSlots] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  
   // Calculate availability status
   const isAvailable = mentor.activeConnections < 3;
   const availabilityColor = isAvailable ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400';
   const availabilityText = isAvailable 
     ? `${3 - mentor.activeConnections} spot${3 - mentor.activeConnections !== 1 ? 's' : ''} available` 
     : 'Fully booked';
+  
+  useEffect(() => {
+    fetchAvailability();
+  }, [mentor.id]);
+  
+  const fetchAvailability = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/sessions/availability/${mentor.id}`);
+      if (response.data.success) {
+        const slots = response.data.data.availableSlots || [];
+        setAvailableSlots(slots.length);
+      }
+    } catch (error) {
+      console.debug('Error fetching availability:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-blue-500 dark:hover:border-blue-400">
@@ -154,12 +179,23 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onClick }) => {
 
         {/* Footer */}
         <div className="flex items-center justify-between">
-          {/* Availability */}
-          <div className="flex items-center text-sm">
-            <Clock className={`w-4 h-4 mr-1 ${availabilityColor}`} />
-            <span className={availabilityColor}>
-              {availabilityText}
-            </span>
+          {/* Availability Slots */}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center text-sm">
+              <Clock className={`w-4 h-4 mr-1 ${availabilityColor}`} />
+              <span className={availabilityColor}>
+                {availabilityText}
+              </span>
+            </div>
+            {!loading && availableSlots > 0 && (
+              <div className="flex items-center text-xs text-blue-600 dark:text-blue-400">
+                <Calendar className="w-3 h-3 mr-1" />
+                <span>{availableSlots} time slots available</span>
+              </div>
+            )}
+            {!loading && availableSlots === 0 && (
+              <span className="text-xs text-gray-500 dark:text-gray-500">No slots set yet</span>
+            )}
           </div>
 
           {/* View Profile Button */}

@@ -8,16 +8,14 @@ const VITE_API_URL = import.meta.env.VITE_API_URL;
 
 interface MentorInfo {
   id: string;
-  userId: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  company: string;
+  jobTitle: string;
   timezone: string;
   availableHoursPerWeek: number;
   preferredMeetingType: string;
-  status: string;
-  isVerified: boolean;
-  user: {
-    name: string;
-    email: string;
-  };
 }
 
 interface BookedSlot {
@@ -26,9 +24,27 @@ interface BookedSlot {
   duration: number;
 }
 
+interface AvailabilitySlot {
+  start: string;
+  end: string;
+  dayOfWeek: number;
+  displayTime: string;
+}
+
+interface WeeklySchedule {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+  timezone: string;
+}
+
 interface AvailabilityData {
   mentor: MentorInfo;
   bookedSlots: BookedSlot[];
+  weeklySchedule: WeeklySchedule[];
+  availableSlots: AvailabilitySlot[];
 }
 
 export default function SessionBooking() {
@@ -79,16 +95,18 @@ export default function SessionBooking() {
   };
 
   const generateTimeSlots = () => {
-    const slots: string[] = [];
-    const startHour = 9; // 9 AM
-    const endHour = 18; // 6 PM
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+    if (!availability || !availability.availableSlots) {
+      return [];
     }
-    
-    return slots;
+
+    // Filter slots for the selected date
+    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+    const slotsForDate = availability.availableSlots.filter(slot => {
+      const slotDate = format(new Date(slot.start), 'yyyy-MM-dd');
+      return slotDate === selectedDateStr;
+    });
+
+    return slotsForDate;
   };
 
   const isSlotBooked = (date: Date, time: string) => {
@@ -130,9 +148,8 @@ export default function SessionBooking() {
       const authStorage = localStorage.getItem('auth-storage');
       const token = authStorage ? JSON.parse(authStorage).state.token : null;
 
-      const [hours, minutes] = selectedTime.split(':').map(Number);
-      const scheduledAt = new Date(selectedDate);
-      scheduledAt.setHours(hours, minutes, 0, 0);
+      // selectedTime is now the ISO string from availableSlots
+      const scheduledAt = new Date(selectedTime);
 
       const response = await axios.post(
         `${VITE_API_URL}/sessions/book`,
@@ -144,7 +161,7 @@ export default function SessionBooking() {
           description,
           sessionType,
           agendaNotes,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          timezone: availability?.mentor.timezone || 'UTC',
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -218,7 +235,7 @@ export default function SessionBooking() {
             Book a Session
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            with {availability.mentor.user.name}
+            with {availability.mentor.name}
           </p>
         </div>
 
@@ -284,34 +301,49 @@ export default function SessionBooking() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                 <Clock className="w-5 h-5 mr-2" />
-                Select Time
+                Available Time Slots
               </h2>
 
-              <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
-                {timeSlots.map((time) => {
-                  const isBooked = isSlotBooked(selectedDate, time);
-                  const isPast = isSlotInPast(selectedDate, time);
-                  const isSelected = selectedTime === time;
+              {timeSlots.length === 0 ? (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No available slots for this date
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                    Try selecting another date
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
+                  {timeSlots.map((slot) => {
+                    const slotTime = format(new Date(slot.start), 'HH:mm');
+                    const isSelected = selectedTime === slot.start;
 
-                  return (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      disabled={isBooked || isPast}
-                      className={`p-3 rounded-lg text-sm font-medium transition-colors ${
-                        isSelected
-                          ? 'bg-blue-600 text-white'
-                          : isBooked || isPast
-                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                          : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white'
-                      }`}
-                    >
-                      {time}
-                      {isBooked && <div className="text-xs mt-1">Booked</div>}
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        key={slot.start}
+                        onClick={() => setSelectedTime(slot.start)}
+                        className={`p-3 rounded-lg text-sm font-medium transition-colors ${
+                          isSelected
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white'
+                        }`}
+                      >
+                        {slot.displayTime}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {availability?.weeklySchedule && availability.weeklySchedule.length > 0 && (
+                <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <strong>Mentor's Schedule:</strong> Shows available slots for the next 30 days based on weekly recurring availability
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -422,16 +454,19 @@ export default function SessionBooking() {
                   </h3>
                   <div className="space-y-1 text-sm text-blue-800 dark:text-blue-400">
                     <p>
-                      <strong>Date:</strong> {format(selectedDate, 'PPPP')}
+                      <strong>Date:</strong> {format(new Date(selectedTime), 'PPPP')}
                     </p>
                     <p>
-                      <strong>Time:</strong> {selectedTime}
+                      <strong>Time:</strong> {format(new Date(selectedTime), 'hh:mm a')}
                     </p>
                     <p>
                       <strong>Duration:</strong> {duration} minutes
                     </p>
                     <p>
                       <strong>Type:</strong> {sessionType}
+                    </p>
+                    <p>
+                      <strong>Timezone:</strong> {availability?.mentor.timezone || 'UTC'}
                     </p>
                   </div>
                 </div>

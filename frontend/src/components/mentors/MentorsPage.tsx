@@ -79,7 +79,7 @@ export const MentorsPage: React.FC = () => {
     const id = mentorId || selectedMentor?.id;
     if (id) {
       setShowProfile(false);
-      navigate(`/sessions/book/${id}`);
+      navigate(`/app/sessions/book/${id}`);
     }
   };
 
