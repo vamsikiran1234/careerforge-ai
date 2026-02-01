@@ -81,13 +81,14 @@ export const ResetPasswordPage: React.FC = () => {
       } else {
         setError(response.message || 'Failed to reset password');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Reset password error:', error);
+      const err = error as { response?: { data?: { message?: string; errors?: Array<{ msg: string }> } } };
       
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
-      } else if (error.response?.data?.errors?.length > 0) {
-        const validationErrors = error.response.data.errors
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.response?.data?.errors?.length) {
+        const validationErrors = err.response.data.errors
           .map((err: any) => err.message)
           .join(', ');
         setError(validationErrors);

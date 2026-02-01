@@ -109,32 +109,6 @@ export default function SessionBooking() {
     return slotsForDate;
   };
 
-  const isSlotBooked = (date: Date, time: string) => {
-    if (!availability) return false;
-
-    const [hours, minutes] = time.split(':').map(Number);
-    const slotDateTime = new Date(date);
-    slotDateTime.setHours(hours, minutes, 0, 0);
-
-    return availability.bookedSlots.some((slot) => {
-      const slotStart = new Date(slot.scheduledAt);
-      const slotEnd = addMinutes(slotStart, slot.duration);
-      
-      return (
-        (isAfter(slotDateTime, slotStart) || slotDateTime.getTime() === slotStart.getTime()) &&
-        isBefore(slotDateTime, slotEnd)
-      );
-    });
-  };
-
-  const isSlotInPast = (date: Date, time: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const slotDateTime = new Date(date);
-    slotDateTime.setHours(hours, minutes, 0, 0);
-    
-    return isBefore(slotDateTime, new Date());
-  };
-
   const handleBookSession = async (e: React.FormEvent) => {
     e.preventDefault();
 

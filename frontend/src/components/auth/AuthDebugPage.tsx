@@ -29,8 +29,9 @@ const AuthDebugPage: React.FC = () => {
       } else {
         addLog(`Backend returned error: ${response.status}`, true);
       }
-    } catch (error: any) {
-      addLog(`Backend connection failed: ${error.message}`, true);
+    } catch (error: unknown) {
+      const err = error as Error;
+      addLog(`Backend connection failed: ${err.message}`, true);
     }
     
     setIsLoading(false);
@@ -66,8 +67,9 @@ const AuthDebugPage: React.FC = () => {
           addLog(`Validation errors: ${JSON.stringify(data.errors)}`, true);
         }
       }
-    } catch (error: any) {
-      addLog(`Registration request failed: ${error.message}`, true);
+    } catch (error: unknown) {
+      const err = error as Error;
+      addLog(`Registration request failed: ${err.message}`, true);
     }
     
     setIsLoading(false);
@@ -103,8 +105,9 @@ const AuthDebugPage: React.FC = () => {
           addLog(`Login errors: ${JSON.stringify(data.errors)}`, true);
         }
       }
-    } catch (error: any) {
-      addLog(`Login request failed: ${error.message}`, true);
+    } catch (error: unknown) {
+      const err = error as Error;
+      addLog(`Login request failed: ${err.message}`, true);
     }
     
     setIsLoading(false);
@@ -146,8 +149,9 @@ const AuthDebugPage: React.FC = () => {
       } else {
         addLog(`Vite registration failed: ${regResponse.message}`, true);
       }
-    } catch (error: any) {
-      addLog(`Vite API client test failed: ${error.message}`, true);
+    } catch (error: unknown) {
+      const err = error as Error;
+      addLog(`Vite API client test failed: ${err.message}`, true);
     }
     
     setIsLoading(false);

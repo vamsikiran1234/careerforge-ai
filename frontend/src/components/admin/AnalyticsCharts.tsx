@@ -95,7 +95,7 @@ const AnalyticsCharts = () => {
       // Expertise distribution
       const expertiseData = mentorsRes.data.expertiseDistribution || [];
       setExpertiseDistribution(
-        expertiseData.map((item: any) => ({
+        expertiseData.map((item: { expertise: string; _count?: number; count?: number }) => ({
           expertise: item.expertise,
           count: item._count || item.count || 0,
         }))
@@ -110,7 +110,7 @@ const AnalyticsCharts = () => {
     }
   };
 
-  const exportToCSV = (data: any[], filename: string) => {
+  const exportToCSV = (data: Record<string, unknown>[], filename: string) => {
     if (!data || data.length === 0) return;
 
     const headers = Object.keys(data[0]);
@@ -329,7 +329,7 @@ const AnalyticsCharts = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={(entry: any) =>
+                label={(entry: { expertise: string; percent: number }) =>
                   `${entry.expertise}: ${(entry.percent * 100).toFixed(0)}%`
                 }
                 outerRadius={80}

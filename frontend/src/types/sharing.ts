@@ -36,6 +36,7 @@ export interface SharedConversation {
   expiresAt?: string;
   createdAt?: string;
   sharedAt?: string;
+  requiresPassword?: boolean;
   createdBy?: {
     name?: string;
     avatar?: string;
