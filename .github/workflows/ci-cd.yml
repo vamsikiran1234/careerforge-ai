@@ -172,12 +172,18 @@ jobs:
       
       - name: Generate Prisma Client
         run: npx prisma generate
+        env:
+          DATABASE_URL: "file:./prisma/dev.db"
       
       - name: Validate Prisma schema
         run: npx prisma validate
+        env:
+          DATABASE_URL: "file:./prisma/dev.db"
       
       - name: Check migration status
         run: npx prisma migrate status || echo "Migration check completed"
+        env:
+          DATABASE_URL: "file:./prisma/dev.db"
         env:
           DATABASE_URL: file:./dev.db
 
