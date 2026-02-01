@@ -28,7 +28,6 @@ const navigation = [
   { name: 'Career Quiz', href: '/app/quiz', icon: BookOpen },
   { name: 'Career Trajectory', href: '/app/career', icon: Target },
   { name: 'Find Mentors', href: '/app/mentors', icon: Users },
-  { name: 'My Connections', href: '/app/connections', icon: Link2 },
   { name: 'Messages', href: '/app/messages', icon: MessageSquare },
   { name: 'My Sessions', href: '/app/sessions', icon: Calendar },
   { name: 'Become a Mentor', href: '/app/mentorship/register', icon: GraduationCap },
