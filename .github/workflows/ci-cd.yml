@@ -168,7 +168,8 @@ jobs:
   database:
     name: Database Migration Validation
     runs-on: ubuntu-latest
-        services:
+    
+    services:
       postgres:
         image: postgres:14
         env:
@@ -182,7 +183,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        defaults:
+    
+    defaults:
       run:
         working-directory: ./backend
     
