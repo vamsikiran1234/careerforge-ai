@@ -193,16 +193,10 @@ export const ForgotPasswordPage: React.FC = () => {
                   value={email}
                   onChange={handleInputChange}
                   placeholder="Enter your email address"
-                  className={error ? 'border-red-500' : ''}
                   disabled={isLoading}
                   autoComplete="email"
                   autoFocus
                 />
-                {error && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {error}
-                  </p>
-                )}
               </div>
 
               <Button

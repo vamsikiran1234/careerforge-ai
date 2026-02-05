@@ -149,7 +149,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       checkAuth: async () => {
-        const { token, isAuthenticated } = get();
+        const { token } = get();
         
         if (!token) {
           return false;
