@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 require('dotenv').config();
 
 const { errorHandler, notFound } = require('./middlewares/errorMiddleware');
@@ -61,6 +63,22 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.status(HTTP_STATUS_OK).json({
+    name: 'CareerForge AI API',
+    version: '1.0.0',
+    status: 'running',
+    message: 'AI-Powered Career Guidance Platform',
+    endpoints: {
+      health: '/health',
+      apiDocs: '/api-docs',
+      api: '/api/v1'
+    },
+    documentation: 'https://github.com/vamsikiran1234/careerforge-ai'
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(HTTP_STATUS_OK).json({
@@ -70,6 +88,13 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV,
   });
 });
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'CareerForge AI API Documentation'
+}));
 
 // API routes
 app.use('/api/v1/auth', authRoutes);
