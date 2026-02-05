@@ -34,21 +34,20 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       login: async (credentials: LoginForm) => {
-        console.log('=== AUTH STORE LOGIN STARTED ===');
+        console.log('🔐 Auth store login called for:', credentials.email);
         set({ isLoading: true, error: null });
         
         try {
-          console.log('Making API call to /auth/login with:', { email: credentials.email });
+          console.log('📤 Sending API request...');
           const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-          console.log('Auth store - API response:', response);
+          console.log('📥 API response received:', response);
           
           if (response.status === 'success' && response.data) {
             const { user, token } = response.data;
-            console.log('Auth store - Login successful, setting state:', { user, token: token.substring(0, 20) + '...' });
             
-            // CRITICAL: Store token in both API client AND localStorage for consistency
+            // Store token in both API client AND localStorage
             apiClient.setAuthToken(token);
-            localStorage.setItem('token', token); // For backward compatibility
+            localStorage.setItem('authToken', token);
             
             set({
               user,
@@ -58,23 +57,15 @@ export const useAuthStore = create<AuthStore>()(
               error: null,
             });
             
-            console.log('Auth store - State updated successfully');
-            console.log('Auth store - Final state:', { 
-              isAuthenticated: get().isAuthenticated, 
-              user: get().user?.email,
-              hasToken: !!get().token 
-            });
             return true;
           } else {
-            console.log('Auth store - Login failed with response:', response);
             const errorMessage = response.message || 'Login failed';
+            console.log('❌ Login failed:', errorMessage);
             set({ isLoading: false, error: errorMessage });
             return false;
           }
         } catch (error: any) {
-          console.error('Auth store - Login error:', error);
-          console.error('Auth store - Error response:', error.response?.data);
-          
+          console.log('🚨 Login error caught:', error);
           let errorMessage = 'Login failed. Please try again.';
           
           if (error.response?.data?.message) {
@@ -112,7 +103,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error: any) {
           console.error('Registration error:', error);
           
-          let errorMessage = 'Registration failed. Please try again.';
+          let errorMessage = 'Unable to create your account. Please try again later.';
           
           if (error.response?.data?.message) {
             errorMessage = error.response.data.message;
@@ -134,11 +125,10 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         // Clear token from API client and localStorage
         apiClient.clearAuthToken();
-        localStorage.removeItem('token'); // For backward compatibility
+        localStorage.removeItem('authToken');
         
-        // CRITICAL FIX: Clear chat storage to prevent sessions from persisting across users
+        // Clear chat storage to prevent sessions from persisting across users
         localStorage.removeItem('chat-storage');
-        console.log('✅ Cleared chat-storage on logout to prevent data leakage');
         
         set({
           user: null,
@@ -159,25 +149,18 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       checkAuth: async () => {
-        console.log('=== CHECK AUTH STARTED ===');
-        const { token, isAuthenticated } = get();
-        
-        console.log('CheckAuth - Current state:', { hasToken: !!token, isAuthenticated });
+        const { token } = get();
         
         if (!token) {
-          console.log('CheckAuth - No token found, returning false');
           return false;
         }
 
-        console.log('CheckAuth - Token found, verifying with backend...');
         set({ isLoading: true });
         
         try {
           const response = await apiClient.get<User>('/auth/me');
-          console.log('CheckAuth - Backend response:', response);
           
           if (response.status === 'success' && response.data) {
-            console.log('CheckAuth - Token valid, updating state');
             set({
               user: response.data,
               isAuthenticated: true,
@@ -187,13 +170,10 @@ export const useAuthStore = create<AuthStore>()(
             return true;
           } else {
             // Token is invalid, clear auth state
-            console.log('CheckAuth - Token invalid, clearing auth state');
             get().logout();
             return false;
           }
         } catch (error) {
-          console.error('CheckAuth - Error occurred:', error);
-          console.log('CheckAuth - Clearing auth state due to error');
           get().logout();
           return false;
         }
@@ -291,8 +271,7 @@ export const useAuthStore = create<AuthStore>()(
       onRehydrateStorage: () => (state) => {
         // Sync token from persisted state to localStorage and API client after hydration
         if (state?.token) {
-          console.log('🔄 Rehydrating auth state - syncing token to localStorage and API client');
-          localStorage.setItem('token', state.token);
+          localStorage.setItem('authToken', state.token);
           apiClient.setAuthToken(state.token);
         }
       },

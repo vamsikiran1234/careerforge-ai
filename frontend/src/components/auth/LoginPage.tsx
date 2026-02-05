@@ -5,13 +5,15 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { useToast } from '@/components/ui/Toast';
 import { isValidEmail } from '@/utils';
 import type { LoginForm } from '@/types';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, isLoading, clearError } = useAuthStore();
+  const toast = useToast();
   
   const [formData, setFormData] = useState<LoginForm>({
     email: '',
@@ -19,31 +21,27 @@ export const LoginPage: React.FC = () => {
   });
   
   const [errors, setErrors] = useState<Partial<LoginForm>>({});
-  const [successMessage, setSuccessMessage] = useState<string>('');
 
   // Check for success message from registration
   useEffect(() => {
-    console.log('🚀 LoginPage component mounted');
-    console.log('Current auth state:', { isLoading, error, isAuthenticated: useAuthStore.getState().isAuthenticated });
-    
     if (location.state?.message) {
-      setSuccessMessage(location.state.message);
+      toast.success(location.state.message);
       // Clear the state to prevent showing message on refresh
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, isLoading, error]);
+  }, [location.state, toast]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginForm> = {};
 
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Please enter your email address';
     } else if (!isValidEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = 'Please enter a valid email address (e.g., name@example.com)';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Please enter your password';
     }
 
     setErrors(newErrors);
@@ -53,37 +51,29 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    console.log('=== LOGIN FORM SUBMITTED ===');
+    
+    console.log('🔵 Login form submitted:', { email: formData.email });
 
     if (!validateForm()) {
-      console.log('Form validation failed');
+      console.log('❌ Form validation failed');
       return;
     }
 
+    console.log('✅ Form validation passed, calling login...');
     try {
-      console.log('Attempting login with:', formData.email);
-      console.log('Current auth state before login:', { isAuthenticated: useAuthStore.getState().isAuthenticated });
-      
       const success = await login(formData);
-      console.log('Login result:', success);
-      console.log('Auth state after login:', { isAuthenticated: useAuthStore.getState().isAuthenticated, user: useAuthStore.getState().user });
+      console.log('📊 Login result:', success);
       
       if (success) {
-        console.log('Login successful, navigating to dashboard...');
-        setSuccessMessage('Login successful! Redirecting...');
-        
-        // Small delay to show success message
-        setTimeout(() => {
-          console.log('Navigating to dashboard...');
-          navigate('/dashboard');
-        }, 1000);
+        toast.success('Welcome back!');
+        navigate('/dashboard');
       } else {
-        console.log('Login failed - auth store should have error');
-        console.log('Error from auth store:', error);
+        // Error from auth store
+        const errorMessage = useAuthStore.getState().error || 'Unable to sign in. Please check your credentials and try again.';
+        toast.error(errorMessage);
       }
-      // Error handling is now done in the auth store
     } catch (error) {
-      console.error('Login error:', error);
+      toast.error('Unable to sign in. Please check your credentials and try again.');
     }
   };
 
@@ -96,15 +86,8 @@ export const LoginPage: React.FC = () => {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
     
-    // Clear success message when user starts typing
-    if (successMessage) {
-      setSuccessMessage('');
-    }
-    
     // Clear auth store error when user starts typing
-    if (error) {
-      clearError();
-    }
+    clearError();
   };
 
   return (
@@ -133,18 +116,6 @@ export const LoginPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {successMessage && (
-                <div className="rounded-md bg-green-50 p-4">
-                  <div className="text-sm text-green-700">{successMessage}</div>
-                </div>
-              )}
-              
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <div className="text-sm text-red-700">{error}</div>
-                </div>
-              )}
-
               <Input
                 id="email"
                 name="email"

@@ -4,29 +4,29 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { useToast } from '@/components/ui/Toast';
 import { isValidEmail } from '@/utils';
 import { apiClient } from '@/lib/api-client';
 import { ArrowLeft, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 
 export const ForgotPasswordPage: React.FC = () => {
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     // Validate email
     if (!email) {
-      setError('Email is required');
+      toast.error('Please enter your email address');
       return;
     }
 
     if (!isValidEmail(email)) {
-      setError('Please enter a valid email address');
+      toast.error('Please enter a valid email address (e.g., name@example.com)');
       return;
     }
 
@@ -36,17 +36,17 @@ export const ForgotPasswordPage: React.FC = () => {
       const response = await apiClient.post('/auth/forgot-password', { email });
       
       if (response.status === 'success') {
+        toast.success('Password reset email sent! Check your inbox.');
         setIsSubmitted(true);
         // Store preview URL for development testing
         if (response.data && typeof response.data === 'object' && 'previewUrl' in response.data) {
           setPreviewUrl((response.data as { previewUrl?: string }).previewUrl || '');
         }
       } else {
-        setError(response.message || 'Failed to send password reset email');
+        toast.error(response.message || 'Unable to send reset email. Please try again.');
       }
     } catch (error: unknown) {
-      console.error('Forgot password error:', error);
-      setError('An error occurred while sending the reset email. Please try again.');
+      toast.error('An error occurred while sending the reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +54,6 @@ export const ForgotPasswordPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-    if (error) {
-      setError('');
-    }
   };
 
   if (isSubmitted) {
@@ -196,16 +193,10 @@ export const ForgotPasswordPage: React.FC = () => {
                   value={email}
                   onChange={handleInputChange}
                   placeholder="Enter your email address"
-                  className={error ? 'border-red-500' : ''}
                   disabled={isLoading}
                   autoComplete="email"
                   autoFocus
                 />
-                {error && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {error}
-                  </p>
-                )}
               </div>
 
               <Button

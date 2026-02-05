@@ -317,12 +317,12 @@ export const LandingPage: React.FC = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* SEO Metadata */}
       {createSEO.landing()}
       
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -337,18 +337,18 @@ export const LandingPage: React.FC = () => {
 
             {/* Navigation Links - Desktop */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-slate-300 hover:text-emerald-400 transition-colors font-medium">
+              <a href="#features" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
                 Features
               </a>
-              <a href="#how-it-works" className="text-slate-300 hover:text-emerald-400 transition-colors font-medium">
+              <a href="#how-it-works" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
                 How It Works
               </a>
-              <a href="#testimonials" className="text-slate-300 hover:text-emerald-400 transition-colors font-medium">
+              <a href="#testimonials" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
                 Testimonials
               </a>
               <Link 
                 to="/login"
-                className="text-slate-300 hover:text-emerald-400 transition-colors font-medium"
+                className="text-gray-700 hover:text-emerald-600 transition-colors font-medium"
               >
                 Sign In
               </Link>
@@ -383,33 +383,33 @@ export const LandingPage: React.FC = () => {
 
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 shadow-2xl">
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-2xl">
             <div className="px-4 py-6 space-y-4">
               <a 
                 href="#features" 
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-slate-300 hover:text-emerald-400 transition-colors text-lg font-medium py-2"
+                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
               >
                 Features
               </a>
               <a 
                 href="#how-it-works" 
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-slate-300 hover:text-emerald-400 transition-colors text-lg font-medium py-2"
+                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
               >
                 How It Works
               </a>
               <a 
                 href="#testimonials" 
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-slate-300 hover:text-emerald-400 transition-colors text-lg font-medium py-2"
+                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
               >
                 Testimonials
               </a>
               <Link 
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-slate-300 hover:text-emerald-400 transition-colors text-lg font-medium py-2"
+                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
               >
                 Sign In
               </Link>
@@ -448,13 +448,13 @@ export const LandingPage: React.FC = () => {
             {/* Left Side - Text Content (60%) */}
             <div className="text-center lg:text-left">
               {/* Badge */}
-              <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-8 animate-fade-in">
+              <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-4 py-2 rounded-full text-sm font-medium mb-8 animate-fade-in">
                 <Zap className="w-4 h-4" />
                 <span>Powered by Advanced AI Technology</span>
               </div>
 
               {/* Main Heading */}
-              <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-tight animate-fade-in-up">
+              <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight leading-tight animate-fade-in-up">
                 Your AI-Powered Career
                 <br />
                 <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
@@ -463,7 +463,7 @@ export const LandingPage: React.FC = () => {
               </h1>
 
               {/* Subheading */}
-              <p className="text-lg md:text-xl text-slate-400 mb-12 leading-relaxed animate-fade-in-up animation-delay-200">
+              <p className="text-lg md:text-xl text-gray-600 mb-12 leading-relaxed animate-fade-in-up animation-delay-200">
                 Get personalized career guidance, connect with expert mentors, and achieve your professional goals with AI-powered insights.
               </p>
 
@@ -478,7 +478,7 @@ export const LandingPage: React.FC = () => {
                 </Link>
                 <a
                   href="#how-it-works"
-                  className="bg-slate-800/50 backdrop-blur-sm text-white px-8 py-4 rounded-xl border border-slate-700/50 hover:border-emerald-500/50 transition-all duration-200 flex items-center space-x-2 text-lg font-semibold w-full sm:w-auto justify-center"
+                  className="bg-white border-2 border-gray-200 text-gray-900 px-8 py-4 rounded-xl hover:border-emerald-500 transition-all duration-200 flex items-center space-x-2 text-lg font-semibold w-full sm:w-auto justify-center shadow-sm hover:shadow-md"
                 >
                   <span>See How It Works</span>
                   <ChevronRight className="w-5 h-5" />
@@ -494,10 +494,10 @@ export const LandingPage: React.FC = () => {
                       <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-lg mb-2">
                         <Icon className="w-5 h-5 text-emerald-400" />
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">
+                      <div className="text-2xl font-bold text-gray-900 mb-1">
                         <AnimatedCounter value={stat.value} />
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-gray-600">
                         {stat.label}
                       </div>
                     </div>
@@ -510,16 +510,16 @@ export const LandingPage: React.FC = () => {
             <div className="relative hidden lg:block animate-fade-in-up animation-delay-400">
               <div className="relative">
                 {/* Main Dashboard Card */}
-                <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border border-slate-700/50">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border border-gray-200">
                   {/* Header */}
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-sm font-semibold text-white">Career Dashboard</h3>
-                      <p className="text-xs text-slate-400">Your progress overview</p>
+                      <h3 className="text-sm font-semibold text-gray-900">Career Dashboard</h3>
+                      <p className="text-xs text-gray-600">Your progress overview</p>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-slate-400">Live</span>
+                      <span className="text-xs text-gray-600">Live</span>
                     </div>
                   </div>
 
@@ -527,34 +527,34 @@ export const LandingPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
                       <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="w-4 h-4 text-emerald-400" />
-                        <span className="text-xs text-slate-400">Chat Sessions</span>
+                        <MessageSquare className="w-4 h-4 text-emerald-600" />
+                        <span className="text-xs text-gray-600">Chat Sessions</span>
                       </div>
-                      <p className="text-2xl font-bold text-white">24</p>
+                      <p className="text-2xl font-bold text-gray-900">24</p>
                     </div>
                     <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
                       <div className="flex items-center gap-2 mb-2">
-                        <BookOpen className="w-4 h-4 text-cyan-400" />
-                        <span className="text-xs text-slate-400">Quizzes</span>
+                        <BookOpen className="w-4 h-4 text-cyan-600" />
+                        <span className="text-xs text-gray-600">Quizzes</span>
                       </div>
-                      <p className="text-2xl font-bold text-white">8</p>
+                      <p className="text-2xl font-bold text-gray-900">8</p>
                     </div>
                   </div>
 
                   {/* Progress Bar */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-slate-300">Career Progress</span>
-                      <span className="text-xs font-bold text-emerald-400">78%</span>
+                      <span className="text-xs font-medium text-gray-700">Career Progress</span>
+                      <span className="text-xs font-bold text-emerald-600">78%</span>
                     </div>
-                    <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full shadow-lg shadow-emerald-500/50" style={{ width: '78%' }}></div>
                     </div>
                   </div>
 
                   {/* Mini Chart */}
-                  <div className="bg-slate-700/30 rounded-xl p-4">
-                    <p className="text-xs font-medium text-slate-300 mb-3">Weekly Activity</p>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-700 mb-3">Weekly Activity</p>
                     <div className="flex items-end justify-between h-20 gap-2">
                       {[40, 65, 45, 80, 60, 90, 75].map((height, i) => (
                         <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500 to-teal-500 rounded-t" style={{ height: `${height}%` }}></div>
@@ -564,19 +564,19 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Floating Achievement Badge */}
-                <div className="absolute -top-4 -right-4 bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-xl p-3 border border-amber-500/30 animate-bounce">
+                <div className="absolute -top-4 -right-4 bg-white backdrop-blur-sm rounded-xl shadow-xl p-3 border border-amber-400 animate-bounce">
                   <Award className="w-6 h-6 text-amber-400" />
                 </div>
 
                 {/* Floating Mentor Card */}
-                <div className="absolute -bottom-4 -left-4 bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-xl p-3 border border-slate-700/50">
+                <div className="absolute -bottom-4 -left-4 bg-white backdrop-blur-sm rounded-xl shadow-xl p-3 border border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                       JD
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-white">New Mentor Match!</p>
-                      <p className="text-xs text-slate-400">John Doe</p>
+                      <p className="text-xs font-semibold text-gray-900">New Mentor Match!</p>
+                      <p className="text-xs text-gray-600">John Doe</p>
                     </div>
                   </div>
                 </div>
@@ -602,10 +602,10 @@ export const LandingPage: React.FC = () => {
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-lg mb-3">
                     <Icon className="w-6 h-6 text-emerald-400" />
                   </div>
-                  <div className="text-3xl font-bold text-white mb-1">
+                  <div className="text-3xl font-bold text-gray-900 mb-1">
                     <AnimatedCounter value={stat.value} />
                   </div>
-                  <div className="text-sm text-slate-400">
+                  <div className="text-sm text-gray-600">
                     {stat.label}
                   </div>
                 </motion.div>
@@ -616,10 +616,10 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Trust Signals Section */}
-      <section className="py-12 bg-slate-900/50 border-y border-slate-800/50">
+      <section className="py-12 bg-gray-50 border-y border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <p className="text-sm font-medium text-slate-400 mb-4">
+            <p className="text-sm font-medium text-gray-600 mb-4">
               TRUSTED BY PROFESSIONALS WORLDWIDE
             </p>
           </div>
@@ -627,7 +627,7 @@ export const LandingPage: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center mb-12">
             {/* Company Placeholders - Replace with real logos */}
             {['Google', 'Microsoft', 'Amazon', 'Meta'].map((company, i) => (
-              <div key={i} className="flex items-center justify-center h-12 w-32 text-slate-500 hover:text-emerald-400 font-bold text-lg transition-colors">
+              <div key={i} className="flex items-center justify-center h-12 w-32 text-gray-400 hover:text-emerald-600 font-bold text-lg transition-colors">
                 {company}
               </div>
             ))}
@@ -637,30 +637,30 @@ export const LandingPage: React.FC = () => {
             <div className="text-center p-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <p className="text-2xl font-bold text-white">10,000+</p>
+                <p className="text-2xl font-bold text-gray-900">10,000+</p>
               </div>
-              <p className="text-sm text-slate-400">Active Users</p>
+              <p className="text-sm text-gray-600">Active Users</p>
             </div>
             <div className="text-center p-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Star className="w-5 h-5 text-amber-400" />
-                <p className="text-2xl font-bold text-white">4.9/5</p>
+                <p className="text-2xl font-bold text-gray-900">4.9/5</p>
               </div>
-              <p className="text-sm text-slate-400">Average Rating</p>
+              <p className="text-sm text-gray-600">Average Rating</p>
             </div>
             <div className="text-center p-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Trophy className="w-5 h-5 text-teal-400" />
-                <p className="text-2xl font-bold text-white">5,000+</p>
+                <p className="text-2xl font-bold text-gray-900">5,000+</p>
               </div>
-              <p className="text-sm text-slate-400">Success Stories</p>
+              <p className="text-sm text-gray-600">Success Stories</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-16 md:py-24 lg:py-32 bg-slate-950">
+      <section id="features" className="py-16 md:py-24 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <motion.div 
@@ -670,18 +670,18 @@ export const LandingPage: React.FC = () => {
             variants={fadeInUp}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Rocket className="w-4 h-4" />
               <span>Platform Features</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
               Everything you need to
               <br />
               <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
                 succeed in your career
               </span>
             </h2>
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Powerful tools and features designed to accelerate your career growth
             </p>
           </motion.div>
@@ -711,20 +711,20 @@ export const LandingPage: React.FC = () => {
                   key={index}
                   variants={fadeInUp}
                   whileHover={{ scale: 1.02, y: -5 }}
-                  className={`group p-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 border border-slate-700/50 hover:border-emerald-500/50 ${gridSpans[index] || 'lg:col-span-2'}`}
+                  className={`group p-8 bg-white border-2 border-gray-200 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 hover:border-emerald-500 ${gridSpans[index] || 'lg:col-span-2'}`}
                 >
                   <div className={`w-14 h-14 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
                     <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-400 leading-relaxed">
+                  <p className="text-gray-600 leading-relaxed">
                     {feature.description}
                   </p>
                   {/* Featured badge for large cards */}
                   {(index === 0 || index === 5) && (
-                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-400">
+                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-600">
                       <Sparkles className="w-4 h-4" />
                       <span>Most Popular</span>
                     </div>
@@ -737,7 +737,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 md:py-24 lg:py-32 bg-slate-900/30">
+      <section id="how-it-works" className="py-16 md:py-24 lg:py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <motion.div 
@@ -747,18 +747,18 @@ export const LandingPage: React.FC = () => {
             variants={fadeInUp}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center space-x-2 bg-teal-500/10 border border-teal-500/20 text-teal-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center space-x-2 bg-teal-500/10 border border-teal-500/20 text-teal-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Clock className="w-4 h-4" />
               <span>Simple Process</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
               Get started in
               <br />
               <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
                 four simple steps
               </span>
             </h2>
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Join thousands of professionals who transformed their careers with CareerForge AI
             </p>
           </motion.div>
@@ -785,18 +785,18 @@ export const LandingPage: React.FC = () => {
                     <div className="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-emerald-500/50 to-transparent" />
                   )}
                   
-                  <div className="relative bg-slate-800/50 backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 border border-slate-700/50 hover:border-emerald-500/50">
+                  <div className="relative bg-white border-2 border-gray-200 p-8 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 hover:border-emerald-500">
                     {/* Step Number */}
                     <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-500/50">
                       {step.step}
                     </div>
                     
                     <div className="mt-4">
-                      <Icon className="w-12 h-12 text-emerald-400 mb-4" />
-                      <h3 className="text-xl font-bold text-white mb-3">
+                      <Icon className="w-12 h-12 text-emerald-600 mb-4" />
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">
                         {step.title}
                       </h3>
-                      <p className="text-slate-400 leading-relaxed">
+                      <p className="text-gray-600 leading-relaxed">
                         {step.description}
                       </p>
                     </div>
@@ -809,23 +809,23 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 md:py-24 lg:py-32 bg-slate-950">
+      <section className="py-16 md:py-24 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Side - Benefits List */}
             <div>
-              <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Shield className="w-4 h-4" />
                 <span>Why Choose Us</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
                 The most advanced
                 <br />
                 <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
                   career platform
                 </span>
               </h2>
-              <p className="text-lg md:text-xl text-slate-400 mb-8 leading-relaxed">
+              <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
                 Join the fastest-growing career development community and unlock your full potential.
               </p>
               
@@ -833,11 +833,11 @@ export const LandingPage: React.FC = () => {
                 {benefits.map((benefit, index) => {
                   const Icon = benefit.icon;
                   return (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-slate-800/30 rounded-xl hover:shadow-md hover:shadow-emerald-500/10 transition-all border border-slate-700/30 hover:border-emerald-500/30">
+                    <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:shadow-md hover:shadow-emerald-500/10 transition-all border border-gray-200 hover:border-emerald-500">
                       <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                         <Icon className="w-5 h-5 text-white" />
                       </div>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 font-medium">
                         {benefit.text}
                       </span>
                     </div>
@@ -892,7 +892,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-16 md:py-24 lg:py-32 bg-slate-900/50 overflow-hidden">
+      <section id="testimonials" className="py-16 md:py-24 lg:py-32 bg-gray-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <motion.div 
@@ -902,18 +902,18 @@ export const LandingPage: React.FC = () => {
             variants={fadeInUp}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Star className="w-4 h-4" />
               <span>Success Stories</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
               Loved by professionals
               <br />
               <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
                 around the world
               </span>
             </h2>
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Hear from our community members who transformed their careers
             </p>
           </motion.div>
@@ -939,7 +939,7 @@ export const LandingPage: React.FC = () => {
                 <motion.div
                   key={index}
                   whileHover={{ scale: 1.05, y: -10 }}
-                  className="flex-shrink-0 w-[350px] bg-slate-800/50 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-slate-700/50 hover:border-emerald-500/30 transition-all"
+                  className="flex-shrink-0 w-[350px] bg-white border-2 border-gray-200 p-8 rounded-2xl shadow-sm hover:border-emerald-500 transition-all"
                 >
                   {/* Stars */}
                   <div className="flex space-x-1 mb-4">
@@ -949,7 +949,7 @@ export const LandingPage: React.FC = () => {
                   </div>
 
                   {/* Quote */}
-                  <p className="text-slate-300 mb-6 leading-relaxed text-sm">
+                  <p className="text-gray-700 mb-6 leading-relaxed text-sm">
                     "{testimonial.quote}"
                   </p>
 
@@ -959,10 +959,10 @@ export const LandingPage: React.FC = () => {
                       {testimonial.image}
                     </div>
                     <div>
-                      <div className="font-bold text-white">
+                      <div className="font-bold text-gray-900">
                         {testimonial.name}
                       </div>
-                      <div className="text-sm text-slate-400">
+                      <div className="text-sm text-gray-600">
                         {testimonial.role}
                       </div>
                     </div>
@@ -972,14 +972,14 @@ export const LandingPage: React.FC = () => {
             </motion.div>
 
             {/* Gradient Overlays */}
-            <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-slate-900/50 to-transparent pointer-events-none" />
-            <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-slate-900/50 to-transparent pointer-events-none" />
+            <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-gray-50 to-transparent pointer-events-none" />
+            <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-gray-50 to-transparent pointer-events-none" />
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 md:py-24 lg:py-32 bg-slate-950">
+      <section className="py-16 md:py-24 lg:py-32 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             initial="hidden"
@@ -988,18 +988,18 @@ export const LandingPage: React.FC = () => {
             variants={fadeInUp}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center space-x-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center space-x-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <MessageSquare className="w-4 h-4" />
               <span>FAQ</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
               Frequently asked
               <br />
               <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
                 questions
               </span>
             </h2>
-            <p className="text-lg md:text-xl text-slate-400 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
               Everything you need to know about CareerForge AI
             </p>
           </motion.div>
@@ -1015,20 +1015,20 @@ export const LandingPage: React.FC = () => {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 hover:border-emerald-500/30 overflow-hidden transition-all"
+                className="bg-white border-2 border-gray-200 rounded-xl hover:border-emerald-500 overflow-hidden transition-all"
               >
                 <button
                   onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-slate-700/30 transition-colors"
+                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-white pr-4">
+                  <span className="font-semibold text-gray-900 pr-4">
                     {faq.question}
                   </span>
                   <motion.div
                     animate={{ rotate: openFaqIndex === index ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <ChevronRight className="w-5 h-5 text-emerald-400 transform rotate-90" />
+                    <ChevronRight className="w-5 h-5 text-emerald-600 transform rotate-90" />
                   </motion.div>
                 </button>
                 <motion.div
@@ -1040,7 +1040,7 @@ export const LandingPage: React.FC = () => {
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   className="overflow-hidden"
                 >
-                  <div className="px-6 pb-5 text-slate-400 leading-relaxed">
+                  <div className="px-6 pb-5 text-gray-600 leading-relaxed">
                     {faq.answer}
                   </div>
                 </motion.div>
@@ -1089,7 +1089,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-800 text-slate-400 py-12">
+      <footer className="bg-gray-900 border-t border-gray-800 text-gray-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Brand */}
@@ -1102,7 +1102,7 @@ export const LandingPage: React.FC = () => {
                   CareerForge AI
                 </span>
               </div>
-              <p className="text-slate-400 mb-4">
+              <p className="text-gray-400 mb-4">
                 The most advanced AI-powered career development platform. Transform your professional journey with personalized guidance.
               </p>
             </div>
@@ -1127,7 +1127,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Bottom Bar */}
-          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm">
               © 2025 CareerForge AI. All rights reserved.
             </p>

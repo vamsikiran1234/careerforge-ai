@@ -19,15 +19,16 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>('light');
 
-  // Initialize theme from localStorage or system preference
+  // Initialize theme - always default to light theme
   useEffect(() => {
     const savedTheme = localStorage.getItem('careerforge-theme') as Theme;
     if (savedTheme) {
-      setThemeState(savedTheme);
+      // Force light theme by clearing any dark theme preference
+      localStorage.setItem('careerforge-theme', 'light');
+      setThemeState('light');
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setThemeState(prefersDark ? 'dark' : 'light');
+      // Always use light theme regardless of system preference
+      setThemeState('light');
     }
   }, []);
 
@@ -76,18 +77,20 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light');
+    // Disabled - force light theme only
+    // setThemeState(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
+  const setTheme = (_newTheme: Theme) => {
+    // Disabled - force light theme only
+    // setThemeState(newTheme);
   };
 
   const value: ThemeContextType = {
-    theme,
+    theme: 'light', // Always return 'light'
     toggleTheme,
     setTheme,
-    isDark: theme === 'dark',
+    isDark: false, // Always false
   };
 
   return (

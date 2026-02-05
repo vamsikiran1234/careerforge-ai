@@ -106,7 +106,7 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children, allowAuthenticated 
 };
 
 function App() {
-  const { checkAuth, isLoading, token } = useAuthStore();
+  const { checkAuth, isLoading, token, isAuthenticated } = useAuthStore();
   const { clearAllSessions } = useChatStore();
 
   useEffect(() => {
@@ -133,7 +133,9 @@ function App() {
     }
   }, [checkAuth, clearAllSessions, token]);
 
-  if (isLoading) {
+  // Only show app-level loading during initial auth check (not during login attempts)
+  // Show loading only if we have a token and not yet authenticated
+  if (isLoading && token && !isAuthenticated) {
     return <LoadingPage message="Initializing CareerForge AI..." />;
   }
 
