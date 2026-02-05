@@ -44,11 +44,12 @@ CareerForge AI addresses these challenges through an integrated platform offerin
    - File analysis (resumes, transcripts)
    - Session management and sharing capabilities
 
-2. **Skill Assessment & Gap Analysis**
-   - Adaptive quizzes for multiple domains
-   - Personalized skill gap identification
-   - AI-generated learning recommendations
-   - Progress tracking and analytics
+2. **AI-Powered Career Assessment**
+   - Comprehensive 5-stage assessment system
+   - AI-generated personalized questions
+   - Detailed career matching with recommendations
+   - Learning path and skill development roadmap
+   - Market insights and actionable next steps
 
 3. **Mentor Matching Platform**
    - AI-powered mentor-student matching algorithm
@@ -145,11 +146,12 @@ CareerForge AI addresses these challenges through an integrated platform offerin
    - Message threading and branching
    - Session persistence and sharing
 
-3. **Quiz Service**
-   - Dynamic question generation
-   - Adaptive difficulty adjustment
-   - Real-time progress tracking
-   - Result analytics and insights
+3. **Career Assessment Service**
+   - AI-powered dynamic question generation (5-stage assessment)
+   - Session management with pause/resume capability
+   - Comprehensive response analysis using LLM
+   - Personalized career recommendations and learning paths
+   - Results storage and history tracking
 
 4. **Mentorship Service**
    - Profile creation and verification
@@ -220,7 +222,8 @@ src/
 7. **CareerGoal**: User career objectives
 8. **SkillGap**: Identified skill deficiencies
 9. **CareerMilestone**: Progress checkpoints
-10. **QuizSession**: Assessment attempts and results
+10. **QuizSession**: Career assessment sessions with 5-stage progression and AI-generated results
+11. **QuizQuestion**: Individual assessment questions with user responses per session
 
 *(See [Database Design Document](./DESIGN.md#database-schema) for detailed schema)*
 
@@ -270,27 +273,73 @@ Response Generation → UI Rendering → Session Update
 - **Response Time**: Average 2-3 seconds
 - **Features**: Streaming responses, retry mechanism, error recovery
 
-### 2. Skill Assessment System
+### 2. AI-Powered Career Assessment System
 
-**Quiz Types:**
-- **Technical**: Programming, Data Structures, Algorithms, System Design
-- **Domain-Specific**: Web Dev, Mobile, AI/ML, Cloud, Cybersecurity
-- **Soft Skills**: Communication, Leadership, Problem-solving
-- **Career**: Interview prep, Resume building, Networking
+**Assessment Stages:**
+The system conducts a comprehensive 5-stage career assessment with AI-generated questions:
+- **SKILLS_ASSESSMENT**: Evaluates technical abilities and current skill levels
+- **CAREER_INTERESTS**: Explores what interests and motivates the user
+- **PERSONALITY_TRAITS**: Analyzes personality fit for different career paths
+- **LEARNING_STYLE**: Understands how the user learns best
+- **CAREER_GOALS**: Identifies long-term career objectives and aspirations
 
 **Assessment Flow:**
 ```
-Quiz Selection → Question Generation → User Response → 
-Real-time Scoring → Feedback → Skill Gap Analysis → 
-Recommendations
+Start Quiz → AI Generates Stage-Specific Questions (5 per stage) → 
+User Responds → Progress Through 5 Stages → 
+AI Analysis of All Responses → Personalized Career Recommendations
 ```
 
+**Technical Implementation:**
+- **AI-Powered Questions**: Dynamic question generation using Groq LLaMA 3.1 70B / Google Gemini
+- **Multi-Stage Process**: 25 total questions (5 questions per stage)
+- **Session Persistence**: Resume interrupted assessments from where you left off
+- **Intelligent Analysis**: AI analyzes all responses collectively to provide insights
+
 **Features:**
-- Adaptive difficulty based on performance
-- Detailed explanations for each answer
-- Progress tracking and history
-- Comparative analytics
-- AI-generated improvement suggestions
+- AI-generated personalized questions based on previous answers
+- Real-time progress tracking across 5 assessment stages
+- Session management (start, pause, resume, complete)
+- Comprehensive career matching with percentage scores
+- Detailed skill gap analysis and recommendations
+- Learning path generation with phases and timelines
+- Market insights (demand, competition, industry trends)
+- Assessment history and results archive
+
+**Assessment Results:**
+Upon completion, users receive comprehensive AI-generated recommendations including:
+
+1. **Top Career Matches** (3-5 careers):
+   - Career title with match percentage (AI-calculated)
+   - Detailed role description
+   - Why it matches (based on assessment responses)
+   - Salary range estimates
+   - Growth potential rating (High/Medium/Low)
+   - Learning timeline (months to prepare)
+   - Required skills list
+
+2. **Skills to Focus On** (4-6 skills):
+   - Skill name and priority level (High/Medium/Low)
+   - Description of why the skill is important
+   - Curated learning resources
+
+3. **Personalized Learning Path**:
+   - Multi-phase roadmap (Foundation → Skill Development → Professional Growth)
+   - Duration estimates for each phase
+   - Topic coverage per phase
+   - Recommended resources and platforms
+
+4. **Actionable Next Steps** (5-7 steps):
+   - Step-by-step action items
+   - Timeline for completion
+   - Priority levels
+   - Practical guidance (courses, portfolio, networking, etc.)
+
+5. **Market Insights**:
+   - Industry demand level
+   - Competition assessment
+   - Current market trends
+   - Remote work opportunities
 
 ### 3. Mentorship Platform
 
@@ -687,7 +736,7 @@ npx prisma migrate reset
 **Phase 1-2: Foundation** ✅
 - User authentication
 - AI chatbot with conversation management
-- Quiz system with adaptive questions
+- 5-stage career assessment system with AI-generated questions and personalized recommendations
 
 **Phase 3-5: Mentorship Platform** ✅
 - Mentor profiles and verification

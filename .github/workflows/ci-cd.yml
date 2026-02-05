@@ -12,6 +12,21 @@ jobs:
     name: Backend - Build & Test
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     defaults:
       run:
         working-directory: ./backend
@@ -40,7 +55,7 @@ jobs:
       - name: Run Prisma migrations (check)
         run: npx prisma migrate deploy --preview-feature || true
         env:
-          DATABASE_URL: file:./test.db
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test"
       
       - name: Lint backend code
         run: npm run lint || echo "No lint script found"
@@ -49,7 +64,7 @@ jobs:
         run: npm test || echo "No tests configured yet"
         env:
           NODE_ENV: test
-          DATABASE_URL: file:./test.db
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test"
       
       - name: Build backend
         run: npm run build || echo "No build script found"
@@ -154,6 +169,21 @@ jobs:
     name: Database Migration Validation
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     defaults:
       run:
         working-directory: ./backend
@@ -173,17 +203,17 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
         env:
-          DATABASE_URL: "file:./prisma/dev.db"
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test"
       
       - name: Validate Prisma schema
         run: npx prisma validate
         env:
-          DATABASE_URL: "file:./prisma/dev.db"
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test"
       
       - name: Check migration status
         run: npx prisma migrate status || echo "Migration check completed"
         env:
-          DATABASE_URL: "file:./prisma/dev.db"
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test"
 
   # Deployment readiness check
   deployment-check:
