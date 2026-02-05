@@ -8,10 +8,27 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    /* Force light mode - override any dark mode preferences */
+    background: white;
+    color-scheme: light only;
   }
   
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
+  }
+  
+  /* Force light mode globally - disable dark mode */
+  html.dark,
+  html[data-theme="dark"],
+  :root.dark {
+    background: white !important;
+    color-scheme: light only !important;
+  }
+  
+  html.dark *,
+  html[data-theme="dark"] *,
+  :root.dark * {
+    color-scheme: light only !important;
   }
 }
 

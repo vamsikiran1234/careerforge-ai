@@ -93,7 +93,7 @@ router.post('/register', [
     if (existingUser) {
       console.log('User already exists:', email);
       return res.status(400).json(
-        createResponse('error', 'User already exists with this email')
+        createResponse('error', 'An account with this email already exists. Please log in or use a different email.')
       );
     }
 
@@ -140,7 +140,7 @@ router.post('/register', [
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json(
-      createResponse('error', 'Internal server error during registration', 
+      createResponse('error', 'We couldn\'t create your account right now. Please try again later.', 
         process.env.NODE_ENV === 'development' ? { error: error.message } : null
       )
     );
@@ -253,7 +253,7 @@ router.post('/login', [
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json(
-      createResponse('error', 'Internal server error during login',
+      createResponse('error', 'We couldn\'t sign you in right now. Please try again later.',
         process.env.NODE_ENV === 'development' ? { error: error.message } : null
       )
     );
@@ -384,13 +384,13 @@ router.post('/forgot-password', [
       });
       
       res.status(500).json(
-        createResponse('error', 'Failed to send password reset email. Please try again later.')
+        createResponse('error', 'We couldn\'t send the reset email right now. Please try again in a few moments.')
       );
     }
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json(
-      createResponse('error', 'Internal server error during password reset request',
+      createResponse('error', 'We couldn\'t process your password reset request. Please try again later.',
         process.env.NODE_ENV === 'development' ? { error: error.message } : null
       )
     );
@@ -435,7 +435,7 @@ router.post('/reset-password', [
     if (!user) {
       console.log('Invalid or expired reset token:', token.substring(0, 10) + '...');
       return res.status(400).json(
-        createResponse('error', 'Invalid or expired reset token.')
+        createResponse('error', 'This password reset link has expired or is invalid. Please request a new one.')
       );
     }
 
@@ -463,7 +463,7 @@ router.post('/reset-password', [
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json(
-      createResponse('error', 'Internal server error during password reset',
+      createResponse('error', 'We couldn\'t reset your password right now. Please try again later.',
         process.env.NODE_ENV === 'development' ? { error: error.message } : null
       )
     );

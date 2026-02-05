@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useToast } from '@/components/ui/Toast';
 import { validatePassword } from '@/utils';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth';
@@ -13,6 +14,7 @@ export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const { logout } = useAuthStore();
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     password: '',
@@ -21,7 +23,6 @@ export const ResetPasswordPage: React.FC = () => {
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     // Logout user if they're logged in (to prevent conflicts)
@@ -29,15 +30,15 @@ export const ResetPasswordPage: React.FC = () => {
     
     // Check if token is present
     if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
+      toast.error('Invalid reset link. Please request a new password reset.');
     }
-  }, [token, logout]);
+  }, [token, logout, toast]);
 
   const validateForm = (): boolean => {
     const newErrors: { password?: string; confirmPassword?: string } = {};
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Please enter a password';
     } else {
       const passwordValidation = validatePassword(formData.password);
       if (!passwordValidation.isValid) {
@@ -48,7 +49,7 @@ export const ResetPasswordPage: React.FC = () => {
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "The passwords you entered don't match";
     }
 
     setErrors(newErrors);
@@ -57,10 +58,9 @@ export const ResetPasswordPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     if (!token) {
-      setError('Invalid reset token');
+      toast.error('Invalid reset token. Please request a new password reset.');
       return;
     }
 
@@ -77,23 +77,23 @@ export const ResetPasswordPage: React.FC = () => {
       });
       
       if (response.status === 'success') {
+        toast.success('Password updated successfully!');
         setIsSubmitted(true);
       } else {
-        setError(response.message || 'Failed to reset password');
+        toast.error(response.message || 'Unable to reset password. Please try again.');
       }
     } catch (error: unknown) {
-      console.error('Reset password error:', error);
       const err = error as { response?: { data?: { message?: string; errors?: Array<{ msg?: string; message?: string }> } } };
       
       if (err.response?.data?.message) {
-        setError(err.response.data.message);
+        toast.error(err.response.data.message);
       } else if (err.response?.data?.errors?.length) {
         const validationErrors = err.response.data.errors
           .map((err) => err.message || err.msg || 'Validation error')
           .join(', ');
-        setError(validationErrors);
+        toast.error(validationErrors);
       } else {
-        setError('An error occurred while resetting your password. Please try again.');
+        toast.error('An error occurred while resetting your password. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -107,10 +107,6 @@ export const ResetPasswordPage: React.FC = () => {
     // Clear error when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-    
-    if (error) {
-      setError('');
     }
   };
 
@@ -249,15 +245,6 @@ export const ResetPasswordPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start">
-                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
-                    <p className="text-sm text-red-800">{error}</p>
-                  </div>
-                </div>
-              )}
-
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                   New Password

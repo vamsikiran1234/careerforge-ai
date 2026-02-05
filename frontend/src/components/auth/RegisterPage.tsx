@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { useToast } from '@/components/ui/Toast';
 import { isValidEmail, validatePassword } from '@/utils';
 import type { RegisterForm } from '@/types';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { register, isLoading, error, clearError } = useAuthStore();
+  const { register, isLoading, clearError } = useAuthStore();
+  const toast = useToast();
   
   const [formData, setFormData] = useState<RegisterForm>({
     name: '',
@@ -25,19 +27,19 @@ export const RegisterPage: React.FC = () => {
     const newErrors: Partial<RegisterForm> = {};
 
     if (!formData.name) {
-      newErrors.name = 'Name is required';
+      newErrors.name = 'Please enter your name';
     } else if (formData.name.length < 2) {
       newErrors.name = 'Name must be at least 2 characters long';
     }
 
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Please enter your email address';
     } else if (!isValidEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = 'Please enter a valid email address (e.g., name@example.com)';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Please enter a password';
     } else {
       const passwordValidation = validatePassword(formData.password);
       if (!passwordValidation.isValid) {
@@ -48,7 +50,7 @@ export const RegisterPage: React.FC = () => {
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "The passwords you entered don't match";
     }
 
     setErrors(newErrors);
@@ -66,16 +68,20 @@ export const RegisterPage: React.FC = () => {
     try {
       const success = await register(formData);
       if (success) {
+        toast.success('Account created! Redirecting to login...');
         // Navigate to login page after successful registration
         navigate('/login', { 
           state: { 
             message: 'Registration successful! Please log in with your credentials.' 
           } 
         });
+      } else {
+        // Error from auth store
+        const errorMessage = useAuthStore.getState().error || 'Unable to create your account. Please try again later.';
+        toast.error(errorMessage);
       }
-      // Error handling is now done in the auth store
     } catch (error) {
-      console.error('Registration error:', error);
+      toast.error('Unable to create your account. Please try again later.');
     }
   };
 
@@ -115,12 +121,6 @@ export const RegisterPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <div className="text-sm text-red-700">{error}</div>
-                </div>
-              )}
-
               <Input
                 id="name"
                 name="name"

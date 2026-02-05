@@ -38,11 +38,12 @@ class ApiClient {
         return response;
       },
       (error) => {
-        // Don't redirect on 401 for share endpoints (they might need password)
+        // Don't redirect on 401 for auth endpoints (login, register, etc.) or share endpoints
+        const isAuthEndpoint = error.config?.url?.includes('/auth/');
         const isShareEndpoint = error.config?.url?.includes('/share/');
         
-        if (error.response?.status === 401 && !isShareEndpoint) {
-          // Handle unauthorized access
+        if (error.response?.status === 401 && !isAuthEndpoint && !isShareEndpoint) {
+          // Handle unauthorized access for protected routes only
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           window.location.href = '/login';
@@ -54,12 +55,6 @@ class ApiClient {
 
   async get<T>(url: string, config?: { params?: any; headers?: any }): Promise<ApiResponse<T>> {
     try {
-      console.log('🔵 [API] GET Request:', {
-        url: `${this.client.defaults.baseURL}${url}`,
-        params: config?.params,
-        headers: config?.headers,
-      });
-      
       const response = await this.client.get(url, { 
         params: config?.params,
         headers: {
@@ -70,52 +65,18 @@ class ApiClient {
         }
       });
       
-      console.log('🔵 [API] GET Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        data: response.data,
-        headers: response.headers,
-      });
-      
       return response.data;
     } catch (error: any) {
-      console.error('🔴 [API] GET Error:', {
-        url: `${this.client.defaults.baseURL}${url}`,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
       return this.handleError(error);
     }
   }
 
   async post<T>(url: string, data?: any, config?: { headers?: any }): Promise<ApiResponse<T>> {
     try {
-      console.log('🔵 [API] POST Request:', {
-        url: `${this.client.defaults.baseURL}${url}`,
-        data,
-        headers: config?.headers,
-      });
-      
       const response = await this.client.post(url, data, config);
-      
-      console.log('🔵 [API] POST Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        data: response.data,
-        fullResponse: response
-      });
-      
       return response.data;
     } catch (error: any) {
-      console.error('🔴 [API] POST Error:', {
-        url: `${this.client.defaults.baseURL}${url}`,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        fullError: error
-      });
-      throw error; // Re-throw so quiz.ts can catch it properly
+      return this.handleError(error);
     }
   }
 
@@ -147,7 +108,9 @@ class ApiClient {
   }
 
   private handleError(error: any): ApiResponse {
-    console.error('API Error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Error:', error);
+    }
 
     if (error.response) {
       // Server responded with error status
