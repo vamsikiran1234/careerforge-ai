@@ -17,6 +17,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "node scripts/seed.js",
+    "setup:demo": "node ../create-demo-user.js",
     "docker:build": "docker build -t careerforge-ai .",
     "docker:run": "docker run -p 3000:3000 careerforge-ai",
     "docker:dev": "docker-compose up",

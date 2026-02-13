@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useToast } from '@/components/ui/Toast';
 import { isValidEmail } from '@/utils';
+import { Info } from 'lucide-react';
 import type { LoginForm } from '@/types';
 
 export const LoginPage: React.FC = () => {
@@ -21,15 +22,18 @@ export const LoginPage: React.FC = () => {
   });
   
   const [errors, setErrors] = useState<Partial<LoginForm>>({});
+  const [messageShown, setMessageShown] = useState(false);
+  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
 
-  // Check for success message from registration
+  // Check for success message from registration (only once)
   useEffect(() => {
-    if (location.state?.message) {
+    if (location.state?.message && !messageShown) {
       toast.success(location.state.message);
+      setMessageShown(true);
       // Clear the state to prevent showing message on refresh
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, toast]);
+  }, [location.state, toast, messageShown]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginForm> = {};
@@ -90,6 +94,16 @@ export const LoginPage: React.FC = () => {
     clearError();
   };
 
+  const handleUseDemoCredentials = () => {
+    setFormData({
+      email: 'demo.user@careerforge.ai',
+      password: 'CareerForge@Demo2026'
+    });
+    setErrors({});
+    clearError();
+    toast.info('Demo credentials loaded. Click "Sign in" to continue.');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -115,6 +129,60 @@ export const LoginPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Demo Credentials Section */}
+            {!showDemoCredentials ? (
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={() => setShowDemoCredentials(true)}
+                  className="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 hover:bg-blue-100 transition-colors flex items-center justify-center space-x-2 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <Info className="w-4 h-4" />
+                  <span>Try Demo Account</span>
+                </button>
+              </div>
+            ) : (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-semibold text-blue-900">
+                        Try Demo Account
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setShowDemoCredentials(false)}
+                        className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                      >
+                        Hide
+                      </button>
+                    </div>
+                    <p className="text-sm text-blue-800 mb-3">
+                      Test the platform without creating an account:
+                    </p>
+                    <div className="bg-white rounded border border-blue-200 p-3 mb-3 font-mono text-xs">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-600">Email:</span>
+                        <span className="text-gray-900 font-medium">demo.user@careerforge.ai</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Password:</span>
+                        <span className="text-gray-900 font-medium">CareerForge@Demo2026</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleUseDemoCredentials}
+                      className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                      Use Demo Credentials
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <Input
                 id="email"
