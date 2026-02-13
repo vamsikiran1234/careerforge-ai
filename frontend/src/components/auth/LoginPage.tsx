@@ -96,8 +96,8 @@ export const LoginPage: React.FC = () => {
 
   const handleUseDemoCredentials = () => {
     setFormData({
-      email: 'demo@careerforge.ai',
-      password: 'DemoCareerForge2026!'
+      email: 'demo.user@careerforge.ai',
+      password: 'CareerForge@Demo2026'
     });
     setErrors({});
     clearError();
@@ -164,11 +164,11 @@ export const LoginPage: React.FC = () => {
                     <div className="bg-white rounded border border-blue-200 p-3 mb-3 font-mono text-xs">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-600">Email:</span>
-                        <span className="text-gray-900 font-medium">demo@careerforge.ai</span>
+                        <span className="text-gray-900 font-medium">demo.user@careerforge.ai</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Password:</span>
-                        <span className="text-gray-900 font-medium">DemoCareerForge2026!</span>
+                        <span className="text-gray-900 font-medium">CareerForge@Demo2026</span>
                       </div>
                     </div>
                     <button
