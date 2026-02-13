@@ -221,10 +221,10 @@ export const LandingPage: React.FC = () => {
   ];
 
   const stats = [
-    { label: 'Active Users', value: '10,000+', icon: Users },
-    { label: 'Career Paths', value: '500+', icon: Target },
-    { label: 'Expert Mentors', value: '1,000+', icon: Award },
-    { label: 'Success Rate', value: '94%', icon: TrendingUp }
+    { label: 'AI-Powered', value: '24/7', icon: Brain },
+    { label: 'Career Paths', value: 'Unlimited', icon: Target },
+    { label: 'Expert Support', value: 'Available', icon: Award },
+    { label: 'Get Started', value: 'Free', icon: TrendingUp }
   ];
 
   const howItWorks = [
@@ -254,33 +254,11 @@ export const LandingPage: React.FC = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      name: 'Sarah Chen',
-      role: 'Software Engineer at Google',
-      image: '👩‍💻',
-      quote: 'CareerForge AI helped me transition from marketing to software engineering. The AI guidance was spot-on, and my mentor was invaluable!',
-      rating: 5
-    },
-    {
-      name: 'Marcus Johnson',
-      role: 'Product Manager at Microsoft',
-      image: '👨‍💼',
-      quote: 'The career assessments revealed strengths I didn\'t know I had. Now I\'m thriving in a role I love. Best career decision ever!',
-      rating: 5
-    },
-    {
-      name: 'Priya Sharma',
-      role: 'Data Scientist at Amazon',
-      image: '👩‍🔬',
-      quote: 'The AI-powered recommendations were incredibly accurate. Within 6 months, I landed my dream job with a 40% salary increase.',
-      rating: 5
-    }
-  ];
+  const testimonials: any[] = [];
 
   const benefits = [
     { text: 'AI-powered career recommendations', icon: Sparkles },
-    { text: 'Access to 1,000+ industry mentors', icon: Users },
+    { text: 'Connect with industry mentors', icon: Users },
     { text: 'Adaptive skill assessments', icon: Target },
     { text: 'Real-time progress tracking', icon: BarChart3 },
     { text: 'Personalized learning paths', icon: BookOpen },
@@ -306,11 +284,11 @@ export const LandingPage: React.FC = () => {
     },
     {
       question: 'What types of careers does CareerForge AI support?',
-      answer: 'CareerForge AI supports over 500 career paths across various industries including Technology, Business, Healthcare, Creative Arts, Engineering, Marketing, Finance, and more. Our AI continuously learns and expands to cover emerging career opportunities.'
+      answer: 'CareerForge AI supports a wide range of career paths across various industries including Technology, Business, Healthcare, Creative Arts, Engineering, Marketing, Finance, and more. Our AI continuously learns and expands to cover emerging career opportunities.'
     },
     {
       question: 'How long does it take to see results?',
-      answer: 'Many users report noticeable improvements in career clarity within the first week. Typical outcomes like landing interviews or promotions occur within 3-6 months, depending on your goals, effort, and market conditions. Our platform provides real-time progress tracking to keep you motivated.'
+      answer: 'Career development is a journey that varies for each individual. Our AI-powered platform provides personalized guidance and real-time progress tracking to help you achieve your career goals at your own pace.'
     }
   ];
 
@@ -620,40 +598,31 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <p className="text-sm font-medium text-gray-600 mb-4">
-              TRUSTED BY PROFESSIONALS WORLDWIDE
+              EMPOWERING YOUR CAREER JOURNEY
             </p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center mb-12">
-            {/* Company Placeholders - Replace with real logos */}
-            {['Google', 'Microsoft', 'Amazon', 'Meta'].map((company, i) => (
-              <div key={i} className="flex items-center justify-center h-12 w-32 text-gray-400 hover:text-emerald-600 font-bold text-lg transition-colors">
-                {company}
-              </div>
-            ))}
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="text-center p-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <p className="text-2xl font-bold text-gray-900">10,000+</p>
+                <p className="text-2xl font-bold text-gray-900">Free</p>
               </div>
-              <p className="text-sm text-gray-600">Active Users</p>
+              <p className="text-sm text-gray-600">To Get Started</p>
             </div>
             <div className="text-center p-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Star className="w-5 h-5 text-amber-400" />
-                <p className="text-2xl font-bold text-gray-900">4.9/5</p>
+                <p className="text-2xl font-bold text-gray-900">24/7</p>
               </div>
-              <p className="text-sm text-gray-600">Average Rating</p>
+              <p className="text-sm text-gray-600">AI Support</p>
             </div>
             <div className="text-center p-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Trophy className="w-5 h-5 text-teal-400" />
-                <p className="text-2xl font-bold text-gray-900">5,000+</p>
+                <p className="text-2xl font-bold text-gray-900">Smart</p>
               </div>
-              <p className="text-sm text-gray-600">Success Stories</p>
+              <p className="text-sm text-gray-600">Career Matching</p>
             </div>
           </div>
         </div>
@@ -892,6 +861,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
+      {testimonials.length > 0 && (
       <section id="testimonials" className="py-16 md:py-24 lg:py-32 bg-gray-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
@@ -977,6 +947,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* FAQ Section */}
       <section className="py-16 md:py-24 lg:py-32 bg-white">
