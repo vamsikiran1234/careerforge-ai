@@ -45,7 +45,7 @@ export const Layout: React.FC = () => {
         {/* Top Header - Student/Admin/Mentor Modes & Theme Toggle Side by Side at Top Right */}
         <header className="hidden md:flex items-center justify-between px-6 py-2.5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700/80 transition-colors">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 capitalize">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               {currentSection}
             </span>
           </div>
