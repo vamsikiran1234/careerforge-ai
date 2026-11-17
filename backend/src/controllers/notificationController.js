@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../config/database');
 
 // Notification Types
 const NOTIFICATION_TYPES = {
@@ -74,7 +73,7 @@ const createNotification = async (req, res) => {
  */
 const getUserNotifications = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const unreadOnly = req.query.unreadOnly === 'true';
@@ -140,7 +139,7 @@ const getUserNotifications = async (req, res) => {
  */
 const getUnreadCount = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
 
     const count = await prisma.notification.count({
       where: {
@@ -169,7 +168,7 @@ const getUnreadCount = async (req, res) => {
  */
 const markAsRead = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
     const { id } = req.params;
 
     // Check if notification exists and belongs to user
@@ -220,7 +219,7 @@ const markAsRead = async (req, res) => {
  */
 const markAllAsRead = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
 
     const result = await prisma.notification.updateMany({
       where: {
@@ -254,7 +253,7 @@ const markAllAsRead = async (req, res) => {
  */
 const deleteNotification = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
     const { id } = req.params;
 
     // Check if notification exists and belongs to user
@@ -301,7 +300,7 @@ const deleteNotification = async (req, res) => {
  */
 const deleteAllNotifications = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
 
     const result = await prisma.notification.deleteMany({
       where: {

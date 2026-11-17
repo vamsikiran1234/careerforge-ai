@@ -160,7 +160,7 @@ const QuizPage: React.FC = () => {
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3"></span>
-                20-30 adaptive questions across 5 assessment stages
+                25 questions across 5 assessment stages (5 questions per stage)
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3"></span>

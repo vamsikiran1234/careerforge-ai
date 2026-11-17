@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -31,6 +32,7 @@ const authRoutes = require('./routes/authRoutes');
 const reactionRoutes = require('./routes/reactionRoutes');
 const shareRoutes = require('./routes/shareRoutes');
 const testRoutes = require('./routes/testRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -62,6 +64,9 @@ if (process.env.NODE_ENV === 'development') {
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -112,6 +117,7 @@ app.use('/api/v1/career', careerRoutes); // CAREER TRAJECTORY SYSTEM (NEW FEATUR
 app.use('/api/v1/reactions', reactionRoutes);
 app.use('/api/v1/share', shareRoutes);
 app.use('/api/v1/test', testRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // API Documentation routes
 const docsRoutes = require('./routes/docsRoutes');

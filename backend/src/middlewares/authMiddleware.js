@@ -3,7 +3,13 @@ const { createResponse } = require('../utils/helpers');
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  if (token) {
+    token = token.trim();
+    if (token === 'null' || token === 'undefined' || token === '') {
+      token = null;
+    }
+  }
 
   console.log('Auth Debug:', {
     url: req.path,
@@ -44,13 +50,24 @@ const authenticateToken = (req, res, next) => {
 
     // Add user info to request object
     req.user = user;
+    if (req.user && req.user.userId && !req.user.id) {
+      req.user.id = req.user.userId;
+    } else if (req.user && req.user.id && !req.user.userId) {
+      req.user.userId = req.user.id;
+    }
     next();
   });
 };
 
 const optionalAuth = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  let token = authHeader && authHeader.split(' ')[1];
+  if (token) {
+    token = token.trim();
+    if (token === 'null' || token === 'undefined' || token === '') {
+      token = null;
+    }
+  }
 
   if (!token) {
     req.user = null;

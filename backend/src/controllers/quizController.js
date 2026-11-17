@@ -1,31 +1,34 @@
 const { asyncHandler, createResponse } = require('../utils/helpers');
 const { prisma } = require('../config/database');
 const aiService = require('../services/multiAiService');
+const STAGE_ORDER = aiService.STAGE_ORDER || ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
+const TOTAL_QUESTIONS = aiService.TOTAL_QUESTIONS || 25;
 
 const quizController = {
   // POST /api/v1/quiz/start
   startQuiz: asyncHandler(async (req, res) => {
-    // Get user from JWT token instead of request body
-    const userEmail = req.user.email || req.user.userEmail;
+    let userId = req.user?.id || req.user?.userId;
     
-    if (!userEmail) {
-      return res.status(401).json(
-        createResponse('error', 'Authentication required')
-      );
+    if (!userId) {
+      const userEmail = req.user?.email || req.user?.userEmail;
+      if (!userEmail) {
+        return res.status(401).json(
+          createResponse('error', 'Authentication required')
+        );
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { email: userEmail },
+        select: { id: true },
+      });
+
+      if (!user) {
+        return res.status(404).json(
+          createResponse('error', 'User not found')
+        );
+      }
+      userId = user.id;
     }
-
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    });
-
-    if (!user) {
-      return res.status(404).json(
-        createResponse('error', 'User not found')
-      );
-    }
-
-    const userId = user.id;
 
     // Check if user has an active quiz session
     const existingSession = await prisma.quizSession.findFirst({
@@ -48,37 +51,55 @@ const quizController = {
 
     if (existingSession) {
       try {
-        // Return the existing session instead of error
+        const STAGE_ORDER = ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
+        const existingAnswers = typeof existingSession.answers === 'string'
+          ? JSON.parse(existingSession.answers || '{}')
+          : (existingSession.answers || {});
+
+        let totalAnswered = 0;
+        for (const s of STAGE_ORDER) {
+          totalAnswered += (existingAnswers[s]?.length || 0);
+        }
+
         let lastQuestion = existingSession.quizQuestions && existingSession.quizQuestions.length > 0 
           ? existingSession.quizQuestions[0]
           : null;
-        
-        // If there's no question yet, generate one
-        if (!lastQuestion) {
-          console.log('No existing question found, generating new one...');
-          const firstQuestion = await aiService.quizNext(existingSession.id, null);
+
+        // If last question was already answered, get the next question instead of repeating the answered one
+        if (!lastQuestion || lastQuestion.userAnswer != null) {
+          const nextStep = await aiService.quizNext(existingSession.id, existingAnswers, existingSession.currentStage);
           
-          if (!firstQuestion || !firstQuestion.question) {
-            throw new Error('Failed to generate question from AI service');
+          if (nextStep.isComplete) {
+            return res.status(200).json(
+              createResponse('success', 'Quiz completed', {
+                sessionId: existingSession.id,
+                isComplete: true,
+                results: nextStep.recommendations,
+                progress: nextStep.progress,
+              })
+            );
           }
-          
-          // Create first quiz question in database
+
+          const questionCount = await prisma.quizQuestion.count({
+            where: { quizSessionId: existingSession.id },
+          });
+
           lastQuestion = await prisma.quizQuestion.create({
             data: {
               quizSessionId: existingSession.id,
-              questionText: firstQuestion.question,
-              options: JSON.stringify(firstQuestion.options || []),
-              stage: firstQuestion.stage || existingSession.currentStage,
-              order: 1,
+              questionText: nextStep.question,
+              options: JSON.stringify(nextStep.options || []),
+              stage: nextStep.stage || existingSession.currentStage,
+              order: questionCount + 1,
             },
+          });
+
+          await prisma.quizSession.update({
+            where: { id: existingSession.id },
+            data: { currentStage: nextStep.stage },
           });
         }
       
-        // Calculate progress based on current stage
-        const stageOrder = ['SKILLS_ASSESSMENT', 'INTEREST_ANALYSIS', 'PERSONALITY_TEST', 'VALUES_ALIGNMENT', 'CAREER_MATCHING'];
-        const currentStageIndex = stageOrder.indexOf(existingSession.currentStage);
-        const percentage = Math.round(((currentStageIndex) / stageOrder.length) * 100);
-        
         // Parse options safely
         let questionOptions;
         try {
@@ -89,18 +110,27 @@ const quizController = {
           questionOptions = [];
         }
 
+        const currentStageIndex = Math.max(0, STAGE_ORDER.indexOf(lastQuestion.stage || existingSession.currentStage));
+        const currentQuestionNumber = Math.min(totalAnswered + 1, TOTAL_QUESTIONS);
+        const percentage = Math.round(((currentQuestionNumber - 1) / TOTAL_QUESTIONS) * 100);
+
         return res.status(200).json(
           createResponse('success', 'Resuming existing quiz session', {
             sessionId: existingSession.id,
             currentStage: existingSession.currentStage,
             question: {
+              id: lastQuestion.id,
               text: lastQuestion.questionText,
               options: questionOptions,
               stage: lastQuestion.stage,
             },
             progress: {
+              currentQuestion: currentQuestionNumber,
+              totalQuestions: TOTAL_QUESTIONS,
+              stageQuestion: ((currentQuestionNumber - 1) % 5) + 1,
+              stageTotalQuestions: 5,
               currentStage: currentStageIndex + 1,
-              totalStages: stageOrder.length,
+              totalStages: STAGE_ORDER.length,
               percentage,
             },
           })
@@ -140,20 +170,17 @@ const quizController = {
       // Generate first question using AI
       let firstQuestion;
       try {
-        firstQuestion = await aiService.quizNext(session.id, null);
+        firstQuestion = await aiService.quizNext(session.id, {}, 'SKILLS_ASSESSMENT');
       } catch (aiError) {
         console.error('AI service error:', aiError);
-        // Provide a fallback question if AI service fails
+        // Provide a calibrated fallback question matching the 4 options format
         firstQuestion = {
-          question: "What is your primary area of interest in technology?",
+          question: "Which programming language or technology stack are you most comfortable using?",
           options: [
-            "Web Development (Frontend/Backend)",
-            "Mobile App Development",
-            "Data Science & Analytics",
-            "Artificial Intelligence & Machine Learning",
-            "Cybersecurity",
-            "Cloud Computing & DevOps",
-            "Other"
+            "JavaScript / TypeScript (React, Node.js, Web development)",
+            "Python (Data analysis, scripting, AI basics)",
+            "Java / C# / Go (Object-oriented programming, enterprise apps)",
+            "Cloud, DevOps & Systems (Linux, Docker, AWS, Infrastructure)"
           ],
           stage: "SKILLS_ASSESSMENT"
         };
@@ -166,7 +193,7 @@ const quizController = {
       console.log('Generated first question:', firstQuestion.question.substring(0, 50) + '...');
 
       // Create first quiz question in database
-      await prisma.quizQuestion.create({
+      const createdFirstQuestion = await prisma.quizQuestion.create({
         data: {
           quizSessionId: session.id,
           questionText: firstQuestion.question,
@@ -181,14 +208,19 @@ const quizController = {
           sessionId: session.id,
           currentStage: session.currentStage,
           question: {
+            id: createdFirstQuestion.id,
             text: firstQuestion.question,
             options: firstQuestion.options,
             stage: firstQuestion.stage,
           },
           progress: {
+            currentQuestion: 1,
+            totalQuestions: TOTAL_QUESTIONS,
+            stageQuestion: 1,
+            stageTotalQuestions: 5,
             currentStage: 1,
-            totalStages: 5,
-            percentage: 20,
+            totalStages: STAGE_ORDER.length,
+            percentage: 0,
           },
         })
       );
@@ -262,81 +294,82 @@ const quizController = {
     }
     currentAnswers[currentStage].push(answer);
 
-    // Get next question or recommendations from AI
-    // The aiService has built-in error handling and fallback mechanisms
-    // so we don't need to catch errors here - let it handle fallbacks internally
-    const nextStep = await aiService.quizNext(session.id, answer);
+    // Save answers to database immediately so state is strictly consistent
+    await prisma.quizSession.update({
+      where: { id: quizId },
+      data: {
+        answers: JSON.stringify(currentAnswers),
+      },
+    });
+
+    // Get next question or recommendations with up-to-date answers map
+    const nextStep = await aiService.quizNext(session.id, currentAnswers, currentStage);
 
     if (nextStep.isComplete) {
-      // Quiz is complete, save final results - store as JSON strings
+      // Quiz is complete, save final results
       await prisma.quizSession.update({
         where: { id: quizId },
         data: {
-          answers: JSON.stringify(currentAnswers),
           results: JSON.stringify(nextStep.recommendations),
           completedAt: new Date(),
           currentStage: 'COMPLETED',
         },
       });
 
-      res.status(200).json(
+      return res.status(200).json(
         createResponse('success', 'Quiz completed successfully!', {
           sessionId: quizId,
           isComplete: true,
           results: nextStep.recommendations,
-          progress: {
-            currentStage: 5,
-            totalStages: 5,
+          progress: nextStep.progress || {
+            currentQuestion: TOTAL_QUESTIONS,
+            totalQuestions: TOTAL_QUESTIONS,
+            stageQuestion: 5,
+            stageTotalQuestions: 5,
+            currentStage: STAGE_ORDER.length,
+            totalStages: STAGE_ORDER.length,
             percentage: 100,
           },
         })
       );
     } else {
-      // More questions to go
-      const stageOrder = ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
-      const currentStageIndex = stageOrder.indexOf(nextStep.stage);
-      
-      // Only create question if we have question text (not a completion message)
+      let createdNextQuestion = null;
       if (nextStep.question) {
         // Create next question in database
         const questionCount = await prisma.quizQuestion.count({
           where: { quizSessionId: quizId },
         });
 
-        await prisma.quizQuestion.create({
+        createdNextQuestion = await prisma.quizQuestion.create({
           data: {
             quizSessionId: quizId,
             questionText: nextStep.question,
-            options: JSON.stringify(nextStep.options), // Store as JSON string
+            options: JSON.stringify(nextStep.options),
             stage: nextStep.stage,
             order: questionCount + 1,
           },
         });
       }
 
-      // Update session - store answers as JSON string
+      // Update session with new stage
       await prisma.quizSession.update({
         where: { id: quizId },
         data: {
-          answers: JSON.stringify(currentAnswers),
           currentStage: nextStep.stage,
         },
       });
 
-      res.status(200).json(
+      return res.status(200).json(
         createResponse('success', 'Answer submitted successfully', {
           sessionId: quizId,
           isComplete: false,
           nextQuestion: {
+            id: createdNextQuestion ? createdNextQuestion.id : undefined,
             text: nextStep.question,
             options: nextStep.options,
             stage: nextStep.stage,
           },
-          progress: {
-            currentStage: currentStageIndex + 1,
-            totalStages: 5,
-            percentage: ((currentStageIndex + 1) / 5) * 100,
-          },
+          progress: nextStep.progress,
         })
       );
     }
@@ -371,17 +404,26 @@ const quizController = {
       );
     }
 
-    const stageOrder = ['SKILLS_ASSESSMENT', 'CAREER_INTERESTS', 'PERSONALITY_TRAITS', 'LEARNING_STYLE', 'CAREER_GOALS'];
+    const stageOrder = STAGE_ORDER;
     const currentStageIndex = stageOrder.indexOf(session.currentStage);
+
+    const parsedAnswers = typeof session.answers === 'string' 
+      ? JSON.parse(session.answers || '{}') 
+      : (session.answers || {});
+
+    let totalAnswered = 0;
+    for (const stage of stageOrder) {
+      totalAnswered += (parsedAnswers[stage]?.length || 0);
+    }
+    const currentQuestionNumber = Math.min(totalAnswered + 1, TOTAL_QUESTIONS);
+    const percentage = session.completedAt ? 100 : Math.round(((currentQuestionNumber - 1) / TOTAL_QUESTIONS) * 100);
 
     res.status(200).json(
       createResponse('success', 'Quiz session retrieved successfully', {
         session: {
           id: session.id,
           currentStage: session.currentStage,
-          answers: typeof session.answers === 'string' 
-            ? JSON.parse(session.answers || '{}') 
-            : (session.answers || {}),
+          answers: parsedAnswers,
           results: typeof session.results === 'string' 
             ? JSON.parse(session.results || 'null') 
             : session.results,
@@ -396,9 +438,13 @@ const quizController = {
               : (q.options || [])
           })),
           progress: {
-            currentStage: currentStageIndex + 1,
-            totalStages: 5,
-            percentage: session.completedAt ? 100 : ((currentStageIndex + 1) / 5) * 100,
+            currentQuestion: session.completedAt ? TOTAL_QUESTIONS : currentQuestionNumber,
+            totalQuestions: TOTAL_QUESTIONS,
+            stageQuestion: session.completedAt ? 5 : (((currentQuestionNumber - 1) % 5) + 1),
+            stageTotalQuestions: 5,
+            currentStage: Math.min(Math.max(currentStageIndex + 1, 1), stageOrder.length),
+            totalStages: stageOrder.length,
+            percentage,
           },
         },
       })

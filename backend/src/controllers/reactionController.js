@@ -1,11 +1,24 @@
 const { asyncHandler, createResponse } = require('../utils/helpers');
 const { prisma } = require('../config/database');
 
+// Fast user resolution: reuse req.user id from JWT, fallback to DB only if missing
+const getUserIdFromReq = async (req) => {
+  if (req.user && (req.user.id || req.user.userId)) {
+    return req.user.id || req.user.userId;
+  }
+  const userEmail = req.user?.email || req.user?.userEmail;
+  if (!userEmail) return null;
+  const user = await prisma.user.findUnique({
+    where: { email: userEmail },
+    select: { id: true },
+  });
+  return user?.id || null;
+};
+
 const reactionController = {
   // POST /api/v1/reactions - Add or update a reaction to a message
   addReaction: asyncHandler(async (req, res) => {
     const { sessionId, messageId, reactionType, feedback } = req.body;
-    const userEmail = req.user.email || req.user.userEmail;
 
     // Validate reaction type
     const validReactionTypes = ['THUMBS_UP', 'THUMBS_DOWN', 'BOOKMARK', 'STAR'];
@@ -15,37 +28,19 @@ const reactionController = {
       );
     }
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    });
-
-    if (!user) {
+    const userId = await getUserIdFromReq(req);
+    if (!userId) {
       return res.status(404).json(
         createResponse('error', 'User not found')
       );
     }
 
-    // Check if session exists and belongs to user
-    const session = await prisma.careerSession.findFirst({
-      where: {
-        id: sessionId,
-        userId: user.id,
-      },
-    });
-
-    if (!session) {
-      return res.status(404).json(
-        createResponse('error', 'Session not found or access denied')
-      );
-    }
-
     try {
-      // Use upsert to create or update reaction
+      // Use upsert to create or update reaction directly
       const reaction = await prisma.messageReaction.upsert({
         where: {
           userId_sessionId_messageId_reactionType: {
-            userId: user.id,
+            userId,
             sessionId,
             messageId,
             reactionType,
@@ -58,7 +53,7 @@ const reactionController = {
         create: {
           sessionId,
           messageId,
-          userId: user.id,
+          userId,
           reactionType,
           feedback,
         },
@@ -85,14 +80,9 @@ const reactionController = {
   // DELETE /api/v1/reactions/:reactionId - Remove a reaction
   removeReaction: asyncHandler(async (req, res) => {
     const { reactionId } = req.params;
-    const userEmail = req.user.email || req.user.userEmail;
+    const userId = await getUserIdFromReq(req);
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    });
-
-    if (!user) {
+    if (!userId) {
       return res.status(404).json(
         createResponse('error', 'User not found')
       );
@@ -102,7 +92,7 @@ const reactionController = {
     const reaction = await prisma.messageReaction.findFirst({
       where: {
         id: reactionId,
-        userId: user.id,
+        userId,
       },
     });
 
@@ -125,38 +115,29 @@ const reactionController = {
   // GET /api/v1/reactions/session/:sessionId - Get all reactions for a session
   getSessionReactions: asyncHandler(async (req, res) => {
     const { sessionId } = req.params;
-    const userEmail = req.user.email || req.user.userEmail;
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    });
+    // Fast-path: temporary client-side session IDs have no reactions
+    if (sessionId && sessionId.startsWith('temp-')) {
+      return res.status(200).json(
+        createResponse('success', 'Reactions retrieved successfully', {
+          reactions: {},
+          totalReactions: 0,
+        })
+      );
+    }
 
-    if (!user) {
+    const userId = await getUserIdFromReq(req);
+    if (!userId) {
       return res.status(404).json(
         createResponse('error', 'User not found')
       );
     }
 
-    // Verify session access
-    const session = await prisma.careerSession.findFirst({
-      where: {
-        id: sessionId,
-        userId: user.id,
-      },
-    });
-
-    if (!session) {
-      return res.status(404).json(
-        createResponse('error', 'Session not found or access denied')
-      );
-    }
-
-    // Get all reactions for the session
+    // Direct indexed query for session reactions
     const reactions = await prisma.messageReaction.findMany({
       where: {
         sessionId,
-        userId: user.id,
+        userId,
       },
       orderBy: {
         createdAt: 'desc',

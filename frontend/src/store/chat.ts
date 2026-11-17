@@ -940,6 +940,11 @@ export const useChatStore = create<ChatState>()(
       },
 
       loadMessageReactions: async (sessionId: string) => {
+        if (!sessionId || sessionId.startsWith('temp-')) {
+          set({ messageReactions: {} });
+          return;
+        }
+
         try {
           const response = await apiClient.get<{reactions: Record<string, MessageReaction[]>}>(`/reactions/session/${sessionId}`);
           

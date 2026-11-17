@@ -194,11 +194,16 @@ const suspiciousRequestDetection = () => {
   ];
 
   return (req, res, next) => {
-    const requestData = JSON.stringify({
-      body: req.body,
-      query: req.query,
-      params: req.params
-    });
+    // Fast path: GET, HEAD, and OPTIONS requests carry no mutative payload - bypass in 0ms
+    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+      return next();
+    }
+
+    if (!req.body || (typeof req.body === 'object' && Object.keys(req.body).length === 0)) {
+      return next();
+    }
+
+    const requestData = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
     const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(requestData));
 

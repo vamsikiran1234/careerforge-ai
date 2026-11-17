@@ -1,8 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MessageItem } from './MessageItem';
-import { LoadingDots } from '@/components/ui/Loading';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  Send, 
+  Paperclip, 
+  Mic,
+  FileText,
+  Target,
+  Compass,
+  Zap,
+  X 
+} from 'lucide-react';
 import { CareerForgeAvatar } from '@/components/ui/CareerForgeAvatar';
+import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import type { ChatMessage } from '@/store/chat';
 
 interface MessageListProps {
@@ -10,7 +21,7 @@ interface MessageListProps {
   isTyping?: boolean;
   isLoading?: boolean;
   onEditMessage?: (messageId: string, newContent: string) => void;
-  onSendMessage?: (content: string) => void;
+  onSendMessage?: (content: string, files?: File[]) => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({ 
@@ -24,6 +35,28 @@ export const MessageList: React.FC<MessageListProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+  // Centerpiece prompt box state (for Welcome state)
+  const [welcomePrompt, setWelcomePrompt] = useState('');
+  const [welcomeFiles, setWelcomeFiles] = useState<File[]>([]);
+  const welcomeFileInputRef = useRef<HTMLInputElement>(null);
+  const welcomeTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleTranscript = useCallback((text: string) => {
+    setWelcomePrompt(prev => {
+      const cleanPrev = prev.trim();
+      return cleanPrev ? `${cleanPrev} ${text}` : text;
+    });
+    welcomeTextareaRef.current?.focus();
+  }, []);
+
+  const {
+    isListening,
+    toggleListening,
+    error: voiceError
+  } = useVoiceRecognition({
+    onTranscript: handleTranscript
+  });
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -41,8 +74,6 @@ export const MessageList: React.FC<MessageListProps> = ({
       const { scrollTop, scrollHeight, clientHeight } = container;
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
       const isNearTop = scrollTop <= 50;
-      
-      // Show buttons when there's meaningful scroll distance
       const hasScrollableContent = scrollHeight > clientHeight + 100;
       
       setShowScrollToBottom(!isNearBottom && hasScrollableContent);
@@ -50,12 +81,8 @@ export const MessageList: React.FC<MessageListProps> = ({
     };
 
     container.addEventListener('scroll', handleScroll);
-    
-    // Also check on resize
     const resizeObserver = new ResizeObserver(handleScroll);
     resizeObserver.observe(container);
-    
-    // Initial check with delay to ensure content is rendered
     setTimeout(handleScroll, 100);
 
     return () => {
@@ -65,123 +92,236 @@ export const MessageList: React.FC<MessageListProps> = ({
   }, [messages.length, isTyping]);
 
   const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const scrollToTop = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleWelcomeSend = useCallback(() => {
+    const text = welcomePrompt.trim();
+    if ((text || welcomeFiles.length > 0) && onSendMessage) {
+      onSendMessage(text || "Please analyze these files and guide my career progression.", welcomeFiles);
+      setWelcomePrompt('');
+      setWelcomeFiles([]);
+    }
+  }, [welcomePrompt, welcomeFiles, onSendMessage]);
+
+  const handleWelcomeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleWelcomeSend();
     }
   };
 
+  const handleWelcomeFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setWelcomeFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeWelcomeFile = (index: number) => {
+    setWelcomeFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Suggestion prompt cards below input box
+  const starterSuggestions = [
+    {
+      title: 'Resume Review',
+      description: 'Audit my resume for ATS keywords, measurable impact, and executive phrasing.',
+      icon: FileText,
+      prompt: 'Please audit my resume: evaluate its ATS friendliness, highlight weak action verbs, and suggest impactful bullet points with metrics.'
+    },
+    {
+      title: 'Career Roadmap',
+      description: 'Map out a strategic promotion roadmap with realistic milestones.',
+      icon: Compass,
+      prompt: 'Help me plan a 2-year promotion roadmap for my role with high-impact milestones, key metrics, and strategic visibility initiatives.'
+    },
+    {
+      title: 'Skill Gap Analysis',
+      description: 'Identify high-leverage technical and leadership gaps in my stack.',
+      icon: Target,
+      prompt: 'Analyze my current skills and identify the top 5 high-leverage technical and leadership capabilities I should master this quarter.'
+    },
+    {
+      title: 'Interview Practice',
+      description: 'Simulate a mock behavioral interview using the STAR method.',
+      icon: Zap,
+      prompt: 'Conduct a simulated behavioral and technical interview with me. Ask one challenging question at a time and critique my answer with the STAR method.'
+    }
+  ];
+
   if (isLoading && messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingDots size="lg" />
-          <p className="text-gray-500 mt-2">Loading messages...</p>
+      <div className="flex-1 flex items-center justify-center bg-[#090b10]">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs font-mono text-cyan-400">Booting CareerForge AI...</p>
         </div>
       </div>
     );
   }
 
+  // WELCOME / EMPTY STATE SCREEN
   if (messages.length === 0) {
     return (
-    <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-white/70 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-      {/* Welcome Header */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 w-full min-h-0 pt-16">
-          <div className="text-center mb-8">
-            {/* CareerForge AI Logo */}
-            <div className="inline-flex items-center justify-center w-24 h-24 mb-6">
-              <CareerForgeAvatar size="lg" showGradient={true} />
-            </div>
-            
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
-              Hi there! 👋
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-200">
-              How can I assist you today?
-            </p>
+      <div className="flex-1 h-full overflow-y-auto custom-scrollbar flex flex-col items-center justify-center px-4 sm:px-6 py-8 relative bg-[#090b10] select-none">
+        {/* Ambient Neon Glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[300px] bg-gradient-to-b from-cyan-500/10 via-blue-500/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="w-full max-w-2xl mx-auto my-auto py-4 flex flex-col items-center relative z-10">
+          {/* Glowing Emblem */}
+          <div className="relative mb-4 group cursor-pointer">
+            <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-70 transition duration-500"></div>
+            <CareerForgeAvatar size="lg" showGradient={true} className="relative w-14 h-14 rounded-2xl border border-white/20 shadow-2xl" />
           </div>
 
-          {/* Feature Cards - Modern Canva-inspired design */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl mx-auto mb-8">
-            {/* Career Goals Card */}
-            <div 
-              onClick={() => onSendMessage?.("I want to set clear and achievable career goals for the next 2-3 years. Can you help me create a strategic career plan with specific milestones, timelines, and actionable steps to advance in my profession?")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-indigo-100 dark:border-slate-700 hover:shadow-lg hover:border-indigo-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
-            >
-              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/25">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
+          {/* Title & Subtitle */}
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2 text-center">
+            Welcome to <span className="bg-gradient-to-r from-white via-zinc-200 to-cyan-300 bg-clip-text text-transparent">CareerForge AI</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-md text-center leading-relaxed mb-6">
+            Your elite AI career mentor. Ask anything to analyze your resume, prepare for interviews, or navigate your next career move.
+          </p>
+
+          {/* Centerpiece Prompt Card */}
+          <div className="w-full bg-[#11141e]/95 backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-4 shadow-2xl shadow-black/80 focus-within:border-cyan-500/50 focus-within:ring-1 focus-within:ring-cyan-500/30 transition-all duration-200 mb-6">
+            {/* File Previews */}
+            {welcomeFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {welcomeFiles.map((f, i) => (
+                  <div key={i} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#181d2c] border border-white/10 text-xs text-zinc-300">
+                    <Paperclip className="w-3 h-3 text-cyan-400" />
+                    <span className="truncate max-w-[140px]">{f.name}</span>
+                    <button onClick={() => removeWelcomeFile(i)} className="text-zinc-500 hover:text-red-400 ml-1">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2">Set career goals</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-200 leading-relaxed">Plan your career path and set achievable milestones</p>
+            )}
+
+            {/* Input Textarea */}
+            <textarea
+              ref={welcomeTextareaRef}
+              value={welcomePrompt}
+              onChange={(e) => setWelcomePrompt(e.target.value)}
+              onKeyDown={handleWelcomeKeyDown}
+              placeholder="Ask CareerForge AI anything about your career, resume, interviews..."
+              className="w-full resize-none bg-transparent border-0 outline-none text-zinc-100 placeholder-zinc-500 text-sm leading-6 min-h-[56px] max-h-[160px]"
+              rows={2}
+            />
+
+            {/* Bottom Controls Row inside the Card */}
+            <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.06] mt-2">
+              <div className="flex items-center gap-2">
+                {/* File Attachment Button */}
+                <button
+                  type="button"
+                  onClick={() => welcomeFileInputRef.current?.click()}
+                  className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/[0.08] rounded-lg transition-colors flex items-center gap-1.5 text-xs"
+                  title="Attach resume or documents"
+                >
+                  <Paperclip className="w-4 h-4 text-zinc-400" />
+                  <span className="text-[11px] text-zinc-400 hidden sm:inline">Attach</span>
+                </button>
+                <input
+                  ref={welcomeFileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.txt,image/*"
+                  onChange={handleWelcomeFileUpload}
+                  className="hidden"
+                />
+
+                {/* Voice / Microphone Input Button */}
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  className={`p-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 text-xs ${
+                    isListening 
+                      ? 'text-red-400 bg-red-500/20 ring-1 ring-red-500/40 animate-pulse' 
+                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.08]'
+                  }`}
+                  title={isListening ? "Listening... Click to finish speaking" : "Voice input (Speak now)"}
+                >
+                  <Mic className={`w-4 h-4 ${isListening ? 'text-red-400 animate-bounce' : ''}`} />
+                  <span className={`text-[11px] hidden sm:inline ${isListening ? 'text-red-300 font-medium' : ''}`}>
+                    {isListening ? "Listening..." : "Voice"}
+                  </span>
+                </button>
+              </div>
+
+              {/* Glowing Send Button */}
+              <button
+                type="button"
+                onClick={handleWelcomeSend}
+                disabled={!welcomePrompt.trim() && welcomeFiles.length === 0}
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 shadow-md ${
+                  welcomePrompt.trim() || welcomeFiles.length > 0
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-cyan-500/30 hover:scale-105 active:scale-95'
+                    : 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/[0.04]'
+                }`}
+                title="Send message"
+              >
+                <span className="hidden sm:inline">Send</span>
+                <Send className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            {/* Resume Review Card */}
-            <div 
-              onClick={() => onSendMessage?.("I would like you to review my resume and provide detailed feedback on how to improve it. Please analyze the content, format, keywords, and overall presentation to help me make it more compelling for potential employers in my target industry.")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-emerald-100 dark:border-slate-700 hover:shadow-lg hover:border-emerald-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
-            >
-              <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/25">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2">Resume review</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-200 leading-relaxed">Get expert feedback on your resume</p>
-            </div>
-
-            {/* Skill Gaps Card */}
-            <div 
-              onClick={() => onSendMessage?.("Please help me identify skill gaps in my current profession and recommend specific skills I should develop to stay competitive and advance in my career. I'd like to understand both technical and soft skills that are in high demand in my industry.")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-violet-100 dark:border-slate-700 hover:shadow-lg hover:border-violet-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
-            >
-              <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-violet-500/25">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2">Skill gaps</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-200 leading-relaxed">Identify skills you need to develop</p>
-            </div>
-
-            {/* Interview Prep Card */}
-            <div 
-              onClick={() => onSendMessage?.("I have upcoming job interviews and need comprehensive preparation. Can you help me prepare for common interview questions, develop compelling answers using the STAR method, and provide tips on how to make a strong impression during the interview process?")}
-              className="group p-5 bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-amber-100 dark:border-slate-700 hover:shadow-lg hover:border-amber-200 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
-            >
-              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-amber-500/25">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2">Interview prep</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-200 leading-relaxed">Practice and prepare for interviews</p>
-            </div>
+            {/* Voice Error Notice */}
+            {voiceError && (
+              <p className="text-[11px] text-amber-400 mt-2 px-1 flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>{voiceError}</span>
+              </p>
+            )}
           </div>
 
-
+          {/* 4 Clean Starter Suggestion Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+            {starterSuggestions.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setWelcomePrompt(item.prompt);
+                    welcomeTextareaRef.current?.focus();
+                  }}
+                  className="p-3 rounded-xl bg-[#11141e]/70 hover:bg-[#151926] border border-white/[0.06] hover:border-cyan-500/30 text-left transition-all group flex items-start gap-3"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-500/20 transition-colors">
+                    <Icon className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-xs font-medium text-zinc-200 group-hover:text-cyan-300 transition-colors truncate">
+                      {item.title}
+                    </h3>
+                    <p className="text-[11px] text-zinc-500 leading-snug line-clamp-1 mt-0.5">
+                      {item.description}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   }
 
+  // ACTIVE MESSAGES STREAM
   return (
-    <div className="flex-1 relative overflow-hidden h-full">
+    <div className="flex-1 relative overflow-hidden h-full bg-[#090b10]">
       <div 
         ref={scrollContainerRef}
-        className="h-full overflow-y-auto scroll-smooth custom-scrollbar px-4 md:px-6 lg:px-8"
-        style={{ 
-          maxHeight: 'calc(100vh - 140px)',
-          paddingRight: '1.5rem' // Extra padding to prevent content from touching scrollbar
-        }}
+        className="h-full overflow-y-auto scroll-smooth custom-scrollbar px-4 sm:px-6"
       >
-        <div className="space-y-1 pb-2 min-h-full max-w-5xl mx-auto">
+        <div className="space-y-4 py-6 pb-24 min-h-full max-w-3xl mx-auto">
           {messages.map((message) => (
             <MessageItem
               key={message.id}
@@ -192,24 +332,15 @@ export const MessageList: React.FC<MessageListProps> = ({
           
           {/* Typing indicator */}
           {isTyping && (
-            <div className="group py-6 px-4 bg-gray-50/50">
-              <div className="max-w-4xl mx-auto flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
+            <div className="py-4 px-4 bg-[#11141f]/70 border border-white/[0.06] rounded-2xl max-w-3xl mx-auto animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <CareerForgeAvatar size="xs" showGradient={true} className="w-7 h-7 rounded-lg" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-cyan-400 rounded-full animate-ping"></span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-medium text-sm text-gray-900">CareerForge AI</span>
-                    <span className="text-xs text-gray-500">typing...</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <LoadingDots size="sm" />
-                    <span className="text-sm text-gray-600 ml-2">Thinking about your career question...</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-white">CareerForge AI</span>
+                  <span className="text-[11px] font-mono text-cyan-400">formulating strategic insights...</span>
                 </div>
               </div>
             </div>
@@ -224,10 +355,10 @@ export const MessageList: React.FC<MessageListProps> = ({
       {showScrollToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed top-20 right-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full p-3 shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 z-50 hover:scale-105 backdrop-blur-sm"
+          className="fixed top-20 right-6 bg-[#161a26]/90 border border-white/10 text-white rounded-full p-2.5 shadow-xl hover:bg-[#1e2334] transition-all z-40 backdrop-blur-md"
           aria-label="Scroll to top"
         >
-          <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          <ChevronUp className="w-4 h-4 text-cyan-400" />
         </button>
       )}
 
@@ -235,10 +366,10 @@ export const MessageList: React.FC<MessageListProps> = ({
       {showScrollToBottom && (
         <button
           onClick={scrollToBottom}
-          className="fixed bottom-24 right-6 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 z-50 hover:scale-105 backdrop-blur-sm"
+          className="fixed bottom-24 right-6 bg-cyan-600 hover:bg-cyan-500 text-white rounded-full p-2.5 shadow-xl transition-all z-40 shadow-cyan-500/20"
           aria-label="Scroll to bottom"
         >
-          <ChevronDown className="w-5 h-5" />
+          <ChevronDown className="w-4 h-4" />
         </button>
       )}
     </div>

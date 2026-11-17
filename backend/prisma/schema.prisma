@@ -336,6 +336,8 @@ model CareerSession {
   branches             ConversationBranch[]
   sharedConversations  SharedConversation[]
 
+  @@index([userId])
+  @@index([userId, updatedAt])
   @@map("career_sessions")
 }
 
@@ -355,6 +357,7 @@ model QuizSession {
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   quizQuestions QuizQuestion[]
 
+  @@index([userId])
   @@map("quiz_sessions")
 }
 
@@ -374,6 +377,7 @@ model QuizQuestion {
   // Relations
   quizSession QuizSession @relation(fields: [quizSessionId], references: [id], onDelete: Cascade)
 
+  @@index([quizSessionId])
   @@map("quiz_questions")
 }
 
@@ -390,6 +394,7 @@ model StudentQuestion {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("student_questions")
 }
 
@@ -408,6 +413,7 @@ model ConversationBranch {
   // Relations
   careerSession CareerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
+  @@index([sessionId])
   @@map("conversation_branches")
 }
 
@@ -428,6 +434,8 @@ model MessageReaction {
 
   // Unique constraint to prevent duplicate reactions from same user on same message
   @@unique([userId, sessionId, messageId, reactionType])
+  @@index([sessionId])
+  @@index([userId])
   @@map("message_reactions")
 }
 
@@ -453,6 +461,8 @@ model SharedConversation {
   createdBy     User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
   careerSession CareerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
+  @@index([sessionId])
+  @@index([createdById])
   @@map("shared_conversations")
 }
 

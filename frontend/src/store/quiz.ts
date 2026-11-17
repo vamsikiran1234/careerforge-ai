@@ -18,6 +18,10 @@ export interface QuizSession {
     currentStage: number;
     totalStages: number;
     percentage: number;
+    currentQuestion?: number;
+    totalQuestions?: number;
+    stageQuestion?: number;
+    stageTotalQuestions?: number;
   };
 }
 
@@ -208,6 +212,7 @@ export const useQuizStore = create<QuizState>()(
                 sessionId,
                 currentStage: nextQuestion.stage,
                 question: {
+                  id: nextQuestion.id,
                   text: nextQuestion.text,
                   options: nextQuestion.options || [],
                   stage: nextQuestion.stage,

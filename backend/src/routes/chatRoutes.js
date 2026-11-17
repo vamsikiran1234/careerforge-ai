@@ -12,9 +12,8 @@ const router = express.Router();
 // Apply authentication middleware to all chat routes
 router.use(authenticateToken);
 
-// Apply security middleware to all chat routes
+// Apply security middleware to chat routes
 router.use(suspiciousRequestDetection());
-router.use(rateLimiters.chat);
 
 /**
  * @swagger
@@ -62,6 +61,7 @@ router.use(rateLimiters.chat);
  *         $ref: '#/components/responses/InternalServerError'
  */
 router.post('/', 
+  rateLimiters.chat,
   validateRequestSize(50 * 1024), // 50KB max for chat messages
   validate(chatSchema),
   preventConcurrentOperations('chat'),

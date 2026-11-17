@@ -1,6 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/database');
 const { createResponse } = require('../utils/helpers');
-const prisma = new PrismaClient();
+
 
 const HTTP_STATUS_OK = 200;
 const HTTP_STATUS_UNAUTHORIZED = 401;
@@ -46,6 +46,9 @@ const getUserDashboardStats = async (req, res) => {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - DAYS_IN_WEEK);
 
+    const mentorProfile = await prisma.mentorProfile.findUnique({ where: { userId } });
+    const mentorProfileId = mentorProfile ? mentorProfile.id : "none";
+
     // Get all data in parallel for better performance
     const [
       totalChatSessions,
@@ -88,7 +91,7 @@ const getUserDashboardStats = async (req, res) => {
         where: {
           OR: [
             { studentId: userId, status: 'ACCEPTED' },
-            { mentorId: userId, status: 'ACCEPTED' }
+            { mentorId: mentorProfileId, status: 'ACCEPTED' }
           ]
         }
       }),
@@ -98,7 +101,7 @@ const getUserDashboardStats = async (req, res) => {
         where: {
           OR: [
             { studentId: userId },
-            { mentorId: userId }
+            { mentorId: mentorProfileId }
           ],
           status: 'SCHEDULED',
           scheduledAt: {

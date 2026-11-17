@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../config/database');
 const careerAnalysisService = require('../services/careerAnalysisService');
 
 // HTTP Status Codes
@@ -1094,8 +1093,7 @@ exports.generateSkillResources = async (req, res) => {
             rating: resource.rating,
             status: 'RECOMMENDED',
             aiRecommended: true,
-            relevanceScore: resource.relevanceScore,
-            relatedSkills: resource.relatedSkills || skills
+            relevanceScore: resource.relevanceScore
           }
         });
 

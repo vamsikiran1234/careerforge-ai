@@ -2,22 +2,23 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { MentorSidebar } from '@/components/MentorSidebar';
 import { RoleSwitcher } from '../components/RoleSwitcher';
-
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export const MentorPortalLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      {/* Header */}
+      {/* Header with Mode Switcher & Theme Toggle Side by Side at Top Right */}
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between h-full px-4">
+        <div className="flex items-center justify-between h-full px-4 sm:px-6">
           <div className="flex items-center gap-4">
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">
+            <span className="text-lg font-bold text-gray-900 dark:text-white">
               Mentor Portal
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5">
             <RoleSwitcher />
+            <ThemeToggle />
           </div>
         </div>
       </header>

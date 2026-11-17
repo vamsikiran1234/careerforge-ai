@@ -18,6 +18,7 @@ import {
   Target
 } from 'lucide-react';
 import { Logo } from './ui/Logo';
+import { getValidAuthToken } from '@/lib/api-client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -46,13 +47,10 @@ export const Sidebar: React.FC = () => {
     }
 
     try {
-      let token = localStorage.getItem('token');
+      const token = getValidAuthToken();
       if (!token) {
-        const authStorage = localStorage.getItem('auth-storage');
-        if (authStorage) {
-          const parsed = JSON.parse(authStorage);
-          token = parsed.state?.token;
-        }
+        setIsMentor(false);
+        return;
       }
 
       const response = await axios.get(`${API_URL}/mentorship/profile`, {
@@ -170,49 +168,37 @@ export const Sidebar: React.FC = () => {
         )}
       </nav>
 
-      {/* Bottom Section */}
-      <div className="border-t border-gray-200 dark:border-gray-800">
+      {/* Bottom Section: Settings & Logout */}
+      <div className="border-t border-gray-200 dark:border-gray-800 p-2 space-y-1">
         {/* Settings */}
         <Link
           to="/app/settings"
           className={cn(
-            'flex items-center space-x-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
-            isCollapsed && 'justify-center'
+            'flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300',
+            location.pathname.startsWith('/app/settings') && 'bg-gray-100 dark:bg-gray-800 font-semibold',
+            isCollapsed && 'justify-center px-0'
           )}
           title={isCollapsed ? 'Settings' : undefined}
         >
-          <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
           {!isCollapsed && (
-            <span className="text-sm text-gray-700 dark:text-gray-300">Settings</span>
+            <span className="text-sm font-medium">Settings</span>
           )}
         </Link>
 
         {/* Logout Button */}
-        <div className="p-4">
-          {!isCollapsed && (
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 px-4 py-2 w-full text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
+        <button
+          onClick={handleLogout}
+          className={cn(
+            'flex items-center space-x-3 w-full px-3 py-2.5 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left',
+            isCollapsed && 'justify-center px-0'
           )}
-        </div>
+          title={isCollapsed ? 'Logout' : undefined}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && <span className="text-sm font-medium">Logout</span>}
+        </button>
       </div>
-
-      {/* Collapsed Logout Button */}
-      {isCollapsed && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <button
-            onClick={handleLogout}
-            className="w-full p-3 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            title="Logout"
-          >
-            <LogOut className="h-5 w-5 text-red-600 dark:text-red-400" />
-          </button>
-        </div>
-      )}
     </div>
   );
 };

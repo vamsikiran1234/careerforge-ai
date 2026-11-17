@@ -359,9 +359,7 @@ router.get('/statistics', async (req, res) => {
     
     const completed = sessions.filter(s => s.completedAt !== null).length;
     const inProgress = sessions.filter(s => s.completedAt === null).length;
-    const avgScore = sessions.length > 0
-      ? sessions.reduce((sum, s) => sum + (s.score || 0), 0) / completed || 0
-      : 0;
+    const avgScore = completed > 0 ? (sessions.reduce((sum, s) => sum + (s.score || 0), 0) / completed) : 0;
     
     res.status(200).json({
       status: 'success',

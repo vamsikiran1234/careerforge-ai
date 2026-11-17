@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { getValidAuthToken } from '@/lib/api-client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -31,27 +32,16 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get auth token helper
-  const getToken = (): string | null => {
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const authStorage = localStorage.getItem('auth-storage');
-      if (authStorage) {
-        const parsed = JSON.parse(authStorage);
-        token = parsed.state?.token;
-      }
-    }
-    return token;
-  };
-
   // Detect available roles on mount
   const detectRoles = async () => {
     setLoading(true);
     const roles: UserRole[] = ['STUDENT']; // Everyone is a student by default
 
     try {
-      const token = getToken();
+      const token = getValidAuthToken();
       if (!token) {
+        setAvailableRoles(['STUDENT']);
+        setCurrentRole('STUDENT');
         setLoading(false);
         return;
       }

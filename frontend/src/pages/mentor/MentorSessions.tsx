@@ -4,6 +4,8 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import axios from 'axios';
 import { format, isPast, isFuture } from 'date-fns';
+import { CancelSessionModal } from '../../components/sessions/CancelSessionModal';
+import { getValidAuthToken } from '@/lib/api-client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -43,6 +45,8 @@ export const MentorSessions: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [sessionToCancel, setSessionToCancel] = useState<MentorSession | null>(null);
 
   useEffect(() => {
     fetchSessions();
@@ -51,8 +55,7 @@ export const MentorSessions: React.FC = () => {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      const authStorage = localStorage.getItem('auth-storage');
-      const token = authStorage ? JSON.parse(authStorage).state.token : null;
+      const token = getValidAuthToken();
 
       const response = await axios.get(`${API_URL}/sessions/my-sessions`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -114,20 +117,24 @@ export const MentorSessions: React.FC = () => {
     }
   };
 
-  const handleCancelSession = async (sessionId: string) => {
-    const reason = prompt('Please provide a cancellation reason (optional):');
-    
+  const handleOpenCancelModal = (session: MentorSession) => {
+    setSessionToCancel(session);
+    setCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = async (sessionId: string, reason: string) => {
     try {
       setActionLoading(sessionId);
-      const authStorage = localStorage.getItem('auth-storage');
-      const token = authStorage ? JSON.parse(authStorage).state.token : null;
+      const token = getValidAuthToken();
 
       await axios.put(
         `${API_URL}/sessions/${sessionId}/cancel`,
-        { cancellationReason: reason },
+        { cancellationReason: reason || undefined },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      setCancelModalOpen(false);
+      setSessionToCancel(null);
       fetchSessions();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to cancel session');
@@ -332,7 +339,7 @@ export const MentorSessions: React.FC = () => {
                             Mark Complete
                           </Button>
                           <Button
-                            onClick={() => handleCancelSession(session.id)}
+                            onClick={() => handleOpenCancelModal(session)}
                             disabled={actionLoading === session.id}
                             size="sm"
                             variant="outline"
@@ -362,6 +369,18 @@ export const MentorSessions: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* Cancel Session Confirmation Modal */}
+      <CancelSessionModal
+        isOpen={cancelModalOpen}
+        session={sessionToCancel}
+        onClose={() => {
+          setCancelModalOpen(false);
+          setSessionToCancel(null);
+        }}
+        onConfirm={handleConfirmCancel}
+        isLoading={actionLoading === sessionToCancel?.id}
+      />
     </div>
   );
 };

@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../config/database');
 
 // Constants
 const DAYS_IN_ANALYTICS_PERIOD = 30; // Days to look back for growth metrics

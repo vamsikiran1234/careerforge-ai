@@ -9,19 +9,23 @@ import {
   X,
   Link2,
   Calendar,
-  GraduationCap
+  GraduationCap,
+  Target,
+  Settings
 } from 'lucide-react';
 import { Logo } from './ui/Logo';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'AI Chat', href: '/chat', icon: MessageSquare },
-  { name: 'Career Quiz', href: '/quiz', icon: BookOpen },
-  { name: 'Find Mentors', href: '/mentors', icon: Users },
-  { name: 'My Connections', href: '/connections', icon: Link2 },
-  { name: 'Messages', href: '/messages', icon: MessageSquare },
-  { name: 'My Sessions', href: '/sessions', icon: Calendar },
-  { name: 'Become a Mentor', href: '/mentorship/register', icon: GraduationCap },
+  { name: 'Dashboard', href: '/app/dashboard', icon: Home },
+  { name: 'AI Chat', href: '/app/chat', icon: MessageSquare },
+  { name: 'Career Quiz', href: '/app/quiz', icon: BookOpen },
+  { name: 'Career Trajectory', href: '/app/career', icon: Target },
+  { name: 'Find Mentors', href: '/app/mentors', icon: Users },
+  { name: 'My Connections', href: '/app/connections', icon: Link2 },
+  { name: 'Messages', href: '/app/messages', icon: MessageSquare },
+  { name: 'My Sessions', href: '/app/sessions', icon: Calendar },
+  { name: 'Settings', href: '/app/settings', icon: Settings },
+  { name: 'Become a Mentor', href: '/app/mentorship/register', icon: GraduationCap },
 ];
 
 interface MobileNavProps {
@@ -60,7 +64,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
         {/* Navigation */}
         <nav className="p-4 space-y-2">
           {navigation.map((item) => {
-            const isActive = location.pathname.startsWith(item.href);
+            const isActive = item.href === '/app/dashboard'
+              ? location.pathname === '/app/dashboard'
+              : location.pathname.startsWith(item.href);
             
             return (
               <Link

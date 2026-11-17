@@ -1,1160 +1,670 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Target, 
-  Users, 
-  MessageSquare, 
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth';
+import { BrandLogo, CareerForgeMark } from '@/components/ui/BrandLogo';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import {
+  ArrowRight,
+  CheckCircle2,
+  Users,
+  MessageSquare,
   BookOpen,
   TrendingUp,
-  Award,
-  CheckCircle,
-  Star,
-  ChevronRight,
+  ShieldCheck,
   Zap,
-  Shield,
-  Clock,
-  BarChart3,
-  Brain,
-  Rocket,
-  Menu,
-  X,
-  CheckCircle2,
-  Trophy
+  Target,
+  ChevronRight,
+  Award,
+  Check
 } from 'lucide-react';
-import { useAuthStore } from '@/store/auth';
-import { createSEO } from '@/components/common/SEO';
-
-// Magnetic Button Component
-const MagneticButton: React.FC<{ children: React.ReactNode; className?: string; to?: string }> = ({ children, className, to }) => {
-  const ref = React.useRef<HTMLAnchorElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setPosition({ x: x * 0.3, y: y * 0.3 });
-  };
-
-  const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
-  };
-
-  if (to) {
-    return (
-      <Link
-        to={to}
-        ref={ref}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className={className}
-        style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
-          transition: 'transform 0.2s ease-out'
-        }}
-      >
-        {children}
-      </Link>
-    );
-  }
-
-  return (
-    <a
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={className}
-      style={{
-        transform: `translate(${position.x}px, ${position.y}px)`,
-        transition: 'transform 0.2s ease-out'
-      }}
-    >
-      {children}
-    </a>
-  );
-};
-
-// Animated Counter Component
-const AnimatedCounter: React.FC<{ value: string; duration?: number }> = ({ value, duration = 2 }) => {
-  const [count, setCount] = useState(0);
-  const ref = React.useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !isInView) {
-          setIsInView(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, [isInView]);
-
-  useEffect(() => {
-    if (!isInView) return;
-
-    // Extract number from value string (e.g., "10K+" -> 10000)
-    const numericValue = parseInt(value.replace(/[^0-9]/g, '')) || 0;
-    const multiplier = value.includes('K') ? 1000 : 1;
-    const targetValue = numericValue * multiplier;
-    
-    const increment = targetValue / (duration * 60); // 60 FPS
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= targetValue) {
-        setCount(targetValue);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, 1000 / 60);
-
-    return () => clearInterval(timer);
-  }, [isInView, value, duration]);
-
-  // Format the count back to display format
-  const formatCount = (num: number) => {
-    if (value.includes('K')) {
-      return `${(num / 1000).toFixed(num >= 1000 ? 1 : 0)}K${value.includes('+') ? '+' : ''}`;
-    }
-    if (value.includes('%')) {
-      return `${num}%`;
-    }
-    return `${num}${value.includes('+') ? '+' : ''}`;
-  };
-
-  return <div ref={ref}>{isInView ? formatCount(count) : value}</div>;
-};
+import { cn } from '@/utils';
 
 export const LandingPage: React.FC = () => {
-  const [scrollY, setScrollY] = useState(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
-
-  // Animation variants
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { 
-      opacity: 1, 
-      y: 0
-    }
-  };
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  useEffect(() => {
-    // Redirect authenticated users to dashboard
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const features = [
-    {
-      icon: Brain,
-      title: 'AI-Powered Career Guidance',
-      description: 'Get personalized career advice from our advanced AI assistant that understands your unique goals and background.',
-      color: 'from-emerald-500 to-teal-500'
-    },
-    {
-      icon: Target,
-      title: 'Smart Career Assessments',
-      description: 'Take adaptive quizzes that identify your strengths, interests, and ideal career paths with precision.',
-      color: 'from-teal-500 to-cyan-500'
-    },
-    {
-      icon: Users,
-      title: 'Expert Mentor Network',
-      description: 'Connect with industry professionals who can guide your career development with real-world insights.',
-      color: 'from-cyan-500 to-emerald-500'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Career Trajectory Planning',
-      description: 'Map your career journey with AI-generated milestones and actionable steps to reach your goals.',
-      color: 'from-emerald-600 to-teal-600'
-    },
-    {
-      icon: MessageSquare,
-      title: 'Real-Time Chat Support',
-      description: '24/7 access to AI-powered career conversations and direct messaging with your mentors.',
-      color: 'from-teal-600 to-cyan-600'
-    },
-    {
-      icon: BarChart3,
-      title: 'Progress Analytics',
-      description: 'Track your career development with detailed analytics, insights, and personalized recommendations.',
-      color: 'from-cyan-600 to-emerald-600'
-    }
-  ];
-
-  const stats = [
-    { label: 'AI-Powered', value: '24/7', icon: Brain },
-    { label: 'Career Paths', value: 'Unlimited', icon: Target },
-    { label: 'Expert Support', value: 'Available', icon: Award },
-    { label: 'Get Started', value: 'Free', icon: TrendingUp }
-  ];
-
-  const howItWorks = [
-    {
-      step: '01',
-      title: 'Create Your Profile',
-      description: 'Sign up in seconds and tell us about your career goals, skills, and aspirations.',
-      icon: Users
-    },
-    {
-      step: '02',
-      title: 'Take Career Assessments',
-      description: 'Complete adaptive quizzes to discover your ideal career paths and identify skill gaps.',
-      icon: BookOpen
-    },
-    {
-      step: '03',
-      title: 'Connect with Mentors',
-      description: 'Get matched with experienced professionals who can guide your career journey.',
-      icon: MessageSquare
-    },
-    {
-      step: '04',
-      title: 'Track Your Progress',
-      description: 'Monitor your development with detailed analytics and achieve your career milestones.',
-      icon: TrendingUp
-    }
-  ];
-
-  const testimonials: any[] = [];
-
-  const benefits = [
-    { text: 'AI-powered career recommendations', icon: Sparkles },
-    { text: 'Connect with industry mentors', icon: Users },
-    { text: 'Adaptive skill assessments', icon: Target },
-    { text: 'Real-time progress tracking', icon: BarChart3 },
-    { text: 'Personalized learning paths', icon: BookOpen },
-    { text: '24/7 AI chat support', icon: MessageSquare }
-  ];
-
-  const faqs = [
-    {
-      question: 'How does CareerForge AI work?',
-      answer: 'CareerForge AI uses advanced machine learning algorithms to analyze your skills, experience, and career goals. It provides personalized recommendations, connects you with expert mentors, and offers adaptive assessments to guide your career development journey.'
-    },
-    {
-      question: 'Is CareerForge AI free to use?',
-      answer: 'Yes! We offer a free tier that includes basic AI career guidance, limited mentor connections, and access to career assessments. Premium plans unlock advanced features like unlimited mentor sessions, priority support, and detailed analytics.'
-    },
-    {
-      question: 'How are mentors selected and verified?',
-      answer: 'All mentors go through a rigorous verification process. We verify their professional credentials, work history, and expertise. Mentors are matched based on your industry, career goals, and specific needs to ensure the best possible guidance.'
-    },
-    {
-      question: 'Can I switch mentors if needed?',
-      answer: 'Absolutely! We understand that finding the right mentor fit is important. You can request a mentor change at any time, and our AI will help match you with alternative mentors who better align with your goals and preferences.'
-    },
-    {
-      question: 'What types of careers does CareerForge AI support?',
-      answer: 'CareerForge AI supports a wide range of career paths across various industries including Technology, Business, Healthcare, Creative Arts, Engineering, Marketing, Finance, and more. Our AI continuously learns and expands to cover emerging career opportunities.'
-    },
-    {
-      question: 'How long does it take to see results?',
-      answer: 'Career development is a journey that varies for each individual. Our AI-powered platform provides personalized guidance and real-time progress tracking to help you achieve your career goals at your own pace.'
-    }
-  ];
-
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [activePreviewTab, setActivePreviewTab] = useState<'quiz' | 'trajectory' | 'mentorship'>('trajectory');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* SEO Metadata */}
-      {createSEO.landing()}
-      
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <Sparkles className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-white dark:bg-[#090b11] text-gray-900 dark:text-gray-100 selection:bg-blue-500 selection:text-white transition-colors duration-200">
+      {/* Background Architectural Grid Pattern */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:24px_24px] z-0" />
+
+      {/* Navigation Header */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090b11]/80 border-b border-gray-200/80 dark:border-gray-800/80 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <BrandLogo size="md" variant="default" />
+          </Link>
+
+          {/* Desktop Nav Links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-gray-300">
+            <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">How It Works</a>
+            <a href="#mentorship" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Mentorship</a>
+            <a href="#comparison" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Why CareerForge</a>
+          </nav>
+
+          {/* Right Header Actions */}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/app/dashboard"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm hover:shadow transition-all"
+                >
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                CareerForge AI
-              </span>
-            </div>
-
-            {/* Navigation Links - Desktop */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
-                Features
-              </a>
-              <a href="#how-it-works" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
-                How It Works
-              </a>
-              <a href="#testimonials" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
-                Testimonials
-              </a>
-              <Link 
-                to="/login"
-                className="text-gray-700 hover:text-emerald-600 transition-colors font-medium"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-2.5 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 flex items-center space-x-2 font-semibold"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="md:hidden flex items-center gap-3">
-              <Link
-                to="/register"
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-xl text-sm flex items-center space-x-1 shadow-lg shadow-emerald-500/20"
-              >
-                <span>Start</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-slate-300 hover:text-emerald-400 transition-colors"
-                aria-label="Toggle mobile menu"
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu Overlay */}
-        {mobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-2xl">
-            <div className="px-4 py-6 space-y-4">
-              <a 
-                href="#features" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
-              >
-                Features
-              </a>
-              <a 
-                href="#how-it-works" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
-              >
-                How It Works
-              </a>
-              <a 
-                href="#testimonials" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
-              >
-                Testimonials
-              </a>
-              <Link 
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-gray-700 hover:text-emerald-600 transition-colors text-lg font-medium py-2"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-lg text-center font-semibold"
-              >
-                Get Started Free
-              </Link>
-            </div>
-          </div>
-        )}
-      </nav>
-
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-24 md:pb-32">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div 
-            className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"
-            style={{ transform: `translateY(${scrollY * 0.5}px)` }}
-          />
-          <div 
-            className="absolute bottom-20 right-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"
-            style={{ transform: `translateY(${scrollY * -0.3}px)` }}
-          />
-          <div 
-            className="absolute top-1/2 left-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl"
-            style={{ transform: `translate(-50%, -50%) translateY(${scrollY * 0.2}px)` }}
-          />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Text Content (60%) */}
-            <div className="text-center lg:text-left">
-              {/* Badge */}
-              <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-4 py-2 rounded-full text-sm font-medium mb-8 animate-fade-in">
-                <Zap className="w-4 h-4" />
-                <span>Powered by Advanced AI Technology</span>
-              </div>
-
-              {/* Main Heading */}
-              <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight leading-tight animate-fade-in-up">
-                Your AI-Powered Career
-                <br />
-                <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                  Success Platform
-                </span>
-              </h1>
-
-              {/* Subheading */}
-              <p className="text-lg md:text-xl text-gray-600 mb-12 leading-relaxed animate-fade-in-up animation-delay-200">
-                Get personalized career guidance, connect with expert mentors, and achieve your professional goals with AI-powered insights.
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4 mb-12 animate-fade-in-up animation-delay-400">
+            ) : (
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Link
+                  to="/login"
+                  className="px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
                 <Link
                   to="/register"
-                  className="group bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-8 py-4 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 flex items-center space-x-2 text-lg font-semibold w-full sm:w-auto justify-center"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg shadow-sm hover:shadow-md transition-all"
                 >
-                  <span>Start Free Today</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <span>Get Started</span>
+                  <ArrowRight className="h-4 w-4 hidden sm:inline" />
                 </Link>
-                <a
-                  href="#how-it-works"
-                  className="bg-white border-2 border-gray-200 text-gray-900 px-8 py-4 rounded-xl hover:border-emerald-500 transition-all duration-200 flex items-center space-x-2 text-lg font-semibold w-full sm:w-auto justify-center shadow-sm hover:shadow-md"
-                >
-                  <span>See How It Works</span>
-                  <ChevronRight className="w-5 h-5" />
-                </a>
               </div>
-
-              {/* Stats - Mobile Only (Below Buttons) */}
-              <div className="grid grid-cols-2 gap-6 lg:hidden animate-fade-in-up animation-delay-600">
-                {stats.slice(0, 2).map((stat, index) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={index} className="text-center">
-                      <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-lg mb-2">
-                        <Icon className="w-5 h-5 text-emerald-400" />
-                      </div>
-                      <div className="text-2xl font-bold text-gray-900 mb-1">
-                        <AnimatedCounter value={stat.value} />
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        {stat.label}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right Side - Dashboard Preview (40%) */}
-            <div className="relative hidden lg:block animate-fade-in-up animation-delay-400">
-              <div className="relative">
-                {/* Main Dashboard Card */}
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border border-gray-200">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900">Career Dashboard</h3>
-                      <p className="text-xs text-gray-600">Your progress overview</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-gray-600">Live</span>
-                    </div>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="w-4 h-4 text-emerald-600" />
-                        <span className="text-xs text-gray-600">Chat Sessions</span>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-900">24</p>
-                    </div>
-                    <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
-                      <div className="flex items-center gap-2 mb-2">
-                        <BookOpen className="w-4 h-4 text-cyan-600" />
-                        <span className="text-xs text-gray-600">Quizzes</span>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-900">8</p>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-700">Career Progress</span>
-                      <span className="text-xs font-bold text-emerald-600">78%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full shadow-lg shadow-emerald-500/50" style={{ width: '78%' }}></div>
-                    </div>
-                  </div>
-
-                  {/* Mini Chart */}
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-xs font-medium text-gray-700 mb-3">Weekly Activity</p>
-                    <div className="flex items-end justify-between h-20 gap-2">
-                      {[40, 65, 45, 80, 60, 90, 75].map((height, i) => (
-                        <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500 to-teal-500 rounded-t" style={{ height: `${height}%` }}></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating Achievement Badge */}
-                <div className="absolute -top-4 -right-4 bg-white backdrop-blur-sm rounded-xl shadow-xl p-3 border border-amber-400 animate-bounce">
-                  <Award className="w-6 h-6 text-amber-400" />
-                </div>
-
-                {/* Floating Mentor Card */}
-                <div className="absolute -bottom-4 -left-4 bg-white backdrop-blur-sm rounded-xl shadow-xl p-3 border border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      JD
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900">New Mentor Match!</p>
-                      <p className="text-xs text-gray-600">John Doe</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 rounded-2xl blur-3xl -z-10"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats - Desktop Only (Below Hero) */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="hidden lg:grid grid-cols-4 gap-8 mt-20"
-          >
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <motion.div key={index} variants={fadeInUp} className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-lg mb-3">
-                    <Icon className="w-6 h-6 text-emerald-400" />
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">
-                    <AnimatedCounter value={stat.value} />
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {stat.label}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Trust Signals Section */}
-      <section className="py-12 bg-gray-50 border-y border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <p className="text-sm font-medium text-gray-600 mb-4">
-              EMPOWERING YOUR CAREER JOURNEY
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="text-center p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <p className="text-2xl font-bold text-gray-900">Free</p>
-              </div>
-              <p className="text-sm text-gray-600">To Get Started</p>
-            </div>
-            <div className="text-center p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Star className="w-5 h-5 text-amber-400" />
-                <p className="text-2xl font-bold text-gray-900">24/7</p>
-              </div>
-              <p className="text-sm text-gray-600">AI Support</p>
-            </div>
-            <div className="text-center p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Trophy className="w-5 h-5 text-teal-400" />
-                <p className="text-2xl font-bold text-gray-900">Smart</p>
-              </div>
-              <p className="text-sm text-gray-600">Career Matching</p>
-            </div>
+            )}
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Features Section */}
-      <section id="features" className="py-16 md:py-24 lg:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeInUp}
-            className="text-center mb-16"
-          >
-            <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <Rocket className="w-4 h-4" />
-              <span>Platform Features</span>
+      {/* Hero Section */}
+      <section className="relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          {/* Release Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-8 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-xs font-semibold text-blue-700 dark:text-blue-300 shadow-sm">
+            <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+            <span>Career Guidance Reimagined</span>
+            <span className="text-gray-300 dark:text-gray-600">|</span>
+            <span className="text-gray-600 dark:text-gray-400">Adaptive Sprints & Verified Mentors</span>
+          </div>
+
+          {/* Main Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-950 dark:text-white max-w-4xl mx-auto leading-[1.12]">
+            From Classroom to Industry Hire.{' '}
+            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 bg-clip-text text-transparent">
+              Forged with Precision.
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto font-normal leading-relaxed">
+            Replace generic lists and repetitive static quizzes with real adaptive skill benchmarking, automated trajectory roadmaps, and 1-on-1 sessions with verified software engineers.
+          </p>
+
+          {/* CTAs */}
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+            {isAuthenticated ? (
+              <Link
+                to="/app/dashboard"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+              >
+                <span>Open Your Dashboard</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <Link
+                to="/register"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-blue-600/25 transition-all"
+              >
+                <span>Start Free Assessment</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+
+            <a
+              href="#how-it-works"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800/80 dark:hover:bg-gray-800 rounded-xl transition-all"
+            >
+              <span>Explore Platform</span>
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </a>
+          </div>
+
+          {/* Trust Metrics Bar */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+              <span>5-Stage Adaptive Question Engine</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-              Everything you need to
-              <br />
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                succeed in your career
-              </span>
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Powerful tools and features designed to accelerate your career growth
-            </p>
-          </motion.div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <span>Vetted Industry Mentors</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-purple-500 flex-shrink-0" />
+              <span>No AI Hallucinations</span>
+            </div>
+          </div>
 
-          {/* Bento Grid Layout */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={staggerContainer}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 auto-rows-fr"
-          >
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              // Define bento grid spans for varied layout
-              const gridSpans = [
-                'lg:col-span-2 lg:row-span-2', // AI Career Guidance - Large
-                'lg:col-span-2 lg:row-span-1', // Personalized Assessments - Wide
-                'lg:col-span-2 lg:row-span-1', // Expert Mentorship - Wide
-                'lg:col-span-2 lg:row-span-1', // Real-time Chat - Wide
-                'lg:col-span-2 lg:row-span-1', // Progress Analytics - Wide
-                'lg:col-span-2 lg:row-span-2', // Community Support - Large
-              ];
-              
-              return (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  className={`group p-8 bg-white border-2 border-gray-200 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 hover:border-emerald-500 ${gridSpans[index] || 'lg:col-span-2'}`}
-                >
-                  <div className={`w-14 h-14 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
-                    <Icon className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {feature.description}
-                  </p>
-                  {/* Featured badge for large cards */}
-                  {(index === 0 || index === 5) && (
-                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-600">
-                      <Sparkles className="w-4 h-4" />
-                      <span>Most Popular</span>
-                    </div>
+          {/* Interactive SaaS Product Window Mockup */}
+          <div className="mt-14 max-w-5xl mx-auto rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xl shadow-blue-900/10 dark:shadow-black/50 overflow-hidden text-left">
+            {/* Window Top Bar */}
+            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-red-400/80 dark:bg-red-500/60 inline-block" />
+                <span className="w-3 h-3 rounded-full bg-yellow-400/80 dark:bg-yellow-500/60 inline-block" />
+                <span className="w-3 h-3 rounded-full bg-green-400/80 dark:bg-green-500/60 inline-block" />
+                <span className="ml-3 text-xs font-mono text-gray-400 dark:text-gray-500 hidden sm:inline">
+                  careerforge.ai/app/career
+                </span>
+              </div>
+
+              {/* Mockup Tabs */}
+              <div className="flex items-center gap-1 bg-gray-200/70 dark:bg-gray-800/80 p-0.5 rounded-lg text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setActivePreviewTab('trajectory')}
+                  className={cn(
+                    'px-3 py-1 rounded-md transition-all',
+                    activePreviewTab === 'trajectory'
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   )}
-                </motion.div>
-              );
-            })}
-          </motion.div>
+                >
+                  Career Trajectory
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActivePreviewTab('quiz')}
+                  className={cn(
+                    'px-3 py-1 rounded-md transition-all',
+                    activePreviewTab === 'quiz'
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  )}
+                >
+                  Adaptive Quiz
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActivePreviewTab('mentorship')}
+                  className={cn(
+                    'px-3 py-1 rounded-md transition-all',
+                    activePreviewTab === 'mentorship'
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  )}
+                >
+                  Verified Mentors
+                </button>
+              </div>
+            </div>
+
+            {/* Window Content Body */}
+            <div className="p-6 md:p-8 bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900 dark:to-gray-950">
+              {activePreviewTab === 'trajectory' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                          Active Goal
+                        </span>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                          AI & Full-Stack Systems Engineer
+                        </h3>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Timeline: 6 Months · 5 Structured Milestones · Verified Industry Ready
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span>Overall Progress: 60%</span>
+                      <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="w-3/5 h-full bg-emerald-500 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visual Node Milestones */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20">
+                      <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-300 mb-2">
+                        <span>STAGE 01 · COMPLETED</span>
+                        <CheckCircle2 className="h-4 w-4" />
+                      </div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        TypeScript & Full-Stack Core
+                      </h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Production API design, relational data modeling, and JWT authentication.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50/70 dark:bg-blue-950/30 relative shadow-sm">
+                      <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white uppercase">
+                        Current Sprint
+                      </span>
+                      <div className="flex items-center justify-between text-xs font-bold text-blue-700 dark:text-blue-300 mb-2">
+                        <span>STAGE 02 · IN PROGRESS</span>
+                        <Zap className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        RAG Pipelines & Vector Search
+                      </h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Integrating PostgreSQL pgvector, chunking heuristics, and embedding stores.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 opacity-70">
+                      <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
+                        <span>STAGE 03 · UPCOMING</span>
+                        <Target className="h-4 w-4" />
+                      </div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        Distributed Systems & Scale
+                      </h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Kafka event streaming, Redis caching layers, and load balancer profiling.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activePreviewTab === 'quiz' && (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+                    <div>
+                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                        Stage 3 of 5 · System Architecture & Reasoning
+                      </span>
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mt-0.5">
+                        Question 3 of 5: Dynamic Difficulty (Adapting to Previous Correct Answers)
+                      </h3>
+                    </div>
+                    <span className="px-2.5 py-1 text-xs font-semibold rounded-md bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                      Difficulty: High
+                    </span>
+                  </div>
+
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    When designing a high-throughput recommendation endpoint requiring sub-50ms latency, which strategy best mitigates the vector database similarity search bottleneck?
+                  </p>
+
+                  <div className="space-y-2">
+                    {[
+                      { text: 'A) Execute raw cosine distance scans on every request without indexing', isSelected: false },
+                      { text: 'B) Two-tier retrieval: HNSW approximate index in memory followed by quantized reranking', isSelected: true },
+                      { text: 'C) Increase relational database thread pool size and convert embeddings to JSON text', isSelected: false },
+                      { text: 'D) Perform linear brute-force comparisons on the client browser', isSelected: false },
+                    ].map((opt, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          'p-3 rounded-lg border text-xs sm:text-sm font-medium flex items-center justify-between',
+                          opt.isSelected
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 font-semibold'
+                            : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-850 text-gray-700 dark:text-gray-300'
+                        )}
+                      >
+                        <span>{opt.text}</span>
+                        {opt.isSelected && <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activePreviewTab === 'mentorship' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                        Matched Industry Mentors
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Vetted engineers available for mock interviews, code reviews, and roadmap calibration.
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                      8 Mentors Online
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-white font-bold flex items-center justify-center text-sm">
+                          MV
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white">Marcus Vance</h4>
+                            <ShieldCheck className="h-3.5 w-3.5 text-blue-500" />
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Staff AI Platform Engineer</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">PyTorch</span>
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Distributed AI</span>
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">System Design</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-600 text-white font-bold flex items-center justify-center text-sm">
+                          SL
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white">Sarah Lin</h4>
+                            <ShieldCheck className="h-3.5 w-3.5 text-blue-500" />
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Lead Full-Stack Architect</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">React Architecture</span>
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">PostgreSQL</span>
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Microservices</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bento Grid: 4 Core Capabilities */}
+      <section id="features" className="py-20 md:py-28 bg-gray-50/70 dark:bg-[#0d1017] border-y border-gray-200/80 dark:border-gray-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              Complete Career Architecture
+            </h2>
+            <p className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-950 dark:text-white">
+              Engineered for Real Industry Competency
+            </p>
+            <p className="mt-4 text-base text-gray-600 dark:text-gray-400">
+              Traditional platforms give you static multiple-choice questions or outdated video lectures. CareerForge combines adaptive evaluation with human mentorship.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Feature 1 */}
+            <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-blue-500/50 transition-all shadow-xs">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6">
+                <BookOpen className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                5-Stage Adaptive Quiz Engine
+              </h3>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                Questions that automatically adapt based on your previous answers. Move through 5 distinct stages from fundamentals to system design, isolating exact skill gaps.
+              </p>
+              <ul className="mt-4 space-y-2 text-xs text-gray-500 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-blue-500" />
+                  <span>Real-time difficulty adjustment</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-blue-500" />
+                  <span>Accurate domain aptitude scoring</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-indigo-500/50 transition-all shadow-xs">
+              <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-6">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Milestone Trajectory Mapping
+              </h3>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                Generate an actionable, sequential career roadmap tailored to your target job role. Track timeline estimates, project deliverables, and real interview requirements.
+              </p>
+              <ul className="mt-4 space-y-2 text-xs text-gray-500 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-indigo-500" />
+                  <span>Interactive node progression graph</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-indigo-500" />
+                  <span>Targeted portfolio project criteria</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-purple-500/50 transition-all shadow-xs">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6">
+                <Users className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Verified Industry Mentorship
+              </h3>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                Connect directly with practicing software and AI engineers. Schedule 1-on-1 video sessions, conduct mock coding interviews, and receive honest portfolio feedback.
+              </p>
+              <ul className="mt-4 space-y-2 text-xs text-gray-500 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-purple-500" />
+                  <span>Vetted company badges & hourly bookings</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-purple-500" />
+                  <span>Direct mentor chat messaging</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-cyan-500/50 transition-all shadow-xs lg:col-span-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
+                  <MessageSquare className="h-6 w-6" />
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/40">
+                  Powered by Google Gemini 2.5 Flash
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                AI Career Co-Pilot & Technical Drill Assistant
+              </h3>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-2xl">
+                Need to prepare for a system design round tonight? Have questions about whether to pursue data engineering vs. ML infrastructure? Chat anytime with a specialized career intelligence co-pilot trained on modern hiring rubrics.
+              </p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="p-8 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg flex flex-col justify-between">
+              <div>
+                <span className="text-xs uppercase tracking-wider font-bold text-blue-200">
+                  Ready to benchmark?
+                </span>
+                <h3 className="text-2xl font-bold mt-2">
+                  Test your skills in under 10 minutes.
+                </h3>
+                <p className="mt-3 text-sm text-blue-100 leading-relaxed">
+                  Join thousands of aspiring developers forging structured engineering careers.
+                </p>
+              </div>
+              <div className="mt-6">
+                <Link
+                  to="/register"
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors shadow-sm"
+                >
+                  <span>Start Free Sprint</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 md:py-24 lg:py-32 bg-gray-50">
+      <section id="how-it-works" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeInUp}
-            className="text-center mb-16"
-          >
-            <div className="inline-flex items-center space-x-2 bg-teal-500/10 border border-teal-500/20 text-teal-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <Clock className="w-4 h-4" />
-              <span>Simple Process</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-              Get started in
-              <br />
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                four simple steps
-              </span>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              Clear Three-Step Process
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of professionals who transformed their careers with CareerForge AI
+            <p className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-950 dark:text-white">
+              How CareerForge Bridges the Gap
             </p>
-          </motion.div>
+          </div>
 
-          {/* Steps */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {howItWorks.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <motion.div 
-                  key={index} 
-                  variants={fadeInUp}
-                  whileHover={{ y: -10 }}
-                  className="relative"
-                >
-                  {/* Connector Line */}
-                  {index < howItWorks.length - 1 && (
-                    <div className="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-emerald-500/50 to-transparent" />
-                  )}
-                  
-                  <div className="relative bg-white border-2 border-gray-200 p-8 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 hover:border-emerald-500">
-                    {/* Step Number */}
-                    <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-500/50">
-                      {step.step}
-                    </div>
-                    
-                    <div className="mt-4">
-                      <Icon className="w-12 h-12 text-emerald-600 mb-4" />
-                      <h3 className="text-xl font-bold text-gray-900 mb-3">
-                        {step.title}
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="relative p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <span className="text-4xl font-black text-gray-200 dark:text-gray-800">01</span>
+              <h3 className="mt-4 text-lg font-bold text-gray-900 dark:text-white">
+                Benchmark With Adaptive Sprints
+              </h3>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Attempt questions that automatically scale in complexity to identify your exact domain strengths and eliminate blind spots.
+              </p>
+            </div>
+
+            <div className="relative p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <span className="text-4xl font-black text-gray-200 dark:text-gray-800">02</span>
+              <h3 className="mt-4 text-lg font-bold text-gray-900 dark:text-white">
+                Follow Your Structured Roadmap
+              </h3>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Execute chronological milestones with tangible code deliverables, portfolio projects, and technical checkpoints.
+              </p>
+            </div>
+
+            <div className="relative p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <span className="text-4xl font-black text-gray-200 dark:text-gray-800">03</span>
+              <h3 className="mt-4 text-lg font-bold text-gray-900 dark:text-white">
+                Connect With Verified Mentors
+              </h3>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Book 1-on-1 strategy sessions and mock coding interviews with experienced engineers to validate your hire-readiness.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-16 md:py-24 lg:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Benefits List */}
-            <div>
-              <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                <Shield className="w-4 h-4" />
-                <span>Why Choose Us</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-                The most advanced
-                <br />
-                <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                  career platform
-                </span>
-              </h2>
-              <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-                Join the fastest-growing career development community and unlock your full potential.
-              </p>
-              
-              <div className="space-y-4">
-                {benefits.map((benefit, index) => {
-                  const Icon = benefit.icon;
-                  return (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:shadow-md hover:shadow-emerald-500/10 transition-all border border-gray-200 hover:border-emerald-500">
-                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="text-gray-900 font-medium">
-                        {benefit.text}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+      {/* Comparison Matrix Section */}
+      <section id="comparison" className="py-20 md:py-28 bg-gray-50/70 dark:bg-[#0d1017] border-t border-gray-200/80 dark:border-gray-800/80">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              The Real Difference
+            </h2>
+            <p className="mt-2 text-3xl font-extrabold text-gray-950 dark:text-white">
+              Why CareerForge vs. Generic Tools
+            </p>
+          </div>
 
-              <Link
-                to="/register"
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-8 py-4 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 mt-8 font-semibold"
-              >
-                <span>Start Your Journey</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
+            <div className="grid grid-cols-3 p-4 sm:p-6 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+              <div>Capability</div>
+              <div className="text-gray-500">Static Quizzes / Bootcamps</div>
+              <div className="text-blue-600 dark:text-blue-400 font-extrabold flex items-center gap-1.5">
+                <CareerForgeMark size={16} />
+                <span>CareerForge AI</span>
+              </div>
             </div>
 
-            {/* Right Side - Visual Element */}
-            <div className="relative">
-              <div className="relative bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl p-8 shadow-2xl shadow-emerald-500/20">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-white/20 rounded-xl">
-                      <span className="text-white font-semibold">Career Score</span>
-                      <span className="text-white text-2xl font-bold">94%</span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-white/20 rounded-xl">
-                      <span className="text-white font-semibold">Skills Mastered</span>
-                      <span className="text-white text-2xl font-bold">12</span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-white/20 rounded-xl">
-                      <span className="text-white font-semibold">Mentor Sessions</span>
-                      <span className="text-white text-2xl font-bold">8</span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-white/20 rounded-xl">
-                      <span className="text-white font-semibold">Goals Achieved</span>
-                      <span className="text-white text-2xl font-bold">5/7</span>
-                    </div>
-                  </div>
+            {[
+              {
+                feature: 'Assessment Logic',
+                traditional: 'Static fixed 10 questions, same for all',
+                careerforge: '5-Stage Adaptive Engine (adapts to every answer)',
+              },
+              {
+                feature: 'Domain Recommendations',
+                traditional: 'Generic canned results (e.g. always UI/UX)',
+                careerforge: 'Close-match scoring based on actual performance',
+              },
+              {
+                feature: 'Career Guidance',
+                traditional: 'Unverified forum posts or expensive $15k courses',
+                careerforge: 'Verified industry engineers + 24/7 AI Co-Pilot',
+              },
+              {
+                feature: 'Roadmap Tracking',
+                traditional: 'Static PDF checklists without verification',
+                careerforge: 'Interactive Trajectory Dashboard with live metrics',
+              },
+            ].map((row, idx) => (
+              <div
+                key={idx}
+                className="grid grid-cols-3 p-4 sm:p-6 border-b border-gray-100 dark:border-gray-800 last:border-0 text-xs sm:text-sm items-center"
+              >
+                <div className="font-semibold text-gray-900 dark:text-white">{row.feature}</div>
+                <div className="text-gray-500 dark:text-gray-400">{row.traditional}</div>
+                <div className="font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+                  <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                  <span>{row.careerforge}</span>
                 </div>
               </div>
-              
-              {/* Floating Elements */}
-              <div className="absolute -top-6 -right-6 w-24 h-24 bg-amber-400 rounded-full flex items-center justify-center shadow-xl shadow-amber-500/50 animate-bounce">
-                <Award className="w-12 h-12 text-white" />
-              </div>
-              <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-xl shadow-emerald-500/50 animate-pulse">
-                <Target className="w-10 h-10 text-white" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      {testimonials.length > 0 && (
-      <section id="testimonials" className="py-16 md:py-24 lg:py-32 bg-gray-50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeInUp}
-            className="text-center mb-16"
-          >
-            <div className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <Star className="w-4 h-4" />
-              <span>Success Stories</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-              Loved by professionals
-              <br />
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                around the world
-              </span>
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Hear from our community members who transformed their careers
-            </p>
-          </motion.div>
-
-          {/* Testimonials Marquee */}
-          <div className="relative">
-            <motion.div
-              className="flex gap-6"
-              animate={{
-                x: [0, -100 * testimonials.length]
-              }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 20,
-                  ease: "linear"
-                }
-              }}
-            >
-              {/* Duplicate testimonials for seamless loop */}
-              {[...testimonials, ...testimonials].map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ scale: 1.05, y: -10 }}
-                  className="flex-shrink-0 w-[350px] bg-white border-2 border-gray-200 p-8 rounded-2xl shadow-sm hover:border-emerald-500 transition-all"
-                >
-                  {/* Stars */}
-                  <div className="flex space-x-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-
-                  {/* Quote */}
-                  <p className="text-gray-700 mb-6 leading-relaxed text-sm">
-                    "{testimonial.quote}"
-                  </p>
-
-                  {/* Author */}
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/50">
-                      {testimonial.image}
-                    </div>
-                    <div>
-                      <div className="font-bold text-gray-900">
-                        {testimonial.name}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {testimonial.role}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Gradient Overlays */}
-            <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-gray-50 to-transparent pointer-events-none" />
-            <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-gray-50 to-transparent pointer-events-none" />
-          </div>
-        </div>
-      </section>
-      )}
-
-      {/* FAQ Section */}
-      <section className="py-16 md:py-24 lg:py-32 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeInUp}
-            className="text-center mb-16"
-          >
-            <div className="inline-flex items-center space-x-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <MessageSquare className="w-4 h-4" />
-              <span>FAQ</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-              Frequently asked
-              <br />
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                questions
-              </span>
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
-              Everything you need to know about CareerForge AI
-            </p>
-          </motion.div>
-
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="space-y-4"
-          >
-            {faqs.map((faq, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="bg-white border-2 border-gray-200 rounded-xl hover:border-emerald-500 overflow-hidden transition-all"
-              >
-                <button
-                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-semibold text-gray-900 pr-4">
-                    {faq.question}
-                  </span>
-                  <motion.div
-                    animate={{ rotate: openFaqIndex === index ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronRight className="w-5 h-5 text-emerald-600 transform rotate-90" />
-                  </motion.div>
-                </button>
-                <motion.div
-                  initial={false}
-                  animate={{
-                    height: openFaqIndex === index ? 'auto' : 0,
-                    opacity: openFaqIndex === index ? 1 : 0
-                  }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-6 pb-5 text-gray-600 leading-relaxed">
-                    {faq.answer}
-                  </div>
-                </motion.div>
-              </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative py-16 md:py-24 bg-gradient-to-r from-emerald-600 to-teal-600 overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        </div>
-        
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-            Ready to transform your career?
-          </h2>
-          <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
-            Join thousands of professionals who are already achieving their career goals
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <MagneticButton
-              to="/register"
-              className="group bg-white text-emerald-600 px-8 py-4 rounded-xl hover:bg-slate-50 transition-all duration-200 shadow-xl shadow-white/25 hover:shadow-2xl hover:shadow-white/40 flex items-center space-x-2 text-lg font-bold"
-            >
-              <span>Get Started Free</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </MagneticButton>
-            <MagneticButton
-              to="/login"
-              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-emerald-600 transition-all duration-200 flex items-center space-x-2 text-lg font-semibold"
-            >
-              <span>Sign In</span>
-            </MagneticButton>
+      {/* CTA Bottom Banner */}
+      <section className="py-20 bg-white dark:bg-[#090b11]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 mb-6">
+            <CareerForgeMark size={40} />
           </div>
-
-          <p className="text-white/80 mt-6 text-sm">
-            No credit card required • Free forever • Cancel anytime
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-950 dark:text-white">
+            Start Forging Your Engineering Trajectory Today.
+          </h2>
+          <p className="mt-4 text-base text-gray-600 dark:text-gray-300 max-w-xl mx-auto">
+            Take the 5-stage adaptive sprint, explore verified tech mentors, and build a career with confidence.
           </p>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              to="/register"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+            >
+              <span>Create Free Account</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/login"
+              className="w-full sm:w-auto px-6 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Already registered? Sign In
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            {/* Brand */}
-            <div className="col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/50">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                  CareerForge AI
-                </span>
-              </div>
-              <p className="text-gray-400 mb-4">
-                The most advanced AI-powered career development platform. Transform your professional journey with personalized guidance.
-              </p>
-            </div>
-
-            {/* Links */}
-            <div>
-              <h4 className="text-white font-semibold mb-4">Platform</h4>
-              <ul className="space-y-2">
-                <li><a href="#features" className="hover:text-emerald-400 transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-emerald-400 transition-colors">How It Works</a></li>
-                <li><a href="#testimonials" className="hover:text-emerald-400 transition-colors">Testimonials</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-semibold mb-4">Get Started</h4>
-              <ul className="space-y-2">
-                <li><Link to="/register" className="hover:text-emerald-400 transition-colors">Create Account</Link></li>
-                <li><Link to="/login" className="hover:text-emerald-400 transition-colors">Sign In</Link></li>
-              </ul>
-            </div>
+      <footer className="border-t border-gray-200 dark:border-gray-800/80 bg-gray-50 dark:bg-gray-950 py-12 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <BrandLogo size="sm" variant="default" />
           </div>
-
-          {/* Bottom Bar */}
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm">
-              © 2025 CareerForge AI. All rights reserved.
-            </p>
-            <div className="flex items-center space-x-2 mt-4 md:mt-0">
-              <CheckCircle className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm">Built with ❤️ by developers</span>
-            </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            © {new Date().getFullYear()} CareerForge AI. All rights reserved. Adaptive Career Intelligence Platform.
+          </p>
+          <div className="flex items-center gap-6 text-xs text-gray-500 dark:text-gray-400 font-medium">
+            <Link to="/login" className="hover:text-gray-900 dark:hover:text-white transition-colors">Sign In</Link>
+            <Link to="/register" className="hover:text-gray-900 dark:hover:text-white transition-colors">Register</Link>
+            <Link to="/mentorship/register" className="hover:text-gray-900 dark:hover:text-white transition-colors">Become a Mentor</Link>
           </div>
         </div>
       </footer>
-
-      {/* Custom CSS for Animations */}
-      <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out;
-        }
-
-        .animation-delay-200 {
-          animation-delay: 0.2s;
-          animation-fill-mode: both;
-        }
-
-        .animation-delay-400 {
-          animation-delay: 0.4s;
-          animation-fill-mode: both;
-        }
-
-        .animation-delay-600 {
-          animation-delay: 0.6s;
-          animation-fill-mode: both;
-        }
-      `}</style>
     </div>
   );
 };
