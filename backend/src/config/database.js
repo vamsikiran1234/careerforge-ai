@@ -50,18 +50,28 @@ async function ensureDemoAccount() {
     const bcrypt = require('bcryptjs');
     const email = 'demo.user@careerforge.ai';
     const existing = await prisma.user.findUnique({ where: { email } });
+    const hashedPassword = await bcrypt.hash('CareerForge@Demo2026', 10);
+    const candidateBio = 'Full-Stack Software Engineer & Applied AI Developer specializing in TypeScript, React, Node.js, Python, and Production RAG architectures. Experienced in building high-throughput microservices, scalable distributed systems, and LLM-powered applications.';
+
     if (!existing) {
-      const hashedPassword = await bcrypt.hash('CareerForge@Demo2026', 10);
       await prisma.user.create({
         data: {
           email,
-          name: 'Demo Student',
+          name: 'Vamsi Kiran',
           password: hashedPassword,
           roles: '["STUDENT"]',
-          bio: 'CareerForge AI Demo Account for exploring career pathways and AI mentorship.',
+          bio: candidateBio,
         },
       });
       logger.info('👤 Demo account auto-initialized: ' + email);
+    } else {
+      await prisma.user.update({
+        where: { email },
+        data: {
+          name: 'Vamsi Kiran',
+          bio: candidateBio,
+        },
+      });
     }
   } catch {
     // Non-fatal if tables do not exist yet
