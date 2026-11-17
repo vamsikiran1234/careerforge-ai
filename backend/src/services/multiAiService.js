@@ -299,9 +299,15 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
       };
     }
     
-    // Prepare messages for API
+    // Prepare messages for API (deduplicate if the last message in history is identical to userMessage)
+    const sanitizedHistory = (Array.isArray(messageHistory) && messageHistory.length > 0 &&
+      messageHistory[messageHistory.length - 1]?.role === 'user' &&
+      messageHistory[messageHistory.length - 1]?.content === userMessage)
+        ? messageHistory.slice(0, -1)
+        : (Array.isArray(messageHistory) ? messageHistory : []);
+
     const messages = [
-      ...messageHistory.slice(-10).map(msg => ({
+      ...sanitizedHistory.slice(-10).map(msg => ({
         role: msg.role,
         content: msg.content
       })),

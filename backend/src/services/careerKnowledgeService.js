@@ -3,15 +3,264 @@
  * 
  * Provides comprehensive, structured career guidance, technology roadmaps,
  * project suggestions, interview prep, and actionable career blueprints.
- * Serves as an instant, zero-downtime advisor when external AI gateways are offline.
+ * Serves as an instant, zero-downtime advisor with contextual multi-turn memory.
  */
 
 function generateCareerAdvisorResponse(userMessage = '', messageHistory = [], options = {}) {
   const query = (userMessage || '').trim().toLowerCase();
   const userName = options.userName || 'there';
 
-  // 1. AI Engineer / Machine Learning Roadmap
-  if (/ai engineer|machine learning|artificial intelligence|deep learning|nlp|llm|generative ai|prompt engineering|pytorch|computer vision/i.test(query)) {
+  // -------------------------------------------------------------
+  // 1. Context Extraction from Previous Message History
+  // -------------------------------------------------------------
+  let activeDomain = 'general';
+  let lastAssistantMsg = '';
+  let lastUserMsg = '';
+
+  if (Array.isArray(messageHistory) && messageHistory.length > 0) {
+    for (let i = messageHistory.length - 1; i >= 0; i--) {
+      const msg = messageHistory[i];
+      const text = (msg.content || '').toLowerCase();
+      
+      if (msg.role === 'assistant' && !lastAssistantMsg) {
+        lastAssistantMsg = text;
+      }
+      if (msg.role === 'user' && !lastUserMsg && msg.content !== userMessage) {
+        lastUserMsg = text;
+      }
+
+      if (activeDomain === 'general') {
+        if (/ai engineer|machine learning|deep learning|rag|pytorch|llm|generative ai/i.test(text)) {
+          activeDomain = 'ai_engineer';
+        } else if (/web developer|full[- ]?stack|frontend|react|node/i.test(text)) {
+          activeDomain = 'web_dev';
+        } else if (/backend|database|microservices|postgresql|golang|java/i.test(text)) {
+          activeDomain = 'backend';
+        } else if (/devops|cloud|kubernetes|docker|aws/i.test(text)) {
+          activeDomain = 'devops';
+        } else if (/data analyst|data analysis|power bi|tableau/i.test(text)) {
+          activeDomain = 'data_analyst';
+        } else if (/cybersecurity|security engineer|pentest/i.test(text)) {
+          activeDomain = 'cybersecurity';
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 2. Specific Topic Deep-Dives (Priority 1)
+  // -------------------------------------------------------------
+
+  // TOPIC: RAG (Retrieval-Augmented Generation) & Vector Search
+  if (
+    /\b(rag|retrieval[- ]augmented|vector (database|db|search|embeddings?|store)|chromadb|pinecone|qdrant|pgvector|chunking|reranking)\b/i.test(query) ||
+    (activeDomain === 'ai_engineer' && /^(rag|vector|embeddings?|search|retrieval)$/i.test(query))
+  ) {
+    return `### ⚡ Production RAG (Retrieval-Augmented Generation) Deep-Dive
+
+Hello **${userName}**! You're focusing on one of the most in-demand skills for modern AI Engineers. **Retrieval-Augmented Generation (RAG)** bridges the gap between static LLM foundation models and dynamic, private enterprise data without requiring prohibitively expensive retraining.
+
+---
+
+#### 🏗️ The 5-Stage Production RAG Architecture
+
+\`\`\`
+[Document Ingestion] ➡️ [Chunking & Metadata] ➡️ [Dense Embedding]
+                                                        ⬇️
+[LLM Answer + Citations] ⬅️ [Cross-Encoder Rerank] ⬅️ [Hybrid Search (Dense + BM25)]
+\`\`\`
+
+1. **Document Processing & Chunking**:
+   * **Semantic Chunking**: Instead of arbitrary character counts, split documents by heading tags, paragraphs, or sentence boundaries (e.g. \`RecursiveCharacterTextSplitter\` with 500-token chunks and 10% overlap).
+   * **Rich Metadata Enrichment**: Attach document title, page number, section header, and creation date to every chunk to enable metadata pre-filtering.
+
+2. **Vector Embeddings**:
+   * Generate vector representations using state-of-the-art embedding models:
+     * **Open Source**: \`BAAI/bge-large-en-v1.5\` or \`nomic-embed-text\`.
+     * **Managed**: OpenAI \`text-embedding-3-small\` (1536 dims) or Cohere \`embed-english-v3.0\`.
+
+3. **Vector Storage & Hybrid Retrieval**:
+   * **Vector Engines**: Use **Qdrant**, **ChromaDB**, **Pinecone**, or **PostgreSQL with pgvector**.
+   * **Hybrid Search (Dense + Sparse)**: Pure vector search often struggles with exact keyword matches (e.g. product IDs, legal clauses). Combine dense semantic embeddings with sparse **BM25 keyword search** using Reciprocal Rank Fusion (RRF).
+
+4. **Cross-Encoder Reranking**:
+   * Retrieve the top 20 candidate chunks via hybrid search, then pass \`(query, chunk)\` pairs through a **Cross-Encoder** (such as \`bge-reranker-large\` or Cohere Rerank API) to pick the top 3–5 highest-relevance passages.
+
+5. **Context Ingestion & Strict Prompting**:
+   * Inject retrieved context into the LLM system prompt with strict guardrails:
+     > *"Answer the question strictly using the provided context. If the answer cannot be deduced, explicitly state 'Information not found in context'. Always cite the source document and page number."*
+
+---
+
+#### 🚀 Advanced RAG Techniques Recruiters Look For
+
+* **HyDE (Hypothetical Document Embeddings)**: Have the LLM generate a hypothetical ideal answer first, embed that answer, and use its embedding to search for real documents.
+* **Parent-Document Retrieval**: Search over small, granular 100-token chunks for high embedding accuracy, but retrieve the full 1,000-token parent section for LLM context.
+* **Evaluation with Ragas**: Benchmark your RAG system on **Faithfulness** (no hallucinations), **Answer Relevance**, and **Context Recall** on a test golden dataset.
+
+---
+
+#### 💻 Recommended Tech Stack & Starter Project
+* **Orchestration**: Python 3.11+, LangChain / LlamaIndex, or raw HTTP client with **FastAPI**.
+* **Vector Store**: Qdrant or ChromaDB running in Docker.
+* **Portfolio Project**: Build an *"Enterprise Legal / Financial Contract Q&A Portal"* with source page citation, PDF viewer highlighting, and latency monitoring.
+
+Would you like a sample Python implementation of a Hybrid Search + Reranker pipeline, or shall we explore RAG evaluation metrics?`;
+  }
+
+  // TOPIC: PyTorch, Neural Networks & Deep Learning Foundations
+  if (/\b(pytorch|torch|tensors?|autograd|dataloader|nn\.module|backpropagation|adamw|gradient descent)\b/i.test(query)) {
+    return `### 🧠 PyTorch & Deep Learning Foundations
+
+Hello **${userName}**! **PyTorch** is the undisputed industry standard for deep learning research and modern model engineering. Mastering PyTorch means understanding how computation graphs and backward gradients operate under the hood.
+
+---
+
+#### 🔑 The 4 Pillars of PyTorch Mastery
+
+1. **Tensors & GPU Acceleration**:
+   * Multi-dimensional arrays with CUDA support (\`tensor.to('cuda')\`).
+   * Memory layout, broadcasting semantics, and contiguous tensor operations.
+2. **Autograd & Computation Graphs**:
+   * Dynamic computational graphs built on the fly.
+   * Tracking gradients with \`requires_grad=True\`, forward pass, \`loss.backward()\`, and \`optimizer.step()\`.
+3. **Data Pipelines (\`Dataset\` & \`DataLoader\`)**:
+   * Writing custom \`torch.utils.data.Dataset\` with \`__len__\` and \`__getitem__\`.
+   * High-throughput batching, worker threads (\`num_workers\`), and pin-memory GPU transfers.
+4. **Model Architecture (\`nn.Module\`)**:
+   * Encapsulating layers, forward execution, loss functions (\`CrossEntropyLoss\`, \`MSELoss\`), and optimizers (\`AdamW\`).
+
+---
+
+#### 🛠️ Typical PyTorch Training Loop Blueprint
+
+\`\`\`python
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+
+model = MyCustomModel().to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0.01)
+
+for epoch in range(num_epochs):
+    model.train()
+    for batch_x, batch_y in dataloader:
+        batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+        
+        optimizer.zero_grad()
+        predictions = model(batch_x)
+        loss = criterion(predictions, batch_y)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+\`\`\`
+
+Would you like to build a custom CNN for image classification or explore fine-tuning a transformer with PyTorch?`;
+  }
+
+  // TOPIC: Fine-Tuning, LoRA, QLoRA & Transformers
+  if (/\b(fine[- ]?tuning|lora|qlora|peft|sft|adapter|quantization|bitsandbytes|transformer architecture)\b/i.test(query)) {
+    return `### ⚡ LLM Fine-Tuning: LoRA & QLoRA Guide
+
+Hello **${userName}**! While RAG is best for giving models access to dynamic enterprise knowledge, **Fine-Tuning** is best for changing a model's style, format, specialized vocabulary, or teaching it complex reasoning patterns.
+
+---
+
+#### 🎯 When to Fine-Tune vs. When to Use RAG
+* **Use RAG when**: Information changes frequently, factual accuracy requires citations, or cost efficiency is priority.
+* **Use Fine-Tuning when**: You need strict JSON output formats, domain-specific tone/jargon (medical/legal), or reducing prompt length by baking knowledge into model weights.
+
+---
+
+#### 🔬 LoRA (Low-Rank Adaptation) & QLoRA Mechanics
+1. **The Core Concept**: Instead of modifying all 8 billion parameters, LoRA freezes the original weight matrix $W$ and trains small rank-decomposition matrices $A$ and $B$:
+   $$W_{\\text{updated}} = W_0 + (B \\times A) \\times \\frac{\\alpha}{r}$$
+2. **QLoRA (Quantized LoRA)**:
+   * Quantizes the base model weights to **4-bit NormalFloat (NF4)** using \`bitsandbytes\`.
+   * Enables fine-tuning an 8B model (like Llama 3 8B) on a single consumer GPU with only 16GB VRAM!
+
+#### 🛠️ Essential Tech Stack
+* **Libraries**: Hugging Face \`transformers\`, \`peft\`, \`trl\` (SFTTrainer), and \`accelerate\`.
+* **Dataset Format**: Instruction-tuning format (\`{"instruction": "...", "input": "...", "output": "..."}\`).
+
+Would you like a step-by-step tutorial on preparing an instruction dataset and running an SFTTrainer script?`;
+  }
+
+  // TOPIC: MLOps, Model Serving & Deployment
+  if (/\b(mlops|model serving|fastapi.*model|triton|vllm|ollama|model deployment|docker.*model)\b/i.test(query)) {
+    return `### 🚢 MLOps & Production Model Serving
+
+Hello **${userName}**! Transitioning from a Jupyter notebook to a production-grade inference service is what separates a student from a professional AI Engineer.
+
+---
+
+#### 🛠️ Key Components of Modern Model Serving
+
+1. **High-Throughput Inference Engines**:
+   * **vLLM**: PagedAttention memory management, continuous batching, and tensor parallelism. Up to 20x higher throughput than standard Hugging Face pipelines!
+   * **Ollama**: Instant local deployment and API serving of GGUF quantized models.
+   * **Triton Inference Server**: Enterprise multi-model concurrent execution on GPU clusters.
+
+2. **Async API Layer (FastAPI)**:
+   * Non-blocking asynchronous endpoints with streaming responses (SSE - Server-Sent Events).
+   * Request queuing and Pydantic schema validation.
+
+3. **Containerization & Cloud Infrastructure**:
+   * Multi-stage Dockerfiles with NVIDIA CUDA container runtime.
+   * Cloud hosting on AWS ECS/SageMaker, GCP Cloud Run, or RunPod/Modal for cost-effective serverless GPUs.
+
+Would you like to see a production FastAPI Docker setup for serving an LLM with streaming responses?`;
+  }
+
+  // -------------------------------------------------------------
+  // 3. Phase Deep-Dive Requests (e.g., "Phase 1", "Phase 3")
+  // -------------------------------------------------------------
+  if (/phase 1|foundations|math.*ml|python foundations/i.test(query)) {
+    return `### 📌 Deep Dive: Phase 1 — Foundations & Mathematical Intuition
+
+Hello **${userName}**! Building rock-solid fundamentals in Phase 1 ensures you understand *why* models converge or fail, rather than just treating them as black boxes.
+
+---
+
+#### 1. Python 3 Mastery for AI
+* **Advanced Idioms**: Decorators for timing/caching, Generators for streaming large datasets without running out of RAM, and Type Hinting with Pydantic.
+* **Concurrency**: Asynchronous I/O (\`asyncio\`) for concurrent API calls and data scrapers.
+
+#### 2. Essential Mathematics
+* **Linear Algebra**: Matrix multiplications, dot product similarity, and Singular Value Decomposition (SVD).
+* **Calculus**: Partial derivatives, the Chain Rule (the core engine of backpropagation), and loss gradients.
+* **Probability**: Bayes' Theorem, maximum likelihood estimation, and confidence intervals.
+
+#### 3. Recommended Week-by-Week Milestones
+* **Weeks 1–3**: Python Object-Oriented programming, Git workflows, and environment isolation (\`poetry\` / \`venv\`).
+* **Weeks 4–8**: 3Blue1Brown's *"Essence of Linear Algebra"* & *"Essence of Calculus"*, implementing gradient descent from scratch in pure NumPy.
+
+Ready to test your math intuition or would you like a mini coding challenge in NumPy?`;
+  }
+
+  if (/phase 4|generative ai roadmap|llm engineering/i.test(query)) {
+    return `### ⚡ Deep Dive: Phase 4 — Modern Generative AI & LLM Engineering
+
+Hello **${userName}**! Phase 4 is where you master the technologies currently driving the AI revolution: **Transformers, RAG, and Autonomous Agents**.
+
+---
+
+#### 🔑 Core Milestones
+1. **Transformer Internals**: Understand Self-Attention mechanisms, multi-head attention, rotary positional embeddings (RoPE), and KV-caching.
+2. **Retrieval-Augmented Generation (RAG)**: Connect vector databases (ChromaDB, Qdrant) with hybrid search and reranking to ground LLM outputs in private data.
+3. **AI Agents & Tool Calling**: Use Function Calling and Structured Outputs to allow models to execute Python scripts, query SQL databases, and search the web.
+4. **Evaluation**: Benchmark systems using Ragas or TruLens rather than relying on qualitative "vibes".
+
+Which subtopic would you like to build first: a **RAG Document Q&A portal** or a **Tool-Calling AI Agent**?`;
+  }
+
+  // -------------------------------------------------------------
+  // 4. Primary Domain Roadmaps
+  // -------------------------------------------------------------
+
+  // AI Engineer / Machine Learning Roadmap
+  if (/ai engineer|machine learning|artificial intelligence|deep learning|nlp|generative ai/i.test(query)) {
     return `### 🚀 Comprehensive AI Engineer Career Roadmap (Fresher Edition)
 
 Hello **${userName}**! Embarking on an **AI Engineer** career as a fresher is one of the highest-leverage decisions in today's tech landscape. While machine learning researchers focus on mathematical theory and novel algorithms, an **AI Engineer** focuses on building, fine-tuning, evaluating, deploying, and maintaining production-grade intelligent systems.
@@ -21,76 +270,48 @@ Here is your comprehensive, battle-tested roadmap designed to take you from a fr
 ---
 
 #### 📌 Phase 1: Foundations & Mathematical Intuition (Months 1–2)
-* **Core Language (Python)**:
-  * Master Python 3 idioms: Object-Oriented Programming (OOP), decorators, generators, list comprehensions, type hinting, and asynchronous programming (\`asyncio\`).
-  * Packaging and environment management (\`venv\`, \`poetry\`, \`pip\`).
-* **Essential Mathematics**:
-  * **Linear Algebra**: Vector spaces, matrix transformations, dot products, eigenvalues & eigenvectors.
-  * **Calculus**: Partial derivatives, the chain rule, and gradient descent optimization algorithms.
-  * **Probability & Statistics**: Normal distributions, Bayes' Theorem, hypothesis testing, p-values, and statistical significance.
-* **Developer Hygiene**: Git workflows (branching, PRs, semantic commit messages), Linux CLI commands, and reproducible Jupyter environments.
+* **Core Language (Python)**: Master Python 3 OOP, decorators, generators, type hinting, and \`asyncio\`.
+* **Essential Mathematics**: Linear Algebra (dot products, matrices), Calculus (gradients, chain rule), and Probability & Statistics.
+* **Developer Hygiene**: Git workflows, Linux CLI, and reproducible Jupyter environments.
 
 ---
 
 #### 📊 Phase 2: Data Engineering & Classical Machine Learning (Months 3–4)
-* **Data Processing & Manipulation**:
-  * \`numpy\` for high-performance vectorized operations.
-  * \`pandas\` for data cleaning, handling missing values, window aggregations, and merging disparate datasets.
-* **Exploratory Data Analysis (EDA)**: Visual storytelling using \`matplotlib\`, \`seaborn\`, and interactive charts with \`plotly\`.
-* **Relational Data & SQL**: Writing optimized SQL queries (JOINs, GROUP BY, Window functions, indexing) to extract datasets directly from databases.
-* **Classical ML Algorithms (Scikit-Learn)**:
-  * **Supervised Learning**: Linear/Logistic Regression, Decision Trees, Random Forests, Gradient Boosted Trees (XGBoost, LightGBM).
-  * **Unsupervised Learning**: K-Means clustering, PCA (Dimensionality Reduction), and DBSCAN.
-  * **Evaluation & Validation**: Cross-validation, ROC-AUC, Precision, Recall, F1-Score, Confusion Matrix, and avoiding data leakage.
+* **Data Processing**: \`numpy\` vectorized operations, \`pandas\` aggregations & data cleaning, and optimized SQL queries.
+* **Classical ML (Scikit-Learn)**: Supervised (XGBoost, Random Forests) and Unsupervised (K-Means, PCA) learning.
+* **Validation**: Cross-validation, ROC-AUC, F1-Score, and avoiding data leakage.
 
 ---
 
 #### 🧠 Phase 3: Deep Learning & Neural Frameworks (Months 5–6)
-* **Framework Mastery**: Deep dive into **PyTorch** (Tensors, Autograd, custom \`Dataset\` and \`DataLoader\`, custom \`nn.Module\`, loss functions, and optimizers like AdamW).
-* **Neural Architecture Foundations**:
-  * Multi-Layer Perceptrons (MLPs), Backpropagation, and Regularization (Dropout, Batch Normalization).
-  * **Computer Vision**: Convolutional Neural Networks (CNNs), transfer learning with pre-trained ResNet/EfficientNet/Vision Transformers.
-  * **NLP Fundamentals**: Tokenization (BPE/WordPiece), embeddings, RNNs, LSTMs, and the Attention mechanism.
+* **Framework Mastery**: Deep dive into **PyTorch** (Tensors, Autograd, custom Datasets & DataLoaders, \`nn.Module\`, AdamW).
+* **Neural Architecture Foundations**: MLPs, CNNs for computer vision, and tokenization/embeddings for NLP.
 
 ---
 
 #### ⚡ Phase 4: Modern Generative AI & LLM Engineering (Months 7–8)
-* **Transformer Architectures**: Encoder-only (BERT), Decoder-only (GPT, Llama), and Encoder-Decoder (T5) architectures.
-* **Hugging Face Ecosystem**: Using \`transformers\`, \`datasets\`, \`accelerate\`, and \`peft\` for Parameter-Efficient Fine-Tuning (LoRA / QLoRA).
-* **Retrieval-Augmented Generation (RAG)**:
-  * Text chunking strategies (semantic, recursive character).
-  * Embedding models and Vector Databases (Pinecone, ChromaDB, Weaviate, pgvector).
-  * Hybrid search (dense vector embeddings + sparse BM25 keyword matching) and reranking models.
-* **AI Agents & Tool Calling**: Orchestrating multi-step workflows, function calling, Structured Outputs (JSON schema enforcement), and prompt engineering techniques.
+* **Transformers**: Hugging Face \`transformers\`, \`peft\` for LoRA/QLoRA fine-tuning.
+* **RAG (Retrieval-Augmented Generation)**: Vector databases (Qdrant, ChromaDB, Pinecone), hybrid search, and cross-encoder reranking.
+* **AI Agents & Tool Calling**: Orchestrating multi-step workflows, function calling, and structured JSON outputs.
 
 ---
 
 #### 🚢 Phase 5: MLOps, Production APIs & Cloud Deployment (Months 9–10)
-* **High-Performance APIs**: Wrapping model inference in async **FastAPI** with Pydantic request/response validation.
-* **Containerization**: Writing multi-stage **Dockerfiles** for CPU and CUDA GPU environments.
-* **Inference Optimization**: Model quantization (GGUF, AWQ, bitsandbytes), ONNX Runtime, and TensorRT-LLM for sub-100ms response times.
-* **CI/CD & Monitoring**: Automated GitHub Actions testing, MLflow or Weights & Biases for experiment tracking, and Prometheus/Grafana for monitoring model latency and drift.
-* **Cloud Hosting**: Deploying containers on AWS (ECS / SageMaker), Google Cloud Run / Vertex AI, or Hugging Face Spaces.
+* **Serving**: High-performance APIs with async **FastAPI**, **vLLM**, or **Ollama**.
+* **Containerization & Deployment**: Multi-stage Dockerfiles, model quantization (GGUF, AWQ), CI/CD, and cloud hosting.
 
 ---
 
-#### 🏆 3 High-Impact Portfolio Projects for Freshers
-1. **Production Enterprise RAG System**: Build a full-stack document intelligence portal that ingests PDFs, performs hybrid search, cites exact source pages, and answers user queries with sub-second latency.
-2. **Domain-Specific Fine-Tuned Model**: Fine-tune an open-source model (e.g., Llama 3 8B or Mistral 7B) using LoRA on custom medical, financial, or legal Q&A data, and benchmark its performance against the base model.
-3. **Multimodal AI Assistant**: A real-time application combining Whisper (speech-to-text), an LLM (reasoning), and a vision model for interactive diagram or document analysis.
+#### 🏆 3 High-Impact Portfolio Projects
+1. **Production Enterprise RAG System**: PDF document intelligence portal with hybrid search and source page citations.
+2. **Domain-Specific Fine-Tuned Model**: Fine-tune an open-source model (Llama 3 8B) on legal or medical Q&A with LoRA.
+3. **Multimodal AI Assistant**: Real-time voice-to-text with Whisper, LLM reasoning, and vision document analysis.
 
----
-
-#### 💡 Actionable Advice for Freshers
-1. **Emphasize Engineering Over Pure Theory**: Recruiters look for candidates who write modular, PEP8-compliant, tested Python with clean Dockerfiles, rather than just notebook experiments.
-2. **Document Your GitHub Repositories**: Every project must have an architectural diagram, clear instructions for running locally, and a live demo link.
-3. **Network Actively**: Publish your project journey, learnings, and benchmarks on LinkedIn and tech communities.
-
-What specific area (e.g. PyTorch basics, RAG architecture, or interview prep) would you like to explore next?`;
+What specific area (e.g. **RAG architecture**, **PyTorch basics**, or **interview prep**) would you like to explore next?`;
   }
 
-  // 2. Web Development / Full-Stack / Frontend
-  if (/web developer|web development|frontend|front end|full stack|fullstack|react|next\.js|javascript|typescript|angular|vue/i.test(query)) {
+  // Web Development / Full-Stack
+  if (/web developer|web development|frontend|front end|full stack|fullstack|react|next\.js|javascript|typescript/i.test(query)) {
     return `### 🌐 Modern Full-Stack & Web Developer Roadmap
 
 Hello **${userName}**! Web and full-stack development remains one of the most versatile and high-demand career paths. Modern web engineering requires a solid grasp of client-side performance, server architectures, and database design.
@@ -98,137 +319,50 @@ Hello **${userName}**! Web and full-stack development remains one of the most ve
 ---
 
 #### 🛠️ Core Learning Phases
-1. **Foundations (Months 1–2)**:
-   * Semantic HTML5, modern CSS (Flexbox, Grid, CSS Variables, Tailwind CSS), and responsive design.
-   * Modern JavaScript (ES6+): Closures, Promises, Async/Await, DOM manipulation, Fetch API, and Event Loop.
-2. **Frontend Modernization (Months 3–4)**:
-   * **TypeScript**: Strict types, interfaces, generics, and compiler configuration.
-   * **React & Next.js**: Component lifecycle, hooks (\`useState\`, \`useEffect\`, \`useMemo\`), React Server Components (RSC), App Router, dynamic routing, and caching.
-   * **State Management**: TanStack Query (React Query) for server state, Zustand for client state.
-3. **Backend & APIs (Months 5–6)**:
-   * **Node.js & Express / NestJS**: RESTful endpoints, middleware, validation (Zod), and JWT authentication.
-   * **Databases**: PostgreSQL with Prisma ORM or TypeORM; Redis for high-speed caching and rate limiting.
-4. **DevOps & Production (Months 7–8)**:
-   * Dockerizing frontend and backend containers.
-   * Continuous integration with GitHub Actions; deployments to Vercel, Render, or AWS EC2.
+1. **Modern Frontend (Months 1–3)**: TypeScript, React 19, Tailwind CSS, Next.js App Router, state management (Zustand/TanStack Query).
+2. **Backend Architecture (Months 4–5)**: Node.js / Express or Go, REST & GraphQL APIs, authentication (JWT, OAuth2, RBAC).
+3. **Database & Systems (Months 6–7)**: PostgreSQL with Prisma ORM, Redis caching, indexing, and connection pooling.
+4. **DevOps & Cloud (Months 8–9)**: Docker, CI/CD with GitHub Actions, deployment on Vercel, AWS, or Railway.
 
-#### 🏆 Standout Projects to Build
-* **Collaborative SaaS Workspace**: A real-time task or document board with live WebSocket updates, optimistic UI, and role-based permissions.
-* **E-Commerce Platform with Stripe Checkout**: Complete with product catalog, cart persistence, automated webhook handling, and order management.
-
-Which frontend framework or backend architecture are you focusing on right now?`;
+What specific area (e.g., frontend state management, backend APIs, or database design) would you like to focus on?`;
   }
 
-  // 3. Backend / Systems Engineering
-  if (/backend|server logic|rest api|graphql|microservice|database engineer|postgresql|spring boot|\.net|golang|c#|java developer/i.test(query)) {
-    return `### ⚙️ Backend & Systems Engineering Career Roadmap
+  // Backend / Systems
+  if (/backend|server logic|rest api|graphql|microservice|database engineer|postgresql|golang|java developer/i.test(query)) {
+    return `### ⚙️ Backend & Distributed Systems Engineering Roadmap
 
-Hello **${userName}**! Backend engineering powers the core data, logic, and security of modern applications. Strong backend developers stand out through database fluency, clean API contracts, and scalable system design.
-
----
-
-#### 🛠️ Core Learning Roadmap
-1. **Core Backend Language**: Choose one primary ecosystem and master it deeply:
-   * **Node.js / TypeScript**: Event loop, stream processing, Express, NestJS.
-   * **Java / Spring Boot**: Dependency injection, Spring Data JPA, Spring Security.
-   * **Python / FastAPI**: Asynchronous endpoints, Pydantic validation, SQLAlchemy.
-   * **Go (Golang)**: Goroutines, channels, interfaces, high-throughput microservices.
-2. **Database Engineering & Data Modeling**:
-   * Relational Databases (PostgreSQL, MySQL): ACID transactions, indexing strategies (B-Tree, Hash), EXPLAIN query plans, normalization.
-   * Caching & In-Memory Stores: Redis for caching, session stores, and pub/sub messaging.
-3. **Architecture & Distributed Systems**:
-   * RESTful APIs, GraphQL, and gRPC.
-   * Message Queues & Event Streaming: RabbitMQ, Apache Kafka for asynchronous background workloads.
-   * Authentication & Security: JWT, OAuth2, RBAC, input sanitization, and SQL injection prevention.
-4. **System Design & Scalability**:
-   * Load balancers, horizontal vs. vertical scaling, database sharding, and connection pooling.
-
-Would you like to dive deeper into database query optimization or system design principles?`;
-  }
-
-  // 4. Cloud, DevOps & Site Reliability Engineering (SRE)
-  if (/devops|cloud|sre|site reliability|aws|azure|gcp|kubernetes|docker|terraform|ci\/cd|infrastructure/i.test(query)) {
-    return `### ☁️ Cloud, DevOps & SRE Career Blueprint
-
-Hello **${userName}**! The demand for engineers who can automate infrastructure, secure cloud environments, and maintain five-nines (99.999%) reliability is at an all-time high.
-
----
-
-#### 🛠️ Core Progression
-1. **Operating Systems & Networking**: Linux administration, Bash scripting, SSH, DNS, TCP/IP, HTTP/HTTPS, SSL/TLS certificates.
-2. **Containers & Orchestration**:
-   * **Docker**: Building lean multi-stage images, managing container networking, and Docker Compose.
-   * **Kubernetes (K8s)**: Pods, Deployments, Services, Ingress controllers, ConfigMaps, and Helm charts.
-3. **Infrastructure as Code (IaC)**:
-   * **Terraform**: Declarative cloud provisioning across AWS, GCP, or Azure; managing state files and reusable modules.
-4. **CI/CD Automation**:
-   * Designing automated GitHub Actions, GitLab CI, or Jenkins pipelines with automated linting, testing, image building, and automated deployment.
-5. **Observability & Monitoring**:
-   * Prometheus (metrics collection), Grafana (visual dashboards), and ELK Stack / OpenTelemetry for distributed tracing.
-
-Which cloud provider (AWS, Azure, or GCP) are you targeting for your certifications and projects?`;
-  }
-
-  // 5. Data Analyst / Analytics Engineering
-  if (/data analyst|data analysis|business analyst|power bi|tableau|sql.*data|excel.*analytics/i.test(query)) {
-    return `### 📈 Data Analyst & Analytics Engineering Roadmap
-
-Hello **${userName}**! As a Data Analyst, your superpower is turning raw data into actionable business intelligence that drives executive decisions.
-
----
-
-#### 🛠️ Core Skills to Master
-1. **Advanced SQL (The Foundation)**:
-   * Aggregations, Subqueries, Common Table Expressions (CTEs), and Window Functions (\`ROW_NUMBER()\`, \`RANK()\`, \`LEAD()\`, \`LAG()\`).
-2. **Business Intelligence & Visualization**:
-   * **Power BI** or **Tableau**: Designing executive KPI dashboards, calculated measures (DAX), and automated data refreshes.
-3. **Python for Analytics**:
-   * \`pandas\` and \`numpy\` for data manipulation and statistical summaries.
-   * Automated reporting and data cleaning scripts.
-4. **Business Acumen & Storytelling**:
-   * Translating business problems into quantitative metrics (LTV, CAC, Churn, ARR).
-   * Presenting findings clearly to non-technical stakeholders.
-
-Would you like advice on building an impressive SQL and Power BI portfolio project?`;
-  }
-
-  // 6. Cybersecurity & Information Security
-  if (/cybersecurity|security engineer|infosec|ethical hacking|penetration testing|soc analyst|owasp/i.test(query)) {
-    return `### 🛡️ Cybersecurity Career Roadmap
-
-Hello **${userName}**! Cybersecurity is a vital, high-growth field with opportunities spanning defensive operations (Blue Team) to ethical hacking and vulnerability analysis (Red Team).
+Hello **${userName}**! Backend engineering powers the logic, security, and scalability of modern software.
 
 ---
 
 #### 🛠️ Core Roadmap
-1. **Foundations**: Networking protocols (OSI model, Subnetting, TCP/IP, DNS, VPNs), Linux system administration, and Python/Bash scripting.
-2. **Application & Web Security**: Understanding OWASP Top 10 vulnerabilities (SQL Injection, XSS, CSRF, Broken Access Control) and security headers.
-3. **Defensive Security (Blue Team)**: SIEM log analysis (Splunk, Elastic), incident detection, intrusion detection systems (Snort/Suricata), and vulnerability scanning.
-4. **Offensive Security (Red Team)**: Penetration testing tools (Burp Suite, Nmap, Metasploit, Wireshark), CTF challenges (TryHackMe, HackTheBox).
-5. **Certifications to Consider**: CompTIA Security+, CEH, or eJPT for foundational credentials.
+1. **Core Language**: Master Go, TypeScript/Node.js, or Java/Spring Boot with clean architectural patterns.
+2. **Database Mastery**: ACID compliance, PostgreSQL indexing, query optimization, and Redis caching.
+3. **API Architecture**: RESTful design principles, OpenAPI specifications, gRPC for microservice communication.
+4. **System Design**: Load balancing, rate limiting, message queues (Kafka, RabbitMQ), and idempotency.
 
-Which direction interests you more: Defensive Security (SOC Analyst/AppSec) or Offensive Security (Penetration Tester)?`;
+Which area would you like to dive into first: database query optimization or microservice architecture?`;
   }
 
-  // 7. UI/UX & Product Design
-  if (/ui\/ux|ui design|ux design|product design|figma|user research|wireframing/i.test(query)) {
-    return `### 🎨 UI/UX & Product Design Roadmap
+  // DevOps & Cloud
+  if (/devops|cloud|sre|site reliability|aws|azure|gcp|kubernetes|docker|terraform|ci\/cd/i.test(query)) {
+    return `### ☁️ Cloud, DevOps & SRE Roadmap
 
-Hello **${userName}**! Great digital product design combines deep user empathy, visual craft, and intuitive interaction architecture.
+Hello **${userName}**! Cloud and DevOps engineers enable automated, reliable, and scalable software delivery.
 
 ---
 
 #### 🛠️ Core Roadmap
-1. **Design Fundamentals**: Visual hierarchy, color theory, typography scales, contrast ratios, and spacing tokens (8pt grid system).
-2. **Figma Mastery**: Auto-layout, components & variants, interactive prototyping, variables, and design tokens.
-3. **UX Research & Heuristics**: User personas, journey mapping, usability heuristics (Nielsen Norman principles), and accessibility (WCAG AA/AAA compliance).
-4. **Design-to-Code Handoff**: Understanding HTML/CSS constraints to collaborate seamlessly with frontend engineers.
-5. **Portfolio Case Studies**: Documenting 2-3 detailed case studies showing the problem statement, user research, wireframes, iterations, and final UI.
+1. **Linux & Scripting**: Bash, Linux system internals, networking protocols (TCP/IP, DNS, SSL/TLS).
+2. **Containerization**: Docker multi-stage builds, rootless containers, and compose orchestration.
+3. **Kubernetes (K8s)**: Pods, Deployments, Services, Ingress controllers, and Helm charts.
+4. **Infrastructure as Code (IaC)**: Terraform / OpenTofu for automated cloud provisioning.
+5. **CI/CD Pipelines**: GitHub Actions, automated test suites, and container registry security scanning.
 
-Would you like to discuss structuring a portfolio case study that stands out to design hiring managers?`;
+Would you like to discuss Kubernetes fundamentals or building an end-to-end GitHub Actions CI/CD pipeline?`;
   }
 
-  // 8. Interview Preparation & Career Transition
+  // Interview Prep
   if (/interview|coding test|resume|cv|portfolio|salary|switch career|transition|job search/i.test(query)) {
     return `### 🎯 Technical Interview & Career Acceleration Strategy
 
@@ -249,7 +383,28 @@ Hello **${userName}**! Standing out in a competitive job market requires a struc
 What specific interview or resume aspect would you like to refine today?`;
   }
 
-  // 9. General Comprehensive Career Guidance Fallback
+  // -------------------------------------------------------------
+  // 5. Context-Aware Fallback (Remembers what you were discussing)
+  // -------------------------------------------------------------
+  if (activeDomain === 'ai_engineer') {
+    return `### 🤖 AI Engineering: Deepening Your Mastery
+
+Hello **${userName}**! Building upon our discussion on **AI Engineering**:
+
+Whether you are working on **mathematical foundations (Phase 1)**, **machine learning algorithms (Phase 2)**, **PyTorch deep learning (Phase 3)**, **RAG & LLM agents (Phase 4)**, or **production deployment (Phase 5)**, each step connects directly into building high-impact systems.
+
+Here are the highest-leverage areas you can explore right now:
+1. **RAG & Semantic Search**: Connect private PDFs/documents to LLMs with vector search and rerankers.
+2. **PyTorch Model Building**: Build and train custom neural networks with PyTorch.
+3. **Fine-Tuning with LoRA/QLoRA**: Adapt open-source models (e.g., Llama 3) for domain-specific tasks.
+4. **Portfolio Projects**: Build an end-to-end deployed AI application that recruiters can test live.
+
+Which of these would you like to break down into actionable steps?`;
+  }
+
+  // -------------------------------------------------------------
+  // 6. General Comprehensive Career Guidance Fallback
+  // -------------------------------------------------------------
   return `### 🧭 Career Guidance & Strategic Next Steps
 
 Hello **${userName}**! Thank you for reaching out. Whether you're exploring new technical horizons, building production projects, or preparing for high-impact developer roles, here is an actionable strategy to maximize your momentum:
