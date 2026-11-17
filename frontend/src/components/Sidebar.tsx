@@ -24,7 +24,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
 const navigation = [
   { name: 'Dashboard', href: '/app/dashboard', icon: Home },
-  { name: 'AI Chat', href: '/app/chat', icon: MessageSquare },
   { name: 'Career Quiz', href: '/app/quiz', icon: BookOpen },
   { name: 'Career Trajectory', href: '/app/career', icon: Target },
   { name: 'Find Mentors', href: '/app/mentors', icon: Users },

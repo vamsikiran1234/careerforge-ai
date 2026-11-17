@@ -4,7 +4,8 @@ import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
 import { RoleSwitcher } from './RoleSwitcher';
 import { ThemeToggle } from './ui/ThemeToggle';
-import { Menu } from 'lucide-react';
+import { FloatingAIChat } from './chat/FloatingAIChat';
+import { Menu, Sparkles } from 'lucide-react';
 import { LogoSimple } from './ui/Logo';
 
 export const Layout: React.FC = () => {
@@ -30,6 +31,10 @@ export const Layout: React.FC = () => {
         .split('/')[0]
         .replace('-', ' ');
 
+  const handleToggleChat = () => {
+    window.dispatchEvent(new CustomEvent('toggle-ai-chat'));
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Desktop Sidebar */}
@@ -41,8 +46,8 @@ export const Layout: React.FC = () => {
       <MobileNav isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900">
-        {/* Top Header - Student/Admin/Mentor Modes & Theme Toggle Side by Side at Top Right */}
+      <div className="flex flex-col flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900 relative">
+        {/* Top Header - AI Chatbot Icon, Student/Admin/Mentor Modes & Theme Toggle Side by Side at Top Right */}
         <header className="hidden md:flex items-center justify-between px-6 py-2.5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700/80 transition-colors">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -52,6 +57,15 @@ export const Layout: React.FC = () => {
 
           {/* Proper Top-Right Side-by-Side Controls */}
           <div className="flex items-center gap-2.5 ml-auto">
+            {/* AI Chatbot Icon Trigger in Header */}
+            <button
+              onClick={handleToggleChat}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 transition-all shadow-xs"
+              title="Open AI Chat Assistant"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <span>AI Chat</span>
+            </button>
             <RoleSwitcher />
             <ThemeToggle />
           </div>
@@ -67,6 +81,13 @@ export const Layout: React.FC = () => {
           </button>
           <LogoSimple size={32} />
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleToggleChat}
+              className="p-1.5 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+              title="Open AI Chat Assistant"
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
             <RoleSwitcher />
             <ThemeToggle />
           </div>
@@ -78,6 +99,9 @@ export const Layout: React.FC = () => {
             <Outlet />
           </div>
         </main>
+
+        {/* App-wide Floating AI Chatbot Icon & Drawer */}
+        <FloatingAIChat />
       </div>
     </div>
   );
