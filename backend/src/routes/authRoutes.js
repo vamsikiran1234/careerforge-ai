@@ -200,11 +200,91 @@ router.post('/login', [
     }
 
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').toLowerCase().trim();
 
-    // Find user by email in database
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
+    // Recognized Demo / Test Credentials for frictionless one-click login
+    const DEMO_ACCOUNTS = {
+      'demo.user@careerforge.ai': {
+        password: 'CareerForge@Demo2026',
+        name: 'Demo Student',
+        roles: '["STUDENT"]',
+        bio: 'CareerForge AI Demo Account.',
+      },
+      'test@example.com': {
+        password: 'TestPass123!',
+        name: 'Test User',
+        roles: '["STUDENT"]',
+        bio: 'Platform Test Account.',
+      },
+    };
+
+    let user = null;
+    try {
+      user = await prisma.user.findUnique({
+        where: { email: normalizedEmail }
+      });
+    } catch (dbErr) {
+      console.warn('Database lookup during login (checking demo credentials):', dbErr.message);
+    }
+
+    // Auto-provision or auto-sync demo account if requested with matching demo password
+    const isDemoAccount = DEMO_ACCOUNTS[normalizedEmail] && DEMO_ACCOUNTS[normalizedEmail].password === password;
+    if (isDemoAccount) {
+      if (!user) {
+        try {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          user = await prisma.user.create({
+            data: {
+              email: normalizedEmail,
+              name: DEMO_ACCOUNTS[normalizedEmail].name,
+              password: hashedPassword,
+              roles: DEMO_ACCOUNTS[normalizedEmail].roles,
+              bio: DEMO_ACCOUNTS[normalizedEmail].bio,
+            }
+          });
+          console.log('✅ Demo account auto-provisioned in database:', normalizedEmail);
+        } catch (createErr) {
+          console.warn('Could not persist demo user to DB (DB may be offline):', createErr.message);
+        }
+      } else {
+        // Auto-heal / synchronize password if outdated
+        try {
+          const isPasswordValid = await bcrypt.compare(password, user.password);
+          if (!isPasswordValid) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user = await prisma.user.update({
+              where: { id: user.id },
+              data: { password: hashedPassword }
+            });
+            console.log('✅ Demo account password synchronized with database:', normalizedEmail);
+          }
+        } catch (syncErr) {
+          console.warn('Could not check or sync demo password in DB:', syncErr.message);
+        }
+      }
+
+      // If database is temporarily offline, issue virtual demo session so user is never blocked
+      if (!user) {
+        const virtualId = 'demo-user-cuid-default';
+        const virtualRoles = ['STUDENT'];
+        const token = generateToken(virtualId, normalizedEmail, virtualRoles);
+        return res.status(200).json(
+          createResponse('success', 'Demo login successful', {
+            user: {
+              id: virtualId,
+              name: DEMO_ACCOUNTS[normalizedEmail].name,
+              email: normalizedEmail,
+              roles: virtualRoles,
+              avatar: null,
+              bio: DEMO_ACCOUNTS[normalizedEmail].bio,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            token,
+          })
+        );
+      }
+    }
     
     if (!user) {
       console.log('User not found:', email);

@@ -17,13 +17,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "node scripts/seed.js",
-    "setup:demo": "node ../create-demo-user.js",
-    "docker:build": "docker build -t careerforge-ai .",
-    "docker:run": "docker run -p 3000:3000 careerforge-ai",
-    "docker:dev": "docker-compose up",
-    "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
-    "deploy:setup": "bash scripts/setup-development.sh",
-    "deploy:prod": "bash scripts/deploy-production.sh"
+    "setup:demo": "node ../create-demo-user.js"
   },
   "keywords": [
     "ai",
@@ -58,6 +52,7 @@
     "node-cache": "^5.1.2",
     "node-fetch": "^2.7.0",
     "nodemailer": "^7.0.9",
+    "openai": "^7.47.0",
     "pdf-parse": "^1.1.1",
     "rate-limit-redis": "^4.2.2",
     "redis": "^5.8.3",

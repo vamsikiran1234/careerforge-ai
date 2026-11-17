@@ -853,9 +853,12 @@ const useCareerStore = create<CareerState>((set, get) => ({
     try {
       const response = await apiClient.post(`/career/goals/${goalId}/suggest`);
       set({ isAnalyzing: false });
+      if ((response as any)?.status === 'error' || !(response as any)?.data) {
+        throw new Error((response as any)?.message || 'Failed to get AI suggestions');
+      }
       return (response.data as any).suggestions;
     } catch (error: any) {
-      set({ error: error.response?.data?.error || 'Failed to get AI suggestions', isAnalyzing: false });
+      set({ error: error.response?.data?.error || error.message || 'Failed to get AI suggestions', isAnalyzing: false });
       throw error;
     }
   },
@@ -864,14 +867,17 @@ const useCareerStore = create<CareerState>((set, get) => ({
     set({ isAnalyzing: true, error: null });
     try {
       const response = await apiClient.post(`/career/goals/${goalId}/generate`);
+      if ((response as any)?.status === 'error' || !(response as any)?.data) {
+        throw new Error((response as any)?.message || 'Failed to generate trajectory');
+      }
       // Reload goal to get updated milestones and skills
       await get().setCurrentGoal(goalId);
       // Also reload all goals to update the list
       await get().loadGoals();
       set({ isAnalyzing: false });
-      return (response.data as any).trajectory;
+      return (response.data as any)?.trajectory || response.data;
     } catch (error: any) {
-      set({ error: error.response?.data?.error || 'Failed to generate trajectory', isAnalyzing: false });
+      set({ error: error.response?.data?.error || error.message || 'Failed to generate trajectory', isAnalyzing: false });
       throw error;
     }
   },

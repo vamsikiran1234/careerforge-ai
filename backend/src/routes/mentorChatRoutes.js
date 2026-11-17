@@ -1,4 +1,5 @@
 const express = require('express');
+const { upload } = require('../services/fileService');
 const router = express.Router();
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const {
@@ -51,6 +52,6 @@ router.put('/rooms/:roomId/read', markMessagesAsRead);
  * @desc    Upload file for chat
  * @access  Private
  */
-router.post('/upload', uploadChatFile);
+router.post('/upload', upload.single('file'), uploadChatFile);
 
 module.exports = router;

@@ -48,6 +48,7 @@ export const useAuthStore = create<AuthStore>()(
             // Store token in both API client AND localStorage
             apiClient.setAuthToken(token);
             localStorage.setItem('authToken', token);
+            localStorage.setItem('token', token);
             
             set({
               user,
@@ -123,6 +124,8 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
         // Clear token from API client and localStorage
         apiClient.clearAuthToken();
         localStorage.removeItem('authToken');
@@ -272,6 +275,7 @@ export const useAuthStore = create<AuthStore>()(
         // Sync token from persisted state to localStorage and API client after hydration
         if (state?.token) {
           localStorage.setItem('authToken', state.token);
+          localStorage.setItem('token', state.token);
           apiClient.setAuthToken(state.token);
         }
       },

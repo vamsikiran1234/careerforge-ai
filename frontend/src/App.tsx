@@ -200,15 +200,24 @@ function App() {
                   }
                 />
 
-                {/* Landing Page - Public */}
+                {/* Landing Page - Public - When opening the app, always shows the Landing Page */}
                 <Route 
                   path="/" 
-                  element={
-                    <PublicRoute>
-                      <LandingPage />
-                    </PublicRoute>
-                  } 
+                  element={<LandingPage />} 
                 />
+
+                {/* Direct Root Route Aliases -> redirect to /app/... so navigation links and direct URLs never bounce back to dashboard */}
+                <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+                <Route path="/chat" element={<Navigate to="/app/chat" replace />} />
+                <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
+                <Route path="/career" element={<Navigate to="/app/career" replace />} />
+                <Route path="/career/new" element={<Navigate to="/app/career/new" replace />} />
+                <Route path="/mentors" element={<Navigate to="/app/mentors" replace />} />
+                <Route path="/connections" element={<Navigate to="/app/connections" replace />} />
+                <Route path="/messages" element={<Navigate to="/app/messages" replace />} />
+                <Route path="/sessions" element={<Navigate to="/app/sessions" replace />} />
+                <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+                <Route path="/mentorship/register" element={<Navigate to="/app/mentorship/register" replace />} />
 
                 {/* Protected Routes */}
                 <Route path="/app" element={<ProtectedRoute />}>

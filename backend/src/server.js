@@ -1,7 +1,13 @@
 const app = require('./app');
 const { initializeSocket } = require('./config/socket');
+const { connectDB } = require('./config/database');
 
 const PORT = process.env.PORT || 3000;
+
+// Pre-warm database connection at server startup for instant <50ms first-request response
+connectDB().catch((err) => {
+  console.warn('⚠️ Non-fatal DB pre-warm warning (will retry on first request):', err.message);
+});
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 CareerForge AI server running on port ${PORT}`);

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMentorStore } from '@/store/mentors';
 import { useAuthStore } from '@/store/auth';
@@ -269,7 +269,7 @@ export const MentorsPage: React.FC = () => {
             setShowBooking(false);
             setShowProfile(false);
             // Optionally refresh mentors or navigate to connections
-            navigate('app/connections');
+            navigate('/app/connections');
           }}
         />
       )}

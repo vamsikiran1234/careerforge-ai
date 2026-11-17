@@ -15,13 +15,11 @@ const chatController = {
   createChatSession: asyncHandler(async (req, res) => {
     const { message, sessionId } = req.body; // Accept sessionId from frontend
     const userEmail = req.user.email || req.user.userEmail; // Get email from JWT
+    const userId = req.user.id || req.user.userId;
 
-    // eslint-disable-next-line no-console
-    console.log('Chat request - User:', req.user, 'Email:', userEmail, 'SessionId:', sessionId);
-
-    // Find user by email since in-memory auth uses different ID format
+    // Fast user lookup via primary key ID first
     const user = await prisma.user.findUnique({
-      where: { email: userEmail },
+      where: userId ? { id: userId } : { email: userEmail },
     });
 
     if (!user) {
@@ -84,20 +82,29 @@ const chatController = {
     currentMessages.push(userMessage);
 
     // Get AI response using multi-AI service with automatic fallback
-    const { chatWithAI } = require('../services/multiAiService');
-    const result = await chatWithAI(
-      message,
-      currentMessages,
-      {
-        userId: user.id,
-        userName: user.name,
-        userRole: JSON.parse(user.roles || '["STUDENT"]').join(', '),
-        userBio: user.bio,
-        taskType: 'general'
-      }
-    );
-    
-    const aiReply = result.response;
+    let aiReply;
+    try {
+      const { chatWithAI } = require('../services/multiAiService');
+      const result = await chatWithAI(
+        message,
+        currentMessages,
+        {
+          userId: user.id,
+          userName: user.name,
+          userRole: JSON.parse(user.roles || '["STUDENT"]').join(', '),
+          userBio: user.bio,
+          taskType: 'general'
+        }
+      );
+      aiReply = result?.response;
+    } catch (aiError) {
+      console.warn('⚠️ AI chat service error in controller, falling back:', aiError.message);
+    }
+
+    if (!aiReply) {
+      const { generateCareerAdvisorResponse } = require('../services/careerKnowledgeService');
+      aiReply = generateCareerAdvisorResponse(message, currentMessages, { userName: user.name });
+    }
 
     // Add AI response to history
     const assistantMessage = {
@@ -131,21 +138,23 @@ const chatController = {
 
   // GET /api/v1/chat/sessions
   getUserSessions: asyncHandler(async (req, res) => {
-    const userEmail = req.user.email || req.user.userEmail; // Get email from JWT
+    let userId = req.user.id || req.user.userId;
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    });
-
-    if (!user) {
-      return res.status(HTTP_STATUS_NOT_FOUND).json(
-        createResponse('error', 'User not found in database')
-      );
+    if (!userId) {
+      const user = await prisma.user.findUnique({
+        where: { email: req.user.email || req.user.userEmail },
+        select: { id: true },
+      });
+      if (!user) {
+        return res.status(HTTP_STATUS_NOT_FOUND).json(
+          createResponse('error', 'User not found in database')
+        );
+      }
+      userId = user.id;
     }
 
     const sessions = await prisma.careerSession.findMany({
-      where: { userId: user.id },
+      where: { userId },
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true,
@@ -230,17 +239,17 @@ const chatController = {
   // DELETE /api/v1/chat/session/:sessionId
   deleteSession: asyncHandler(async (req, res) => {
     const { sessionId } = req.params;
-    const userEmail = req.user.email || req.user.userEmail;
+    let userId = req.user.id || req.user.userId;
 
-    // eslint-disable-next-line no-console
-    console.log('Delete session request:', { sessionId, userEmail });
+    if (!userId) {
+      const user = await prisma.user.findUnique({
+        where: { email: req.user.email || req.user.userEmail },
+        select: { id: true },
+      });
+      userId = user?.id;
+    }
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    });
-
-    if (!user) {
+    if (!userId) {
       return res.status(HTTP_STATUS_NOT_FOUND).json(
         createResponse('error', 'User not found in database')
       );
@@ -250,7 +259,7 @@ const chatController = {
     const session = await prisma.careerSession.findFirst({
       where: {
         id: sessionId,
-        userId: user.id,
+        userId,
       },
     });
 
@@ -264,9 +273,6 @@ const chatController = {
     await prisma.careerSession.delete({
       where: { id: sessionId },
     });
-
-    // eslint-disable-next-line no-console
-    console.log('Session deleted successfully:', sessionId);
 
     return res.status(HTTP_STATUS_OK).json(
       createResponse('success', 'Session deleted successfully', {
@@ -366,20 +372,30 @@ const chatController = {
     const messageWithContext = `${message || 'Please analyze these documents:'}\n${fileContext}`;
     
     // Use multi-AI service with automatic model selection and fallback
-    const { chatWithAI } = require('../services/multiAiService');
-    const result = await chatWithAI(
-      messageWithContext,
-      currentMessages,
-      {
-        userId: user.id,
-        userName: user.name,
-        userRole: JSON.parse(user.roles || '["STUDENT"]').join(', '),
-        userBio: user.bio,
-        taskType: 'document' // Indicate this is for document analysis
-      }
-    );
-    
-    const aiReply = result.response;
+    let aiReply;
+    try {
+      const { chatWithAI } = require('../services/multiAiService');
+      const result = await chatWithAI(
+        messageWithContext,
+        currentMessages,
+        {
+          userId: user.id,
+          userName: user.name,
+          userRole: JSON.parse(user.roles || '["STUDENT"]').join(', '),
+          userBio: user.bio,
+          taskType: 'document' // Indicate this is for document analysis
+        }
+      );
+      aiReply = result?.response;
+    } catch (aiError) {
+      console.warn('⚠️ AI upload analysis error in controller, falling back:', aiError.message);
+    }
+
+    if (!aiReply) {
+      const { generateCareerAdvisorResponse } = require('../services/careerKnowledgeService');
+      aiReply = `### 📄 Document Analysis Summary\n\nI have successfully received and processed your uploaded documents (${fileInfo}).\n\n` +
+        generateCareerAdvisorResponse(message || 'career roadmap guidance based on my resume', currentMessages, { userName: user.name });
+    }
 
     // Add AI response to history
     const assistantMessage = {

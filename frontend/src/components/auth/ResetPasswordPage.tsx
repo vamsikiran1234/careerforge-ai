@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast';
 import { validatePassword } from '@/utils';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 import { ArrowLeft, CheckCircle, AlertCircle, Lock } from 'lucide-react';
 
 export const ResetPasswordPage: React.FC = () => {
@@ -224,8 +225,8 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-primary-600">
-            <Lock className="h-6 w-6 text-white" />
+          <div className="flex justify-center">
+            <BrandLogo size="lg" variant="default" />
           </div>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
             Reset Your Password

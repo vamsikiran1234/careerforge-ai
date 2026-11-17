@@ -85,7 +85,7 @@ export default function GoalDetailPage() {
   const handleDelete = async () => {
     if (!goalId) return;
     await deleteGoal(goalId);
-    navigate('/career');
+    navigate('/app/career');
   };
 
   if (isLoading) {
@@ -117,7 +117,7 @@ export default function GoalDetailPage() {
               The career goal you're looking for doesn't exist or has been deleted.
             </p>
             <Link
-              to="/career"
+              to="/app/career"
               className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg bg-emerald-600 hover:bg-emerald-700"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -147,7 +147,7 @@ export default function GoalDetailPage() {
         {/* Header */}
         <div className="mb-6">
           <Link
-            to="/career"
+            to="/app/career"
             className="inline-flex items-center gap-2 mb-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" />

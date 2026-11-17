@@ -47,13 +47,13 @@ export const ProtectedMentorRoute: React.FC = () => {
           </p>
           <div className="space-y-3">
             <a
-              href="/mentorship/register"
+              href="/app/mentorship/register"
               className="block w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
             >
               Become a Mentor
             </a>
             <a
-              href="/dashboard"
+              href="/app/dashboard"
               className="block w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors"
             >
               Back to Dashboard

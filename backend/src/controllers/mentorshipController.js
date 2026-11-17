@@ -1,9 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/database');
 const crypto = require('crypto');
 const { createNotificationHelper } = require('./notificationController');
 const emailService = require('../services/emailService');
 
-const prisma = new PrismaClient();
+
 
 // @desc    Register as a mentor (alumni only)
 // @route   POST /api/v1/mentorship/register

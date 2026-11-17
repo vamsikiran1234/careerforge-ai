@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../config/database');
 const { createNotificationHelper } = require('./notificationController');
 
 // @desc    Create a review for a mentor after a session

@@ -1,7 +1,7 @@
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/database');
 const { emitToRoom } = require('../config/socket');
 
-const prisma = new PrismaClient();
+
 
 /**
  * Get all chat rooms for current user

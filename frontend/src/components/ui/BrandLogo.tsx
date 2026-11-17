@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface BrandLogoProps {
+export interface BrandLogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   variant?: 'default' | 'monogram' | 'wordmark' | 'symbol' | 'compact';
   theme?: 'light' | 'dark' | 'gradient' | 'monochrome';
@@ -9,218 +9,114 @@ interface BrandLogoProps {
 }
 
 const sizeConfig = {
-  xs: { icon: 18, text: 'text-xs', height: 'h-7', subtitle: 'text-[10px]' },
-  sm: { icon: 24, text: 'text-sm', height: 'h-9', subtitle: 'text-xs' },
-  md: { icon: 32, text: 'text-lg', height: 'h-12', subtitle: 'text-sm' },
-  lg: { icon: 40, text: 'text-xl', height: 'h-14', subtitle: 'text-base' },
-  xl: { icon: 52, text: 'text-2xl', height: 'h-18', subtitle: 'text-lg' },
-  '2xl': { icon: 68, text: 'text-3xl', height: 'h-22', subtitle: 'text-xl' },
+  xs: { icon: 20, text: 'text-sm', badge: 'text-[9px] px-1 py-0.5', gap: 'gap-2' },
+  sm: { icon: 26, text: 'text-base', badge: 'text-[10px] px-1.5 py-0.5', gap: 'gap-2' },
+  md: { icon: 34, text: 'text-lg', badge: 'text-xs px-1.5 py-0.5', gap: 'gap-2.5' },
+  lg: { icon: 42, text: 'text-xl', badge: 'text-xs px-2 py-0.5', gap: 'gap-3' },
+  xl: { icon: 52, text: 'text-2xl', badge: 'text-sm px-2 py-1', gap: 'gap-3.5' },
+  '2xl': { icon: 64, text: 'text-3xl', badge: 'text-sm px-2.5 py-1', gap: 'gap-4' },
 };
+
+/**
+ * The unified, unique, creatively simple mark for CareerForge AI:
+ * The Forged Apex — an upward trajectory chevron anchored into a precision anvil base with an AI core.
+ */
+export const CareerForgeMark: React.FC<{
+  size?: number;
+  className?: string;
+  animated?: boolean;
+}> = ({ size = 32, className = '', animated = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 36 36"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`${className} ${animated ? 'transition-transform duration-300 hover:scale-105' : ''}`}
+  >
+    <defs>
+      <linearGradient id="cf-mark-gradient" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#4F46E5" />
+        <stop offset="55%" stopColor="#2563EB" />
+        <stop offset="100%" stopColor="#06B6D4" />
+      </linearGradient>
+      <linearGradient id="cf-anvil-gradient" x1="8" y1="22" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
+        <stop offset="100%" stopColor="#E0E7FF" stopOpacity="0.85" />
+      </linearGradient>
+    </defs>
+
+    {/* Modern Rounded Squircle Base */}
+    <rect width="36" height="36" rx="9" fill="url(#cf-mark-gradient)" />
+    
+    {/* Subtle Glassmorphic Highlight Rim */}
+    <rect x="0.75" y="0.75" width="34.5" height="34.5" rx="8.25" stroke="white" strokeOpacity="0.25" strokeWidth="1.5" />
+
+    {/* Upward Career Trajectory Arrow (Ascent) */}
+    <path
+      d="M18 7.5L25.5 15H20.5V21H15.5V15H10.5L18 7.5Z"
+      fill="white"
+    />
+
+    {/* Precision Forge Anvil Base (Foundation) */}
+    <path
+      d="M10 23C10 22.45 10.45 22 11 22H25C25.55 22 26 22.45 26 23V24C26 25.1 25.1 26 24 26H12C10.9 26 10 25.1 10 24V23Z"
+      fill="url(#cf-anvil-gradient)"
+    />
+
+    {/* Central AI Precision Pulse Point */}
+    <circle cx="18" cy="15" r="1.5" fill="#2563EB" />
+  </svg>
+);
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   variant = 'default',
-  theme = 'gradient',
+  theme: _theme = 'gradient',
   className = '',
   animated = false,
 }) => {
-  const { icon: iconSize, text: textSize, height } = sizeConfig[size];
+  const cfg = sizeConfig[size];
 
-  // Theme configurations
-  const themeStyles = {
-    light: {
-      bg: 'bg-white',
-      text: 'text-gray-900',
-      accent: 'text-blue-600',
-      border: 'border-gray-200',
-    },
-    dark: {
-      bg: 'bg-gray-900',
-      text: 'text-white',
-      accent: 'text-blue-400',
-      border: 'border-gray-700',
-    },
-    gradient: {
-      bg: 'bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600',
-      text: 'text-white',
-      accent: 'text-white',
-      border: 'border-transparent',
-    },
-    monochrome: {
-      bg: 'bg-gray-800',
-      text: 'text-white',
-      accent: 'text-gray-300',
-      border: 'border-gray-600',
-    },
-  };
-
-  const currentTheme = themeStyles[theme];
-
-  // Unique CareerForge Symbol - Forge + Growth + AI
-  const CareerForgeSymbol = ({ className: symbolClass = '' }: { className?: string }) => (
-    <svg
-      width={iconSize}
-      height={iconSize}
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`${symbolClass} ${animated ? 'animate-pulse' : ''}`}
-    >
-      {/* Forge Anvil Base - Represents Foundation */}
-      <path
-        d="M8 30 L32 30 Q34 30 34 28 L34 26 Q34 24 32 24 L8 24 Q6 24 6 26 L6 28 Q6 30 8 30 Z"
-        fill="currentColor"
-        opacity="0.8"
-      />
-      
-      {/* Career Growth Trajectory - Ascending Path */}
-      <path
-        d="M10 24 L12 20 L16 16 L20 12 L24 8 L28 6"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        opacity="0.9"
-      />
-      
-      {/* Milestone Markers - Career Stages */}
-      <circle cx="12" cy="20" r="1.5" fill="currentColor" />
-      <circle cx="16" cy="16" r="1.5" fill="currentColor" />
-      <circle cx="20" cy="12" r="1.5" fill="currentColor" />
-      <circle cx="24" cy="8" r="1.5" fill="currentColor" />
-      
-      {/* AI Brain/Network - Top Achievement */}
-      <circle cx="28" cy="6" r="3" fill="currentColor" />
-      <circle cx="28" cy="6" r="1.5" fill="white" opacity="0.95" />
-      
-      {/* Neural Connections - AI Intelligence */}
-      <path d="M25 8 L22 10" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-      <path d="M31 8 L34 10" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-      <path d="M26 4 L24 2" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-      <path d="M30 4 L32 2" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-      
-      {/* Forge Hammer - Active Creation */}
-      <rect x="14" y="32" width="12" height="2" rx="1" fill="currentColor" opacity="0.7" />
-      <rect x="18" y="28" width="4" height="6" rx="1" fill="currentColor" opacity="0.6" />
-    </svg>
-  );
-
-  // Unique Monogram - Forge Symbol with CF
-  const ForgeMonogram = ({ className: monoClass = '' }: { className?: string }) => (
-    <div
-      className={`${currentTheme.bg} ${currentTheme.border} border-2 rounded-xl flex items-center justify-center relative overflow-hidden ${monoClass}`}
-      style={{ width: iconSize, height: iconSize }}
-    >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <svg width="100%" height="100%" viewBox="0 0 20 20">
-          <path d="M2 18 L10 10 L18 2" stroke="currentColor" strokeWidth="0.5" />
-          <path d="M6 18 L14 10 L18 6" stroke="currentColor" strokeWidth="0.5" />
-        </svg>
-      </div>
-      
-      {/* Main Monogram */}
-      <div className="relative flex flex-col items-center justify-center">
-        <span className={`${currentTheme.text} font-black leading-none`} style={{ fontSize: iconSize * 0.35 }}>
-          CF
-        </span>
-        <div className={`w-3 h-0.5 ${currentTheme.text} opacity-60 mt-0.5`} style={{ width: iconSize * 0.3 }} />
-      </div>
-    </div>
-  );
-
-  // Compact Logo
-  const CompactLogo = () => (
-    <div className={`inline-flex items-center gap-3 ${className}`}>
-      <div className={`${currentTheme.bg} rounded-xl p-2 shadow-sm ${height} flex items-center justify-center`}>
-        <CareerForgeSymbol className={currentTheme.text} />
-      </div>
-      <div className="flex flex-col">
-        <span className={`${textSize} font-bold text-gray-900 dark:text-white leading-tight`}>
-          CareerForge
-        </span>
-        <span className={`${sizeConfig[size].subtitle} font-semibold tracking-wide uppercase text-gray-600 dark:text-gray-400`}>
-          AI Career Mentor
-        </span>
-      </div>
-    </div>
-  );
-
-  // Symbol Only
-  if (variant === 'symbol') {
-    return (
-      <div className={`${currentTheme.bg} rounded-xl p-2 shadow-lg ${className}`} style={{ width: iconSize + 8, height: iconSize + 8 }}>
-        <CareerForgeSymbol className={currentTheme.text} />
-      </div>
-    );
+  // Symbol only
+  if (variant === 'symbol' || variant === 'monogram') {
+    return <CareerForgeMark size={cfg.icon} className={className} animated={animated} />;
   }
 
-  // Monogram Only
-  if (variant === 'monogram') {
-    return <ForgeMonogram className={className} />;
-  }
-
-  // Wordmark Only
+  // Wordmark only
   if (variant === 'wordmark') {
     return (
-      <div className={`flex flex-col items-center ${className}`}>
-        <span className={`${textSize} font-bold tracking-tight leading-tight ${
-          theme === 'gradient' 
-            ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent'
-            : currentTheme.text
-        }`}>
+      <div className={`inline-flex items-center gap-2 ${className}`}>
+        <span className={`${cfg.text} font-bold tracking-tight text-gray-900 dark:text-white`}>
           CareerForge
         </span>
-        <span className={`${sizeConfig[size].subtitle} font-bold tracking-wide uppercase text-gray-600 dark:text-gray-400 mt-1`}>
-          AI Career Mentor
+        <span className={`${cfg.badge} font-bold tracking-wider rounded-md bg-blue-600/10 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400 border border-blue-500/20 uppercase`}>
+          AI
         </span>
       </div>
     );
   }
 
-  // Compact Version
-  if (variant === 'compact') {
-    return <CompactLogo />;
-  }
-
-  // Default - Full Logo
+  // Default and Compact (Mark + Typography + AI Pill)
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className={`${currentTheme.bg} rounded-xl p-2 shadow-lg ${animated ? 'hover:scale-105 transition-transform duration-200' : ''}`}>
-        <CareerForgeSymbol className={currentTheme.text} />
-      </div>
-      <div className="flex flex-col">
-        <span className={`${textSize} font-bold tracking-tight leading-tight ${
-          theme === 'gradient' 
-            ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent'
-            : 'text-gray-900 dark:text-white'
-        }`}>
+    <div className={`inline-flex items-center ${cfg.gap} ${className}`}>
+      <CareerForgeMark size={cfg.icon} animated={animated} />
+      <div className="flex items-center gap-1.5">
+        <span className={`${cfg.text} font-extrabold tracking-tight text-gray-900 dark:text-white leading-none`}>
           CareerForge
         </span>
-        <span className={`${sizeConfig[size].subtitle} font-semibold tracking-wide uppercase text-gray-600 dark:text-gray-400`}>
-          AI Career Mentor
+        <span className={`${cfg.badge} font-bold tracking-wider rounded-md bg-blue-600/10 text-blue-600 dark:bg-blue-400/20 dark:text-blue-300 border border-blue-500/20 uppercase leading-none`}>
+          AI
         </span>
       </div>
     </div>
   );
 };
 
-// Preset Logo Variants for Common Use Cases
-export const HeaderLogo = () => (
-  <BrandLogo size="md" variant="compact" theme="gradient" animated />
-);
-
-export const SidebarLogo = () => (
-  <BrandLogo size="sm" variant="monogram" theme="dark" />
-);
-
-export const FooterLogo = () => (
-  <BrandLogo size="lg" variant="wordmark" theme="monochrome" />
-);
-
-export const FaviconLogo = () => (
-  <BrandLogo size="xs" variant="symbol" theme="gradient" />
-);
+// Presets for easy layout usage
+export const HeaderLogo = () => <BrandLogo size="md" variant="default" animated />;
+export const SidebarLogo = () => <BrandLogo size="sm" variant="default" />;
+export const FooterLogo = () => <BrandLogo size="md" variant="default" />;
+export const FaviconLogo = () => <CareerForgeMark size={32} />;
 
 export default BrandLogo;

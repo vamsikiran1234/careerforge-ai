@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useToast } from '@/components/ui/Toast';
 import { isValidEmail } from '@/utils';
 import { apiClient } from '@/lib/api-client';
-import { ArrowLeft, Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Mail, CheckCircle2, ArrowRight } from 'lucide-react';
+import { cn } from '@/utils';
 
 export const ForgotPasswordPage: React.FC = () => {
   const toast = useToast();
@@ -19,14 +17,13 @@ export const ForgotPasswordPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate email
     if (!email) {
       toast.error('Please enter your email address');
       return;
     }
 
     if (!isValidEmail(email)) {
-      toast.error('Please enter a valid email address (e.g., name@example.com)');
+      toast.error('Please enter a valid email address');
       return;
     }
 
@@ -34,202 +31,136 @@ export const ForgotPasswordPage: React.FC = () => {
 
     try {
       const response = await apiClient.post('/auth/forgot-password', { email });
-      
+
       if (response.status === 'success') {
-        toast.success('Password reset email sent! Check your inbox.');
+        toast.success('Password reset link dispatched to your inbox.');
         setIsSubmitted(true);
-        // Store preview URL for development testing
         if (response.data && typeof response.data === 'object' && 'previewUrl' in response.data) {
           setPreviewUrl((response.data as { previewUrl?: string }).previewUrl || '');
         }
       } else {
         toast.error(response.message || 'Unable to send reset email. Please try again.');
       }
-    } catch (error: unknown) {
+    } catch {
       toast.error('An error occurred while sending the reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          {/* Header */}
-          <div className="text-center">
-            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-green-600">
-              <CheckCircle className="h-6 w-6 text-white" />
-            </div>
-            <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-              Check your email
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              We've sent a password reset link to your email address
-            </p>
-          </div>
-
-          {/* Success Card */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <Mail className="mx-auto h-12 w-12 text-gray-400" />
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Email sent successfully!
-                  </h3>
-                  <p className="mt-2 text-sm text-gray-600">
-                    We've sent a password reset link to:
-                  </p>
-                  <p className="font-medium text-gray-900">{email}</p>
-                </div>
-                
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 mb-2">Next steps:</h4>
-                  <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                    <li>Check your email inbox</li>
-                    <li>Click the "Reset Password" link</li>
-                    <li>Create a new password</li>
-                    <li>Sign in with your new password</li>
-                  </ol>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-start">
-                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
-                    <div className="text-sm text-yellow-800">
-                      <p className="font-medium mb-1">Important:</p>
-                      <ul className="space-y-1">
-                        <li>• The reset link expires in 1 hour</li>
-                        <li>• Check your spam folder if you don't see the email</li>
-                        <li>• The link can only be used once</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Development Preview Link */}
-                {previewUrl && process.env.NODE_ENV === 'development' && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-2">
-                      <strong>Development Mode:</strong> Preview the email
-                    </p>
-                    <a
-                      href={previewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800 underline"
-                    >
-                      View Email Preview
-                    </a>
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-3 pt-4">
-                  <Button
-                    onClick={() => {
-                      setIsSubmitted(false);
-                      setEmail('');
-                      setPreviewUrl('');
-                    }}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Send another email
-                  </Button>
-                  
-                  <Link to="/login">
-                    <Button variant="outline" className="w-full">
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back to Login
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/70 dark:bg-[#090b11] text-gray-900 dark:text-gray-100 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="max-w-md w-full space-y-6">
+        {/* Brand Header */}
         <div className="text-center">
-          <div className="flex justify-center">
-            <BrandLogo size="xl" variant="default" theme="gradient" />
-          </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            Forgot your password?
+          <Link to="/" className="inline-flex justify-center hover:opacity-90 transition-opacity">
+            <BrandLogo size="lg" variant="default" />
+          </Link>
+          <h2 className="mt-6 text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white">
+            {isSubmitted ? 'Check your email' : 'Reset your password'}
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter your email address and we'll send you a link to reset your password
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {isSubmitted
+              ? `We have sent a secure password reset link to ${email}`
+              : "Enter your registered email and we'll send you recovery instructions."}
           </p>
         </div>
 
-        {/* Forgot Password Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Reset Password</CardTitle>
-            <CardDescription>
-              We'll send a password reset link to your email address
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Card */}
+        <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl shadow-gray-200/50 dark:shadow-black/50">
+          {!isSubmitted ? (
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                   Email Address
                 </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={handleInputChange}
-                  placeholder="Enter your email address"
-                  disabled={isLoading}
-                  autoComplete="email"
-                  autoFocus
-                />
+                <div className="relative rounded-xl shadow-xs">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 dark:text-gray-500">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    autoComplete="email"
+                    autoFocus
+                    required
+                    className={cn(
+                      'block w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border transition-all outline-none',
+                      'bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500',
+                      'border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                    )}
+                  />
+                </div>
               </div>
 
-              <Button
+              <button
                 type="submit"
-                className="w-full"
                 disabled={isLoading}
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 disabled:opacity-60 shadow-md shadow-blue-600/25 transition-all"
               >
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
-              </Button>
+                {isLoading ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Sending reset link...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Reset Instructions</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
             </form>
+          ) : (
+            <div className="space-y-5 text-center">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
 
-            <div className="mt-6 text-center">
-              <Link 
-                to="/login" 
-                className="text-sm text-primary-600 hover:text-primary-500 font-medium inline-flex items-center"
+              {previewUrl && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs">
+                  <p className="text-gray-600 dark:text-gray-400 mb-1">Development Preview:</p>
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 font-semibold underline"
+                  >
+                    View Reset Email Link ↗
+                  </a>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSubmitted(false);
+                  setEmail('');
+                  setPreviewUrl('');
+                }}
+                className="w-full py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
               >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Login
-              </Link>
+                Send to another email
+              </button>
             </div>
-          </CardContent>
-        </Card>
+          )}
 
-        {/* Help Section */}
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-              Sign up here
+          <div className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800 text-center">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Sign In</span>
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
+export default ForgotPasswordPage;

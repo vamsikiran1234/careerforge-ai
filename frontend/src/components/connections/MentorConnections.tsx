@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -32,6 +33,7 @@ interface Connection {
 }
 
 export const MentorConnections: React.FC = () => {
+  const navigate = useNavigate();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -430,7 +432,7 @@ export const MentorConnections: React.FC = () => {
                           variant="primary"
                           size="sm"
                           className="flex-1"
-                          onClick={() => (window.location.href = `/chat/${connection.id}`)}
+                          onClick={() => navigate(`/app/messages/${connection.id}`)}
                         >
                           <MessageCircle className="w-4 h-4 mr-2" />
                           Chat
@@ -440,7 +442,7 @@ export const MentorConnections: React.FC = () => {
                           size="sm"
                           className="flex-1"
                           onClick={() =>
-                            (window.location.href = `/sessions?student=${connection.student.id}`)
+                            navigate(`/app/sessions?student=${connection.student.id}`)
                           }
                         >
                           <Calendar className="w-4 h-4 mr-2" />

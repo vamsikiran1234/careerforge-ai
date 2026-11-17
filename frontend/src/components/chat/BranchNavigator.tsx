@@ -5,8 +5,6 @@ import {
   Plus, 
   Edit3, 
   Trash2, 
-  MessageCircle, 
-  Clock,
   CheckCircle,
   X
 } from 'lucide-react';
@@ -16,7 +14,7 @@ import type { ConversationBranch } from '@/types/threading';
 interface BranchNavigatorProps {
   branches: ConversationBranch[];
   currentBranchId: string | null;
-  onSelectBranch: (branchId: string | null) => void; // null for main thread
+  onSelectBranch: (branchId: string | null) => void;
   onCreateBranch: (fromMessageId: string, branchName?: string) => void;
   onRenameBranch: (branchId: string, newName: string) => void;
   onDeleteBranch: (branchId: string) => void;
@@ -43,7 +41,6 @@ const BranchNavigator: React.FC<BranchNavigatorProps> = ({
 
   const handleCreateBranch = () => {
     if (!branchFromMessageId) return;
-    
     const branchName = newBranchName.trim() || undefined;
     onCreateBranch(branchFromMessageId, branchName);
     setNewBranchName('');
@@ -58,9 +55,9 @@ const BranchNavigator: React.FC<BranchNavigatorProps> = ({
   const handleSaveRename = () => {
     if (editingBranchId) {
       onRenameBranch(editingBranchId, editingName.trim());
+      setEditingBranchId(null);
+      setEditingName('');
     }
-    setEditingBranchId(null);
-    setEditingName('');
   };
 
   const handleCancelRename = () => {
@@ -69,18 +66,18 @@ const BranchNavigator: React.FC<BranchNavigatorProps> = ({
   };
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
+    <div className={`bg-[#11141e] border border-white/10 rounded-xl shadow-xl text-white ${className}`}>
       {/* Header */}
-      <div className="p-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
+      <div className="p-3.5 border-b border-white/[0.08] bg-[#0c0e15] rounded-t-xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <GitBranch className="w-4 h-4 text-purple-600" />
-            <span className="text-sm font-medium text-gray-900">Conversation Branches</span>
+            <GitBranch className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm font-semibold text-white">Conversation Branches</span>
           </div>
           {branchFromMessageId && (
             <button
               onClick={() => setIsCreatingBranch(true)}
-              className="flex items-center space-x-1 px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+              className="flex items-center space-x-1 px-2.5 py-1 text-xs bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors font-medium shadow-sm"
             >
               <Plus className="w-3 h-3" />
               <span>New Branch</span>
@@ -93,45 +90,45 @@ const BranchNavigator: React.FC<BranchNavigatorProps> = ({
         {/* Main Thread Option */}
         <button
           onClick={() => onSelectBranch(null)}
-          className={`w-full flex items-center space-x-3 p-2 rounded-md transition-all ${
+          className={`w-full flex items-center space-x-3 p-2.5 rounded-xl transition-all ${
             currentBranchId === null
-              ? 'bg-blue-100 border-blue-300 text-blue-800'
-              : 'hover:bg-gray-50 border-transparent text-gray-700'
+              ? 'bg-cyan-500/15 border-cyan-500/30 text-white shadow-sm'
+              : 'hover:bg-white/[0.05] border-transparent text-zinc-300'
           } border`}
         >
           <div className="flex-shrink-0">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-cyan-400" />
           </div>
           <div className="flex-1 text-left">
-            <div className="font-medium text-sm">Main Thread</div>
-            <div className="text-xs opacity-70">Original conversation</div>
+            <div className="font-medium text-xs text-white">Main Thread</div>
+            <div className="text-[10px] text-zinc-400">Original conversation stream</div>
           </div>
           {currentBranchId === null && (
-            <CheckCircle className="w-4 h-4 text-blue-600" />
+            <CheckCircle className="w-4 h-4 text-cyan-400" />
           )}
         </button>
 
         {/* Create New Branch Form */}
         {isCreatingBranch && (
-          <div className="p-3 bg-purple-50 border border-purple-200 rounded-md">
+          <div className="p-3 bg-[#151926] border border-cyan-500/30 rounded-xl">
             <div className="space-y-2">
               <div>
-                <label className="block text-xs font-medium text-purple-800 mb-1">
+                <label className="block text-[11px] font-medium text-cyan-300 mb-1">
                   Branch Name (optional)
                 </label>
                 <input
                   type="text"
                   value={newBranchName}
                   onChange={(e) => setNewBranchName(e.target.value)}
-                  placeholder="e.g., Alternative approach, What if..."
-                  className="w-full px-2 py-1 text-sm border border-purple-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="e.g., Alternative Career Direction..."
+                  className="w-full px-2.5 py-1.5 text-xs bg-[#0c0e15] border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                   autoFocus
                 />
               </div>
               <div className="flex space-x-2">
                 <button
                   onClick={handleCreateBranch}
-                  className="flex-1 px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                  className="flex-1 px-3 py-1.5 text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition-colors"
                 >
                   Create Branch
                 </button>
@@ -140,7 +137,7 @@ const BranchNavigator: React.FC<BranchNavigatorProps> = ({
                     setIsCreatingBranch(false);
                     setNewBranchName('');
                   }}
-                  className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors"
+                  className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -155,109 +152,78 @@ const BranchNavigator: React.FC<BranchNavigatorProps> = ({
             {activeBranches.map((branch, index) => (
               <div
                 key={branch.id}
-                className={`border rounded-md transition-all ${
+                className={`border rounded-xl transition-all ${
                   currentBranchId === branch.id
-                    ? 'bg-purple-100 border-purple-300'
-                    : 'border-gray-200 hover:border-purple-200'
+                    ? 'bg-cyan-500/10 border-cyan-500/30 text-white'
+                    : 'border-white/[0.06] bg-[#141824] hover:border-white/20'
                 }`}
               >
-                <div className="flex items-center space-x-2 p-2">
+                <div className="flex items-center space-x-2 p-2.5">
                   <button
                     onClick={() => onSelectBranch(branch.id)}
                     className="flex-1 flex items-center space-x-2 text-left"
                   >
                     <div className="flex-shrink-0">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                        currentBranchId === branch.id
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}>
-                        {index + 1}
+                      <div className="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-[10px] font-mono">
+                        #{index + 1}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       {editingBranchId === branch.id ? (
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-1" onClick={e => e.stopPropagation()}>
                           <input
                             type="text"
                             value={editingName}
                             onChange={(e) => setEditingName(e.target.value)}
-                            className="flex-1 px-2 py-0.5 text-sm border border-purple-300 rounded focus:ring-1 focus:ring-purple-500"
+                            className="flex-1 px-2 py-0.5 text-xs bg-[#0c0e15] border border-white/20 rounded text-white"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') handleSaveRename();
                               if (e.key === 'Escape') handleCancelRename();
                             }}
                             autoFocus
                           />
-                          <button
-                            onClick={handleSaveRename}
-                            className="p-0.5 text-green-600 hover:text-green-700"
-                          >
-                            <CheckCircle className="w-3 h-3" />
+                          <button onClick={handleSaveRename} className="p-0.5 text-cyan-400">
+                            <CheckCircle className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            onClick={handleCancelRename}
-                            className="p-0.5 text-gray-400 hover:text-gray-600"
-                          >
-                            <X className="w-3 h-3" />
+                          <button onClick={handleCancelRename} className="p-0.5 text-zinc-400">
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ) : (
                         <>
-                          <div className="font-medium text-sm text-gray-900 truncate">
+                          <div className="font-medium text-xs text-white truncate">
                             {branch.branchName || `Branch ${index + 1}`}
                           </div>
-                          <div className="flex items-center space-x-3 text-xs text-gray-500">
-                            <div className="flex items-center space-x-1">
-                              <MessageCircle className="w-3 h-3" />
-                              <span>{branch.messages.length} messages</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Clock className="w-3 h-3" />
-                              <span>{formatDistanceToNow(new Date(branch.updatedAt), { addSuffix: true })}</span>
-                            </div>
+                          <div className="text-[10px] text-zinc-400">
+                            {formatDistanceToNow(new Date(branch.createdAt), { addSuffix: true })}
                           </div>
                         </>
                       )}
                     </div>
                   </button>
-
-                  {/* Branch Actions */}
-                  {editingBranchId !== branch.id && (
-                    <div className="flex space-x-1">
-                      <button
-                        onClick={() => handleStartRename(branch)}
-                        className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                        title="Rename branch"
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => onDeleteBranch(branch.id)}
-                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                        title="Delete branch"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {currentBranchId === branch.id && (
-                  <div className="px-2 pb-2">
-                    <div className="text-xs text-purple-700 bg-purple-50 px-2 py-1 rounded">
-                      Currently viewing this branch
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleStartRename(branch)}
+                      className="p-1 text-zinc-400 hover:text-white hover:bg-white/10 rounded"
+                      title="Rename"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteBranch(branch.id)}
+                      className="p-1 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-4 text-gray-500">
-            <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No branches created yet</p>
-            <p className="text-xs mt-1">Click "Branch" next to any message to create alternate paths</p>
+          <div className="py-4 text-center text-xs text-zinc-500">
+            No active conversation branches yet
           </div>
         )}
       </div>

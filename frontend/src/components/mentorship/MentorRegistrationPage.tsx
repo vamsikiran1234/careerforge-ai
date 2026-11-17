@@ -586,7 +586,7 @@ export const MentorRegistrationPage: React.FC = () => {
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
         Please check your inbox and click the verification link to activate your mentor profile.
       </p>
-      <Button onClick={() => navigate('/dashboard')}>
+      <Button onClick={() => navigate('/app/dashboard')}>
         Go to Dashboard
       </Button>
     </div>

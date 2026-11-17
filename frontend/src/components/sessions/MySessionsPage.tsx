@@ -4,6 +4,8 @@ import axios from 'axios';
 import { format, formatDistanceToNow, isPast, isFuture, isWithinInterval, addMinutes } from 'date-fns';
 import type { MentorSession } from '../../types';
 import RatingModal from '../reviews/RatingModal';
+import { CancelSessionModal } from './CancelSessionModal';
+import { getValidAuthToken } from '@/lib/api-client';
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 
@@ -27,6 +29,8 @@ export default function MySessionsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [selectedSessionForRating, setSelectedSessionForRating] = useState<MentorSession | null>(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [sessionToCancel, setSessionToCancel] = useState<MentorSession | null>(null);
 
   useEffect(() => {
     fetchSessions();
@@ -35,8 +39,7 @@ export default function MySessionsPage() {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      const authStorage = localStorage.getItem('auth-storage');
-      const token = authStorage ? JSON.parse(authStorage).state.token : null;
+      const token = getValidAuthToken();
 
       const response = await axios.get(`${VITE_API_URL}/sessions/my-sessions`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -56,8 +59,7 @@ export default function MySessionsPage() {
   const handleJoinSession = async (session: MentorSession) => {
     try {
       setActionLoading(session.id);
-      const authStorage = localStorage.getItem('auth-storage');
-      const token = authStorage ? JSON.parse(authStorage).state.token : null;
+      const token = getValidAuthToken();
 
       // Mark session as started
       await axios.put(
@@ -83,23 +85,26 @@ export default function MySessionsPage() {
     }
   };
 
-  const handleCancelSession = async (sessionId: string) => {
-    const reason = prompt('Please provide a cancellation reason (optional):');
-    
+  const handleOpenCancelModal = (session: MentorSession) => {
+    setSessionToCancel(session);
+    setCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = async (sessionId: string, reason: string) => {
     try {
       setActionLoading(sessionId);
-      const authStorage = localStorage.getItem('auth-storage');
-      const token = authStorage ? JSON.parse(authStorage).state.token : null;
+      const token = getValidAuthToken();
 
       await axios.put(
         `${VITE_API_URL}/sessions/${sessionId}/cancel`,
-        { cancellationReason: reason },
+        { cancellationReason: reason || undefined },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      alert('Session cancelled successfully');
+      setCancelModalOpen(false);
+      setSessionToCancel(null);
       fetchSessions();
     } catch (err: any) {
       console.error('Cancel session error:', err);
@@ -111,11 +116,14 @@ export default function MySessionsPage() {
 
   const handleCompleteSession = async (sessionId: string) => {
     const notes = prompt('Add session notes (optional):');
+    // If user clicked 'Cancel' on the prompt dialog, do not complete the session
+    if (notes === null) {
+      return;
+    }
     
     try {
       setActionLoading(sessionId);
-      const authStorage = localStorage.getItem('auth-storage');
-      const token = authStorage ? JSON.parse(authStorage).state.token : null;
+      const token = getValidAuthToken();
 
       await axios.put(
         `${VITE_API_URL}/sessions/${sessionId}/complete`,
@@ -371,7 +379,7 @@ export default function MySessionsPage() {
                       {/* Cancel Button */}
                       {session.status === 'SCHEDULED' && !isPast(new Date(session.scheduledAt)) && (
                         <button
-                          onClick={() => handleCancelSession(session.id)}
+                          onClick={() => handleOpenCancelModal(session)}
                           disabled={actionLoading === session.id}
                           className="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-700 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
                         >
@@ -428,6 +436,18 @@ export default function MySessionsPage() {
             })}
           </div>
         )}
+
+        {/* Cancel Session Modal */}
+        <CancelSessionModal
+          isOpen={cancelModalOpen}
+          session={sessionToCancel}
+          onClose={() => {
+            setCancelModalOpen(false);
+            setSessionToCancel(null);
+          }}
+          onConfirm={handleConfirmCancel}
+          isLoading={actionLoading === sessionToCancel?.id}
+        />
 
         {/* Rating Modal */}
         {ratingModalOpen && selectedSessionForRating && selectedSessionForRating.mentor && (

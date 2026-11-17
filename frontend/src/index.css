@@ -8,27 +8,10 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
-    /* Force light mode - override any dark mode preferences */
-    background: white;
-    color-scheme: light only;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
-  }
-  
-  /* Force light mode globally - disable dark mode */
-  html.dark,
-  html[data-theme="dark"],
-  :root.dark {
-    background: white !important;
-    color-scheme: light only !important;
-  }
-  
-  html.dark *,
-  html[data-theme="dark"] *,
-  :root.dark * {
-    color-scheme: light only !important;
+    @apply bg-gray-50 text-gray-900 antialiased dark:bg-[#090b10] dark:text-zinc-100;
   }
 }
 
@@ -39,15 +22,15 @@
   }
   
   .btn-secondary {
-    @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200;
+    @apply inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200;
   }
   
   .card {
-    @apply bg-white overflow-hidden shadow rounded-lg border border-gray-200;
+    @apply bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white;
   }
   
   .input-field {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+    @apply block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
   }
 
   /* Custom animations for the modern chat interface */

@@ -80,7 +80,7 @@ export const capturePageScreenshot = async (
       removeContainer: true,
       windowWidth: options.width || window.innerWidth,
       windowHeight: options.height || window.innerHeight,
-      onclone: (clonedDoc) => {
+      onclone: (clonedDoc: Document) => {
         // Additional cleanup in cloned document if needed
         const clonedBody = clonedDoc.body;
         clonedBody.style.overflow = 'visible';

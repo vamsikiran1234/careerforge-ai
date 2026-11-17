@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/auth';
-import { MessageSquare, BookOpen, Users, TrendingUp, Clock, Award, Target, BarChart3, ArrowRight } from 'lucide-react';
+import { MessageSquare, BookOpen, Users, TrendingUp, Clock, Award, Target, BarChart3, ArrowRight, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { createSEO } from '@/components/common/SEO';
@@ -154,26 +154,50 @@ export const DashboardPage: React.FC = () => {
   const features = [
     {
       title: 'AI Career Chat',
-      description: 'Get personalized career guidance from our AI assistant',
+      description: 'Get personalized career guidance and interview prep from our AI assistant',
       icon: MessageSquare,
-      link: '/chat',
+      link: '/app/chat',
       color: 'bg-blue-500',
       available: true,
     },
     {
       title: 'Career Quiz',
-      description: 'Take adaptive assessments to discover your career path',
+      description: 'Take adaptive sprint assessments to discover your ideal career trajectory',
       icon: BookOpen,
-      link: '/quiz',
-      color: 'bg-green-500',
+      link: '/app/quiz',
+      color: 'bg-emerald-500',
+      available: true,
+    },
+    {
+      title: 'Career Trajectory',
+      description: 'Map milestones, track skill gaps, and get AI-curated learning resources',
+      icon: Target,
+      link: '/app/career',
+      color: 'bg-indigo-500',
       available: true,
     },
     {
       title: 'Find Mentors',
-      description: 'Connect with industry experts and mentors',
+      description: 'Connect with industry experts and schedule 1-on-1 career mentorship',
       icon: Users,
-      link: '/mentors',
+      link: '/app/mentors',
       color: 'bg-purple-500',
+      available: true,
+    },
+    {
+      title: 'My Sessions',
+      description: 'View and manage upcoming booking sessions with verified mentors',
+      icon: Calendar,
+      link: '/app/sessions',
+      color: 'bg-amber-500',
+      available: true,
+    },
+    {
+      title: 'Messages',
+      description: 'Chat directly with your connected industry mentors in real-time',
+      icon: MessageSquare,
+      link: '/app/messages',
+      color: 'bg-teal-500',
       available: true,
     },
   ];
@@ -228,98 +252,106 @@ export const DashboardPage: React.FC = () => {
           animate="visible"
         >
           <motion.div variants={listItemVariants}>
-            <Card className="card-hover">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                    <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Chat Sessions
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                      {currentData.quickStats.chatSessions.total}
-                    </p>
-                    <div className="flex items-center mt-2 text-xs text-success-600 dark:text-success-400">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +{currentData.quickStats.chatSessions.thisWeek} this week
+            <Link to="/app/chat" className="block group">
+              <Card className="card-hover group-hover:border-blue-500/50 transition-all cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl group-hover:scale-105 transition-transform">
+                      <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Chat Sessions
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                        {currentData.quickStats.chatSessions.total}
+                      </p>
+                      <div className="flex items-center mt-2 text-xs text-success-600 dark:text-success-400">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        +{currentData.quickStats.chatSessions.thisWeek} this week
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
 
           <motion.div variants={listItemVariants}>
-            <Card className="card-hover">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 p-3 bg-success-100 dark:bg-success-900/30 rounded-xl">
-                    <BookOpen className="h-6 w-6 text-success-600 dark:text-success-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Quizzes Taken
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                      {currentData.quickStats.quizzesTaken.total}
-                    </p>
-                    <div className="flex items-center mt-2 text-xs text-success-600 dark:text-success-400">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +{currentData.quickStats.quizzesTaken.thisWeek} this week
+            <Link to="/app/quiz" className="block group">
+              <Card className="card-hover group-hover:border-emerald-500/50 transition-all cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 p-3 bg-success-100 dark:bg-success-900/30 rounded-xl group-hover:scale-105 transition-transform">
+                      <BookOpen className="h-6 w-6 text-success-600 dark:text-success-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Quizzes Taken
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                        {currentData.quickStats.quizzesTaken.total}
+                      </p>
+                      <div className="flex items-center mt-2 text-xs text-success-600 dark:text-success-400">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        +{currentData.quickStats.quizzesTaken.thisWeek} this week
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
 
           <motion.div variants={listItemVariants}>
-            <Card className="card-hover">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                    <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Mentor Connections
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                      {currentData.quickStats.mentorConnections.total}
-                    </p>
-                    <div className="flex items-center mt-2 text-xs text-info-600 dark:text-info-400">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {currentData.quickStats.mentorConnections.upcomingMeetings} upcoming
+            <Link to="/app/mentors" className="block group">
+              <Card className="card-hover group-hover:border-purple-500/50 transition-all cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl group-hover:scale-105 transition-transform">
+                      <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Mentor Connections
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                        {currentData.quickStats.mentorConnections.total}
+                      </p>
+                      <div className="flex items-center mt-2 text-xs text-info-600 dark:text-info-400">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {currentData.quickStats.mentorConnections.upcomingMeetings} upcoming
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
 
           <motion.div variants={listItemVariants}>
-            <Card className="card-hover">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 p-3 bg-warning-100 dark:bg-warning-900/30 rounded-xl">
-                    <BarChart3 className="h-6 w-6 text-warning-600 dark:text-warning-400" />
+            <Link to="/app/career" className="block group">
+              <Card className="card-hover group-hover:border-indigo-500/50 transition-all cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 p-3 bg-warning-100 dark:bg-warning-900/30 rounded-xl group-hover:scale-105 transition-transform">
+                      <BarChart3 className="h-6 w-6 text-warning-600 dark:text-warning-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Progress Score
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                        {currentData.quickStats.progressScore}%
+                      </p>
+                      <p className="text-xs text-success-600 dark:text-success-400 mt-2">
+                        {getProgressMessage()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Progress Score
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                      {currentData.quickStats.progressScore}%
-                    </p>
-                    <p className="text-xs text-success-600 dark:text-success-400 mt-2">
-                      {getProgressMessage()}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
         </motion.div>
       )}
@@ -403,7 +435,7 @@ export const DashboardPage: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   {currentData.quickStats.chatSessions.total === 0 && (
-                    <Link to="/chat" className="block group">
+                    <Link to="/app/chat" className="block group">
                       <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
@@ -420,7 +452,7 @@ export const DashboardPage: React.FC = () => {
                   )}
                   
                   {currentData.quickStats.quizzesTaken.total === 0 && (
-                    <Link to="/quiz" className="block group">
+                    <Link to="/app/quiz" className="block group">
                       <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
@@ -437,7 +469,7 @@ export const DashboardPage: React.FC = () => {
                   )}
                   
                   {currentData.quickStats.mentorConnections.total === 0 && (
-                    <Link to="/mentors" className="block group">
+                    <Link to="/app/mentors" className="block group">
                       <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
@@ -452,16 +484,31 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </Link>
                   )}
+
+                  <Link to="/app/career" className="block group">
+                    <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center">
+                          <Target className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">Build Career Trajectory</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Map milestones & close skill gaps</p>
+                        </div>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-indigo-600 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </Link>
                   
                   {currentData.quickStats.chatSessions.total > 0 && 
                    currentData.quickStats.quizzesTaken.total > 0 && 
                    currentData.quickStats.mentorConnections.total > 0 && (
-                    <div className="text-center py-8">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-100 dark:bg-success-900/30 mb-4">
-                        <Award className="h-8 w-8 text-success-600 dark:text-success-400" />
+                    <div className="text-center py-6">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-success-100 dark:bg-success-900/30 mb-2">
+                        <Award className="h-6 w-6 text-success-600 dark:text-success-400" />
                       </div>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">You're All Set! 🎉</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-base font-semibold text-gray-900 dark:text-white">You're All Set! 🎉</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         Keep engaging with mentors and exploring career opportunities
                       </p>
                     </div>
@@ -638,54 +685,6 @@ export const DashboardPage: React.FC = () => {
         })}
       </motion.div>
     )}
-
-    {/* Getting Started Guide */}
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>🚀 Getting Started with CareerForge AI</CardTitle>
-          <CardDescription>
-            New to CareerForge? Here's how to make the most of your career journey:
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">1. Start with AI Chat</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Begin your journey by chatting with our AI assistant. Ask about career paths, 
-                skill development, or any career-related questions.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">2. Take Career Assessments</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Complete our adaptive quizzes to discover your strengths, interests, 
-                and ideal career paths based on your profile.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">3. Connect with Mentors</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Find and connect with industry professionals who can guide you 
-                through your career development journey.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">4. Track Your Progress</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Monitor your learning progress, completed assessments, and mentor 
-                interactions all from your dashboard.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
   </div>
 );
 };

@@ -9,8 +9,13 @@ import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { apiClient } from '@/lib/api-client';
-import { AlertCircle, Shield, X, GitBranch } from 'lucide-react';
-import { CareerForgeAvatar } from '@/components/ui/CareerForgeAvatar';
+import { 
+  AlertCircle, 
+  Shield, 
+  X, 
+  GitBranch, 
+  PanelLeft 
+} from 'lucide-react';
 
 interface ChatResponse {
   sessionId: string;
@@ -23,9 +28,8 @@ export const ChatInterface: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
-  // If the route is the chat page, default to fullscreen (global layout) — but still allow rendering the chat sessions sidebar
   const [isFullscreen, setIsFullscreen] = useState(() => location.pathname.startsWith('/app/chat'));
-  const [sidebarWidth, setSidebarWidth] = useState(320);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
   const { user } = useAuthStore();
   const {
     currentSession,
@@ -55,28 +59,23 @@ export const ChatInterface: React.FC = () => {
     shareSession,
   } = useChatStore();
 
-  // Load user sessions on mount and ensure fresh start
+  // Load user sessions on mount and ensure clean initial state
   useEffect(() => {
     if (user?.id) {
-      // Add a small delay to prevent duplicate calls in React StrictMode
       const timer = setTimeout(() => {
         loadSessions();
-        // Ensure we start with a fresh session instead of loading previous
         if (currentSession) {
-          // Clear the current session to start fresh
           useChatStore.setState({ currentSession: null });
         }
       }, 100);
 
       return () => clearTimeout(timer);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]); // Removed loadSessions and currentSession from dependencies to prevent re-renders
+  }, [user?.id]);
 
-  // Keyboard shortcut for sidebar toggle
+  // Keyboard shortcut for sidebar toggle (Ctrl+Shift+S)
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + Shift + S to toggle sidebar
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
         e.preventDefault();
         setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -87,9 +86,9 @@ export const ChatInterface: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeydown);
   }, [isSidebarCollapsed]);
 
-  // Load message reactions when session changes
+  // Load message reactions when session changes (skip temporary local session IDs)
   useEffect(() => {
-    if (currentSession?.id) {
+    if (currentSession?.id && !currentSession.id.startsWith('temp-')) {
       loadMessageReactions(currentSession.id);
     }
   }, [currentSession?.id, loadMessageReactions]);
@@ -104,35 +103,20 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
-  // Listen for fullscreen changes
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
   const handleSendMessage = async (message: string, files?: File[]) => {
     if (!currentSession && !files?.length) {
-      // Create new session with the user's message
       await createNewSession(message);
       return;
     }
 
     if (files && files.length > 0) {
-      // Handle file upload and analysis
       await sendMessageWithFiles(message, files);
     } else {
-      // Regular text message
       await sendMessage(message);
     }
   };
 
   const handleNewSession = useCallback(async () => {
-    // Clear current session first to ensure clean state and prevent mixing
-    console.log('ChatInterface: Creating new session, clearing current session first');
     useChatStore.setState({
       currentSession: null,
       isLoading: false,
@@ -140,7 +124,6 @@ export const ChatInterface: React.FC = () => {
       error: null
     });
 
-    // Small delay to ensure state is cleared
     await new Promise(resolve => setTimeout(resolve, 50));
     await createNewSession();
   }, [createNewSession]);
@@ -149,113 +132,33 @@ export const ChatInterface: React.FC = () => {
     setSidebarWidth(width);
   };
 
-  // Global keyboard shortcuts
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Only handle shortcuts when not in input fields
-      if (
-        e.target instanceof HTMLElement &&
-        (e.target.tagName === 'INPUT' ||
-          e.target.tagName === 'TEXTAREA' ||
-          e.target.contentEditable === 'true')
-      ) {
-        return;
-      }
-
-      const {
-        openTemplateSelector,
-        openExportDialog,
-        closeTemplateSelector,
-        closeExportDialog,
-        showTemplateSelector,
-        showExportDialog
-      } = useChatStore.getState();
-
-      // Handle keyboard shortcuts
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.key.toLowerCase()) {
-          case 'n':
-            e.preventDefault();
-            handleNewSession();
-            break;
-          case 'k': {
-            e.preventDefault();
-            // Focus search bar
-            const searchInput = document.querySelector('input[placeholder*="search"]') as HTMLInputElement;
-            if (searchInput) {
-              searchInput.focus();
-            }
-            break;
-          }
-          case 't':
-            e.preventDefault();
-            openTemplateSelector();
-            break;
-          case 'e':
-            e.preventDefault();
-            if (sessions.length > 0) {
-              openExportDialog();
-            }
-            break;
-        }
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        // Close open dialogs
-        if (showTemplateSelector) closeTemplateSelector();
-        if (showExportDialog) closeExportDialog();
-        // Close mobile sidebar
-        if (isMobileSidebarOpen) setIsMobileSidebarOpen(false);
-      } else if (e.key === '/') {
-        // Focus message input to start slash command
-        const messageInput = document.querySelector('textarea[placeholder*="Ask me"]') as HTMLTextAreaElement;
-        if (messageInput) {
-          e.preventDefault();
-          messageInput.focus();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleGlobalKeyDown);
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [handleNewSession, sessions.length, isMobileSidebarOpen]);
-
   const handleEditMessage = async (messageId: string, newContent: string) => {
     if (!currentSession) return;
 
-    // Find the message index
     const messageIndex = currentSession.messages.findIndex(msg => msg.id === messageId);
     if (messageIndex === -1) return;
 
-    // Remove all messages after the edited message (including AI responses)
     const messagesBeforeEdit = currentSession.messages.slice(0, messageIndex);
-
-    // Create the updated user message
     const updatedUserMessage = {
       ...currentSession.messages[messageIndex],
       content: newContent,
-      timestamp: new Date().toISOString() // Update timestamp
+      timestamp: new Date().toISOString()
     };
 
-    // Update the session with messages up to the edit point + the updated message
     const updatedSession = {
       ...currentSession,
       messages: [...messagesBeforeEdit, updatedUserMessage]
     };
 
-    // Update the store with the edited message (no AI response yet)
     useChatStore.setState({ currentSession: updatedSession });
-
-    // Set loading state for AI response
     useChatStore.setState({ isLoading: true, isTyping: true, error: null });
 
     try {
-      // Send message to backend using apiClient (same as sendMessage function)
       const response = await apiClient.post<ChatResponse>('/chat', {
         message: newContent,
       });
 
       if (response.status === 'success' && response.data) {
-        // Add AI response
         const aiMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant' as const,
@@ -277,7 +180,6 @@ export const ChatInterface: React.FC = () => {
         throw new Error('API response was not successful');
       }
     } catch (error) {
-      console.error('Error editing message:', error);
       useChatStore.setState({
         isLoading: false,
         isTyping: false,
@@ -288,105 +190,82 @@ export const ChatInterface: React.FC = () => {
 
   const handleSelectSession = async (sessionId: string) => {
     if (sessionId !== currentSession?.id) {
-      // Clear current session first to prevent data mixing
       useChatStore.setState({ currentSession: null });
       await loadSession(sessionId);
     }
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    console.log('ChatInterface: Handling delete session:', sessionId);
-
-    // Find the session to get its title for confirmation
     const sessionToDelete = sessions.find(s => s.id === sessionId);
     const sessionTitle = sessionToDelete?.title || 'this session';
+    const confirmed = window.confirm(`Are you sure you want to delete "${sessionTitle}"?`);
 
-    // Show confirmation dialog
-    const confirmed = window.confirm(`Are you sure you want to delete "${sessionTitle}"? This action cannot be undone.`);
-
-    if (!confirmed) {
-      console.log('ChatInterface: Session deletion cancelled by user');
-      return;
-    }
+    if (!confirmed) return;
 
     try {
-      // Delete the session completely (this will also handle current session switching)
       await deleteSession(sessionId);
-      console.log('ChatInterface: Session deletion completed');
     } catch (error) {
-      console.error('ChatInterface: Failed to delete session:', error);
-      // The error is already handled in the store, just log it here
+      console.error('Failed to delete session:', error);
     }
   };
 
   const handleShareSession = (sessionId: string) => {
-    // Find the session and open share dialog
     const session = sessions.find(s => s.id === sessionId);
     if (session) {
-      // Open share dialog for the found session
       openShareDialog();
-      // Note: Currently shares the current session, could be enhanced to share specific session
     }
   };
 
   if (!user) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-red-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <Shield className="w-10 h-10 text-red-600" />
+      <div className="h-full flex items-center justify-center bg-[#090b10] text-white">
+        <div className="text-center max-w-md mx-auto p-8 rounded-2xl bg-[#11141e] border border-white/10 shadow-2xl">
+          <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-cyan-500/10">
+            <Shield className="w-8 h-8 text-cyan-400" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+          <h3 className="text-xl font-bold text-white mb-2">
             Authentication Required
           </h3>
-          <p className="text-gray-600 text-lg leading-relaxed">
-            Please log in to access your personalized AI career mentor and chat history.
+          <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+            Please log in to access your personalized CareerForge AI mentor and chat history.
           </p>
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-            <p className="text-sm text-blue-800 flex items-center">
-              <CareerForgeAvatar size="xs" className="mr-2" />
-              Your AI career coach is waiting to help you succeed
-            </p>
-          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className={`h-full bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative ${isFullscreen ? 'fixed inset-0 z-50 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800' : ''}`}>
-      {/* Desktop Chat Sidebar - show when not fullscreen OR when route is the chat page (so users see sessions while in chat-only view) */}
-      {((!isFullscreen) || location.pathname.startsWith('/app/chat')) && (
-        <ErrorBoundary>
-          <div className="hidden lg:block">
-            <ChatSidebar
-              sessions={sessions || []}
-              currentSessionId={currentSession?.id}
-              onSelectSession={handleSelectSession}
-              onNewSession={handleNewSession}
-              onDeleteSession={handleDeleteSession}
-              onShareSession={handleShareSession}
-              isLoading={isLoading && !currentSession}
-              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              isCollapsed={isSidebarCollapsed}
-              onResize={handleSidebarResize}
-              onToggleFullscreen={handleFullscreenToggle}
-              isFullscreen={isFullscreen}
-            />
-          </div>
-        </ErrorBoundary>
-      )}
+  const hasMessages = currentSession && currentSession.messages && currentSession.messages.length > 0;
 
-      {/* Mobile Sidebar Overlay - Shows on mobile or when toggled in fullscreen */}
+  return (
+    <div className="h-full bg-[#090b10] text-zinc-100 relative overflow-hidden flex">
+      {/* Desktop Chat Sidebar */}
+      <ErrorBoundary>
+        <div className="hidden lg:block">
+          <ChatSidebar
+            sessions={sessions || []}
+            currentSessionId={currentSession?.id}
+            onSelectSession={handleSelectSession}
+            onNewSession={handleNewSession}
+            onDeleteSession={handleDeleteSession}
+            onShareSession={handleShareSession}
+            isLoading={isLoading && !currentSession}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            isCollapsed={isSidebarCollapsed}
+            onResize={handleSidebarResize}
+            onToggleFullscreen={handleFullscreenToggle}
+            isFullscreen={isFullscreen}
+          />
+        </div>
+      </ErrorBoundary>
+
+      {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setIsMobileSidebarOpen(false)}
           />
-          {/* Sidebar */}
-          <div className="relative">
+          <div className="relative z-10">
             <ChatSidebar
               sessions={sessions || []}
               currentSessionId={currentSession?.id}
@@ -404,11 +283,10 @@ export const ChatInterface: React.FC = () => {
               onToggleFullscreen={handleFullscreenToggle}
               isFullscreen={isFullscreen}
             />
-            {/* Hide Sidebar Button */}
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="absolute top-4 right-4 p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg z-20"
-              title="Hide sidebar"
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg z-20"
+              title="Close sidebar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -416,149 +294,79 @@ export const ChatInterface: React.FC = () => {
         </div>
       )}
 
-      {/* Fullscreen Sidebar Overlay - Shows when navbar button is clicked in fullscreen */}
-      {isFullscreen && isMobileSidebarOpen && (
-        <div className="fixed inset-0 z-50 flex">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          />
-          {/* Sidebar */}
-          <div className="relative">
-            <ChatSidebar
-              sessions={sessions || []}
-              currentSessionId={currentSession?.id}
-              onSelectSession={(sessionId) => {
-                handleSelectSession(sessionId);
-                setIsMobileSidebarOpen(false);
-              }}
-              onNewSession={() => {
-                handleNewSession();
-                setIsMobileSidebarOpen(false);
-              }}
-              onDeleteSession={handleDeleteSession}
-              onShareSession={handleShareSession}
-              isLoading={isLoading && !currentSession}
-              onToggleFullscreen={handleFullscreenToggle}
-              isFullscreen={isFullscreen}
-            />
-            {/* Hide Sidebar Button */}
-            <button
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="absolute top-4 right-4 p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg z-20"
-              title="Hide navigation"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Chat Area - Responsive with sidebar spacing */}
+      {/* Main Chat Area */}
       <div
-        className={`flex-1 flex flex-col bg-gradient-to-b from-white/80 via-blue-50/20 to-indigo-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 shadow-sm relative h-full transition-all duration-300`}
+        className="flex-1 flex flex-col h-full bg-[#090b10] relative transition-all duration-300"
         style={{
-          // Only add margin when sidebar is visible and not in fullscreen
-          marginLeft: ((!isFullscreen) || location.pathname.startsWith('/app/chat')) && !isSidebarCollapsed
-            ? `${sidebarWidth}px`
-            : ((!isFullscreen) || location.pathname.startsWith('/app/chat')) && isSidebarCollapsed
-              ? '64px'
-              : '0px',
+          marginLeft: !isSidebarCollapsed ? `${sidebarWidth}px` : '64px',
           height: '100vh'
         }}
       >
-
-        {/* Mobile Menu Button - Floating Action Button Style */}
+        {/* Mobile Sidebar Toggle Button */}
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
-          className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 transition-all duration-200"
-          title="Show sidebar"
+          className="lg:hidden absolute top-3 left-3 z-30 p-2 text-zinc-400 hover:text-white bg-[#11141e]/90 hover:bg-[#1a2030] border border-white/10 rounded-xl transition-colors shadow-lg"
+          title="Open menu"
         >
-          {/* Right-pointing chevron for mobile */}
-          <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <PanelLeft className="w-4 h-4" />
         </button>
 
-        {/* Show Sidebar Button - At right edge of collapsed sidebar */}
-        {isSidebarCollapsed && (
-          <button
-            onClick={() => setIsSidebarCollapsed(false)}
-            className="hidden lg:flex fixed top-1/2 -translate-y-1/2 z-50 w-6 h-16 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-r-lg shadow-lg border border-l-0 border-gray-200 dark:border-gray-600 transition-all duration-200 items-center justify-center"
-            style={{ left: '64px' }}
-            title="Show sidebar"
-          >
-            {/* Right-pointing chevron - matches hide button */}
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+        {/* Error Alert Display */}
+        {error && (
+          <div className="bg-red-950/40 border border-red-500/30 p-3 mx-6 mt-3 rounded-xl shadow-lg flex items-center justify-between text-xs text-red-300">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={clearError}
+              className="text-red-400 hover:text-white px-2 py-1 rounded hover:bg-white/5"
+            >
+              Dismiss
+            </button>
+          </div>
         )}
 
-        {/* Professional Error Display */}
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-6 mx-8 mt-6 rounded-r-lg shadow-sm">
-            <div className="flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="text-red-800 font-semibold mb-1">Error</h4>
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-              <button
-                onClick={clearError}
-                className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 rounded-md hover:bg-red-100 transition-colors"
-              >
-                Dismiss
-              </button>
+        {/* Messages Scroll Area */}
+        <div className="flex-1 overflow-hidden h-full min-h-0 relative">
+          <MessageList
+            messages={currentSession?.messages || []}
+            isTyping={isTyping}
+            isLoading={isLoading && !!currentSession}
+            onEditMessage={handleEditMessage}
+            onSendMessage={handleSendMessage}
+          />
+        </div>
+
+        {/* Pinned Bottom Input Dock - Only shown when in active conversation */}
+        {hasMessages && (
+          <div className="border-t border-white/[0.06] bg-[#090b10]/95 backdrop-blur-2xl">
+            <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 py-3">
+              <MessageInput
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+                isTyping={isTyping}
+                placeholder="Reply to CareerForge AI..."
+              />
             </div>
           </div>
         )}
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-hidden h-full min-h-0">
-          <div className={location.pathname.startsWith('/app/chat') ? 'w-full h-full' : 'max-w-5xl mx-auto w-full h-full'}>
-            <MessageList
-              messages={currentSession?.messages || []}
-              isTyping={isTyping}
-              isLoading={isLoading && !!currentSession}
-              onEditMessage={handleEditMessage}
-              onSendMessage={handleSendMessage}
-            />
-          </div>
-        </div>
-
-        {/* Professional Message Input with shadow separator */}
-        <div className="bg-white dark:bg-gray-800 shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.3)] border-t border-gray-100 dark:border-gray-700">
-          <div className={location.pathname.startsWith('/app/chat') ? 'w-full px-4 py-3' : 'max-w-5xl mx-auto w-full px-4 py-3'}>
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-              isTyping={isTyping}
-              placeholder={
-                currentSession
-                  ? "Continue your conversation with your AI career mentor..."
-                  : "Ask your AI career mentor anything about your professional journey..."
-              }
-            />
-          </div>
-        </div>
       </div>
 
       {/* Branch Navigator Modal */}
       {showBranchNavigator && currentSession && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <GitBranch className="w-6 h-6 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Conversation Branches</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="relative bg-[#11141f] border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden text-white">
+            <div className="flex items-center justify-between p-5 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <GitBranch className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-base font-semibold text-white">Conversation Branches</h2>
               </div>
               <button
                 onClick={closeBranchNavigator}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
             <BranchNavigator
