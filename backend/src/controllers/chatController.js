@@ -79,6 +79,7 @@ const chatController = {
       timestamp: new Date().toISOString(),
     };
 
+    const previousMessages = [...currentMessages];
     currentMessages.push(userMessage);
 
     // Get AI response using multi-AI service with automatic fallback
@@ -87,7 +88,7 @@ const chatController = {
       const { chatWithAI } = require('../services/multiAiService');
       const result = await chatWithAI(
         message,
-        currentMessages,
+        previousMessages,
         {
           userId: user.id,
           userName: user.name,
@@ -103,7 +104,7 @@ const chatController = {
 
     if (!aiReply) {
       const { generateCareerAdvisorResponse } = require('../services/careerKnowledgeService');
-      aiReply = generateCareerAdvisorResponse(message, currentMessages, { userName: user.name });
+      aiReply = generateCareerAdvisorResponse(message, previousMessages, { userName: user.name });
     }
 
     // Add AI response to history
@@ -366,6 +367,7 @@ const chatController = {
       timestamp: new Date().toISOString(),
     };
 
+    const previousMessages = [...currentMessages];
     currentMessages.push(userMessage);
 
     // Get AI response with file context - use higher token limit model for file analysis
@@ -377,7 +379,7 @@ const chatController = {
       const { chatWithAI } = require('../services/multiAiService');
       const result = await chatWithAI(
         messageWithContext,
-        currentMessages,
+        previousMessages,
         {
           userId: user.id,
           userName: user.name,
@@ -394,7 +396,7 @@ const chatController = {
     if (!aiReply) {
       const { generateCareerAdvisorResponse } = require('../services/careerKnowledgeService');
       aiReply = `### 📄 Document Analysis Summary\n\nI have successfully received and processed your uploaded documents (${fileInfo}).\n\n` +
-        generateCareerAdvisorResponse(message || 'career roadmap guidance based on my resume', currentMessages, { userName: user.name });
+        generateCareerAdvisorResponse(message || 'career roadmap guidance based on my resume', previousMessages, { userName: user.name });
     }
 
     // Add AI response to history

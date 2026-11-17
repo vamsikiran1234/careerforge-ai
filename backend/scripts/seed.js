@@ -9,9 +9,9 @@ async function seed() {
       {
         email: 'demo.user@careerforge.ai',
         password: 'CareerForge@Demo2026',
-        name: 'Demo Student',
+        name: 'Vamsi Kiran',
         roles: '["STUDENT"]',
-        bio: 'CareerForge AI Demo Account for exploring career pathways and AI mentorship.',
+        bio: 'Full-Stack Software Engineer & Applied AI Developer specializing in TypeScript, React, Node.js, Python, and Production RAG architectures. Experienced in building high-throughput microservices, scalable distributed systems, and LLM-powered applications.',
       },
       {
         email: 'test@example.com',

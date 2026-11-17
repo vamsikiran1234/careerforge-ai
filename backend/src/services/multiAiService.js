@@ -15,7 +15,8 @@ const providers = {
   omniroute: null,
   groq: null,
   gemini: null,
-  // Add more providers as needed
+  openai: null,
+  openrouter: null,
 };
 
 // Initialize OmniRoute if enabled
@@ -47,8 +48,51 @@ if (process.env.GEMINI_API_KEY) {
   console.log('✅ Gemini AI provider initialized');
 }
 
-// Available models configuration - Updated with current working models
+// Initialize OpenAI if API key is available
+if (process.env.OPENAI_API_KEY) {
+  try {
+    providers.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    console.log('✅ OpenAI provider initialized');
+  } catch (err) {
+    console.warn('⚠️ OpenAI initialization warning:', err.message);
+  }
+}
+
+// Initialize OpenRouter if API key is available
+if (process.env.OPENROUTER_API_KEY) {
+  try {
+    providers.openrouter = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: process.env.OPENROUTER_API_KEY,
+    });
+    console.log('✅ OpenRouter provider initialized');
+  } catch (err) {
+    console.warn('⚠️ OpenRouter initialization warning:', err.message);
+  }
+}
+
+// Available models configuration - Updated with current active models
 const models = {
+  openai: {
+    'gpt-4o-mini': {
+      name: 'GPT-4o Mini',
+      provider: 'openai',
+      tokenLimit: 128000,
+      description: 'Fast, intelligent, and affordable OpenAI flagship model',
+      free: false,
+      priority: 0
+    },
+    'gpt-4o': {
+      name: 'GPT-4o',
+      provider: 'openai',
+      tokenLimit: 128000,
+      description: 'OpenAI premier intelligence model for complex reasoning',
+      free: false,
+      priority: 1
+    }
+  },
   omniroute: {
     'omniroute-auto': {
       name: 'OmniRoute Gateway (Auto)',
@@ -56,39 +100,31 @@ const models = {
       tokenLimit: 128000,
       description: 'OmniRoute intelligent multi-model routing & fallback',
       free: true,
-      priority: 0
+      priority: 1
     }
   },
   groq: {
+    'llama-3.3-70b-versatile': {
+      name: 'Llama 3.3 70B Versatile',
+      provider: 'groq',
+      tokenLimit: 128000,
+      description: 'State-of-the-art 70B reasoning and coding model',
+      free: true,
+      priority: 2
+    },
     'llama-3.1-8b-instant': {
       name: 'Llama 3.1 8B Instant',
       provider: 'groq',
       tokenLimit: 8000,
-      description: 'Fast and efficient, great for general conversations',
-      free: true,
-      priority: 1
-    },
-    'llama-3.2-1b-preview': {
-      name: 'Llama 3.2 1B Preview',
-      provider: 'groq',
-      tokenLimit: 8000,
-      description: 'Lightweight model for quick responses',
+      description: 'Ultra-fast and efficient, ideal for quick interactions',
       free: true,
       priority: 3
     },
-    'llama-3.2-3b-preview': {
-      name: 'Llama 3.2 3B Preview',
+    'mixtral-8x7b-32768': {
+      name: 'Mixtral 8x7B 32k',
       provider: 'groq',
-      tokenLimit: 8000,
-      description: 'Balanced performance and speed',
-      free: true,
-      priority: 2
-    },
-    'gemma2-9b-it': {
-      name: 'Gemma2 9B IT',
-      provider: 'groq',
-      tokenLimit: 8000,
-      description: 'Google\'s Gemma model, good for instruction following',
+      tokenLimit: 32768,
+      description: 'MoE model with expansive context window',
       free: true,
       priority: 4
     }
@@ -97,47 +133,38 @@ const models = {
     'gemini-1.5-flash': {
       name: 'Gemini 1.5 Flash',
       provider: 'gemini',
-      tokenLimit: 32000,
-      description: 'Google\'s fast multimodal model, 15 RPM / 1M RPD',
+      tokenLimit: 1000000,
+      description: 'Google fast multimodal model with 1M context',
       free: true,
       priority: 1,
-      rateLimit: { requestsPerMinute: 15, requestsPerDay: 1000000 }
-    },
-    'gemini-1.5-flash-8b': {
-      name: 'Gemini 1.5 Flash 8B',
-      provider: 'gemini',
-      tokenLimit: 32000,
-      description: 'Smaller, faster Gemini model, 15 RPM / 1M RPD',
-      free: true,
-      priority: 2,
       rateLimit: { requestsPerMinute: 15, requestsPerDay: 1000000 }
     },
     'gemini-1.5-pro': {
       name: 'Gemini 1.5 Pro',
       provider: 'gemini',
-      tokenLimit: 1000000,
-      description: 'Most capable Gemini model, 2 RPM / 50 RPD',
+      tokenLimit: 2000000,
+      description: 'Most capable Gemini model with deep analytical reasoning',
       free: true,
-      priority: 3,
+      priority: 2,
       rateLimit: { requestsPerMinute: 2, requestsPerDay: 50 }
     }
   },
-  // Future: Add OpenRouter, Together AI, etc.
   openrouter: {
-    // Free models available through OpenRouter
-    'microsoft/wizardlm-2-8x22b': {
-      name: 'WizardLM 2 8x22B',
+    'meta-llama/llama-3.3-70b-instruct': {
+      name: 'Llama 3.3 70B Instruct',
       provider: 'openrouter',
-      tokenLimit: 65536,
-      description: 'Microsoft\'s powerful reasoning model',
-      free: true
+      tokenLimit: 131072,
+      description: 'Meta premier open-weights reasoning model',
+      free: true,
+      priority: 2
     },
     'meta-llama/llama-3.1-8b-instruct:free': {
       name: 'Llama 3.1 8B (Free)',
       provider: 'openrouter',
       tokenLimit: 131072,
-      description: 'Meta\'s instruction-tuned model',
-      free: true
+      description: 'Meta fast instruction-tuned free tier model',
+      free: true,
+      priority: 3
     }
   }
 };
@@ -231,7 +258,7 @@ const makeGroqRequest = async (modelId, messages, systemPrompt) => {
       ...messages
     ],
     model: modelId,
-    max_tokens: 1000,
+    max_tokens: 3500,
     temperature: 0.7,
     stream: false,
   });
@@ -270,19 +297,60 @@ const makeGeminiRequest = async (modelId, messages, systemPrompt) => {
 };
 
 /**
- * Make AI request using OpenRouter (future implementation)
+ * Make AI request using OpenAI (ChatGPT models)
  */
-// const makeOpenRouterRequest = async (modelId, messages, systemPrompt) => {
-//   // TODO: Implement OpenRouter API calls
-//   throw new Error('OpenRouter provider not yet implemented');
-// };
+const makeOpenAIRequest = async (modelId, messages, systemPrompt) => {
+  if (!providers.openai) {
+    throw new Error('OpenAI provider not configured');
+  }
+
+  const completion = await providers.openai.chat.completions.create({
+    model: modelId,
+    messages: [
+      ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+      ...messages
+    ],
+    temperature: 0.7,
+  });
+
+  return completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+};
+
+/**
+ * Make AI request using OpenRouter
+ */
+const makeOpenRouterRequest = async (modelId, messages, systemPrompt) => {
+  if (!providers.openrouter) {
+    throw new Error('OpenRouter provider not configured');
+  }
+
+  const completion = await providers.openrouter.chat.completions.create({
+    model: modelId,
+    messages: [
+      ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+      ...messages
+    ],
+    temperature: 0.7,
+  });
+
+  return completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+};
+
+const DEFAULT_CAREER_SYSTEM_PROMPT = `You are CareerForge AI, a premier career strategist, senior staff engineer, and technical mentor.
+Your mission is to deliver world-class, structured, actionable, and contextually aware guidance comparable to ChatGPT Plus and Claude 3.5 Sonnet.
+
+Key Principles:
+1. Multi-Turn Context & Continuity: Track the conversation history carefully. If you previously asked a clarifying question or offered options (e.g., Python implementation vs. evaluation metrics), and the user answers with a choice, typo (e.g., "metrices"), affirmation ("yes"), or request ("make it actionable"), immediately deliver a deep, comprehensive response to that specific request.
+2. Tone & Style: Be professional, articulate, encouraging, and direct. Avoid robotic boilerplate greetings on every single turn; greet the user only on the very first turn.
+3. Technical Depth: Use clean GitHub-flavored Markdown, runnable code blocks with proper language identifiers, ASCII architectural diagrams, and structured bullet points.
+4. Actionability: When asked to break things down into actionable parts, organize into clear, time-boxed milestones (e.g., Week 1, Week 2), deliverables, and verification checkpoints.`;
 
 /**
  * Generic AI chat function with automatic model selection
  */
 const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
   const {
-    systemPrompt = 'You are a helpful AI assistant.'
+    systemPrompt = DEFAULT_CAREER_SYSTEM_PROMPT
   } = options;
   
   try {
@@ -299,9 +367,15 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
       };
     }
     
-    // Prepare messages for API
+    // Prepare messages for API (deduplicate if the last message in history is identical to userMessage)
+    const sanitizedHistory = (Array.isArray(messageHistory) && messageHistory.length > 0 &&
+      messageHistory[messageHistory.length - 1]?.role === 'user' &&
+      messageHistory[messageHistory.length - 1]?.content === userMessage)
+        ? messageHistory.slice(0, -1)
+        : (Array.isArray(messageHistory) ? messageHistory : []);
+
     const messages = [
-      ...messageHistory.slice(-10).map(msg => ({
+      ...sanitizedHistory.slice(-10).map(msg => ({
         role: msg.role,
         content: msg.content
       })),
@@ -320,6 +394,9 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
         // Make request based on provider
         let response;
         switch (selectedModel.provider) {
+          case 'openai':
+            response = await makeOpenAIRequest(selectedModel.id, messages, systemPrompt);
+            break;
           case 'omniroute':
             response = await makeOmniRouteRequest(selectedModel.id, messages, systemPrompt);
             break;
@@ -330,8 +407,8 @@ const chatWithAI = async (userMessage, messageHistory = [], options = {}) => {
             response = await makeGeminiRequest(selectedModel.id, messages, systemPrompt);
             break;
           case 'openrouter':
-            // OpenRouter not yet implemented, skip to next model
-            throw new Error('OpenRouter provider not yet implemented');
+            response = await makeOpenRouterRequest(selectedModel.id, messages, systemPrompt);
+            break;
           default:
             throw new Error(`Unsupported provider: ${selectedModel.provider}`);
         }
