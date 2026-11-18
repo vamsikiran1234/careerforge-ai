@@ -17,7 +17,6 @@ import { Logo } from './ui/Logo';
 
 const navigation = [
   { name: 'Dashboard', href: '/app/dashboard', icon: Home },
-  { name: 'AI Chat', href: '/app/chat', icon: MessageSquare },
   { name: 'Career Quiz', href: '/app/quiz', icon: BookOpen },
   { name: 'Career Trajectory', href: '/app/career', icon: Target },
   { name: 'Find Mentors', href: '/app/mentors', icon: Users },

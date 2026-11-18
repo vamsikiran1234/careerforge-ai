@@ -157,10 +157,17 @@ export const useChatStore = create<ChatState>()(
 
       // Actions
       sendMessage: async (message: string) => {
-        const { currentSession } = get();
+        let { currentSession } = get();
         if (!currentSession) {
-          console.error('SendMessage: No current session available');
-          return;
+          // Auto-initialize a temporary session so sending a message always works cleanly
+          currentSession = {
+            id: `temp-${Date.now()}`,
+            title: 'New Chat',
+            messages: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          set({ currentSession });
         }
 
         console.log('SendMessage: Sending message to session:', {

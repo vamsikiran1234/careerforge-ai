@@ -252,7 +252,10 @@ export const DashboardPage: React.FC = () => {
           animate="visible"
         >
           <motion.div variants={listItemVariants}>
-            <Link to="/app/chat" className="block group">
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('open-ai-chat'))}
+              className="block group w-full text-left"
+            >
               <Card className="card-hover group-hover:border-blue-500/50 transition-all cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -274,7 +277,7 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            </Link>
+            </button>
           </motion.div>
 
           <motion.div variants={listItemVariants}>
@@ -435,7 +438,10 @@ export const DashboardPage: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   {currentData.quickStats.chatSessions.total === 0 && (
-                    <Link to="/app/chat" className="block group">
+                    <button 
+                      onClick={() => window.dispatchEvent(new CustomEvent('open-ai-chat'))}
+                      className="block group w-full text-left"
+                    >
                       <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
@@ -448,7 +454,7 @@ export const DashboardPage: React.FC = () => {
                         </div>
                         <ArrowRight className="h-5 w-5 text-blue-600 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </Link>
+                    </button>
                   )}
                   
                   {currentData.quickStats.quizzesTaken.total === 0 && (
