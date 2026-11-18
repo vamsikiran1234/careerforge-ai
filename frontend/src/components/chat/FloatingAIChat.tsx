@@ -21,6 +21,11 @@ import { cn } from '@/utils';
 
 const SUGGESTED_PROMPTS = [
   {
+    icon: '✨',
+    label: 'About CareerForge AI',
+    prompt: 'What is CareerForge AI and how do I use its features like mentorship, career quizzes, and trajectory?'
+  },
+  {
     icon: '☕',
     label: 'Java Full-Stack Projects',
     prompt: 'I want project ideas on Java Full Stack with Spring Boot and React that have less implementation complexity but high real-world impact to solve real problems.'

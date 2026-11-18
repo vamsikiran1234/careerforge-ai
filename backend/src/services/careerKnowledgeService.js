@@ -390,12 +390,322 @@ Would you like to review the step-by-step implementation guide for one of these 
 }
 
 /**
- * 7. Main Career Advisor Routing Engine
+ * 7. CareerForge AI Platform Knowledge Base & Feature Guides
+ */
+
+function getPlatformOverview(isFollowUp, userName) {
+  const intro = formatHeader('🚀 Welcome to CareerForge AI — The AI Career Acceleration Ecosystem', isFollowUp, userName);
+  return `${intro}**CareerForge AI** is an all-in-one career intelligence and mentorship ecosystem designed to take software engineers and tech professionals from foundational learning to production-level, job-ready mastery.
+
+---
+
+### 🌟 Core Capabilities & Features
+
+1. **🤖 AI Assistant (CareerForge AI)**:
+   * Accessible anytime via the **floating glowing button** at the bottom-right or the **AI Chat Sparkles icon** in the top header.
+   * Delivers technical roadmaps, project architectures, runnable code snippets, interview prep, and answers any question about navigating this platform.
+
+2. **🧠 Adaptive Career Quiz (\`/app/quiz\`)**:
+   * A 5-stage diagnostic assessment (Fundamentals, Technical Depth, System Design, Problem Solving, Real-World Application).
+   * Benchmarks your domain skills across 12+ tech tracks and generates personalized radar charts and skill-gap recommendations.
+
+3. **📈 Career Trajectory Dashboard (\`/app/trajectory\`)**:
+   * Visualizes your journey from your current skill baseline to target career roles (e.g. Junior to Senior Full-Stack or AI Engineer).
+   * Tracks milestones, readiness metrics, and recommended sprints.
+
+4. **🤝 Find Mentors (\`/app/mentors\`)**:
+   * Browse verified industry engineers and tech leads from top companies (Google, Microsoft, Amazon, etc.).
+   * Filter by domain expertise, hourly rate, rating, and response time.
+   * Book 1-on-1 sessions for **Mock Interviews**, **Resume Critiques**, **System Architecture Reviews**, or **Career Transition Planning**.
+
+5. **📅 My Sessions (\`/app/sessions\`)**:
+   * Track upcoming, completed, and cancelled mentorship bookings.
+   * Manage calendar sync, meeting links, notes, and session cancellations with instant mentor notification.
+
+6. **💬 Direct Messages (\`/app/messages\`)**:
+   * Real-time 1-on-1 messaging with your connected mentors and mentees to discuss sessions and share technical resources.
+
+7. **🎓 Become a Mentor (\`/app/become-mentor\`)**:
+   * Senior developers can apply through a simple 3-step onboarding flow to share expertise, guide mentees, and earn hourly rates.
+
+8. **🎭 Multi-Role Switcher (Header)**:
+   * Instantly switch between **Student Mode**, **Mentor Mode**, and **Admin Mode** directly from the top header!
+
+9. **🌓 Dark & Light Theme**:
+   * Toggle between Dark and Light mode anytime using the theme switch icon in the top header.
+
+---
+
+What would you like to explore? You can ask me **"how to book a mentor"**, **"how does the career quiz work"**, **"how to become a mentor"**, or ask for **roadmaps and project ideas**!`;
+}
+
+function getPlatformMentorBookingGuide(isFollowUp, userName) {
+  const intro = formatHeader('🤝 How to Find & Book Mentors on CareerForge AI', isFollowUp, userName);
+  return `${intro}Booking a 1-on-1 session with an experienced industry professional on CareerForge AI is fast and seamless:
+
+---
+
+### 📋 Step-by-Step Booking Guide:
+
+1. **Navigate to Mentors**:
+   * Click **Find Mentors** in the left sidebar or go to \`/app/mentors\`.
+
+2. **Search & Filter**:
+   * Use the search bar to filter by **Domain** (e.g., Java Full Stack, AI/ML, Cloud DevOps), **Company**, or **Minimum Rating**.
+   * Review mentor cards to check their verified credentials, years of experience, and hourly rate.
+
+3. **Select a Mentor Profile**:
+   * Click on a mentor's card to view their full bio, past student reviews, technical specializations, and education.
+
+4. **Schedule the Session**:
+   * Click the **Book Session** button on their profile.
+   * Choose an available **Date** and **Time Slot** that fits your calendar.
+   * Select your session objective:
+     * 🎯 *Mock Technical / System Design Interview*
+     * 📄 *Resume & Portfolio Critique*
+     * ⚡ *Architecture / Code Review*
+     * 🧭 *Career Transition & Growth Strategy*
+   * Add any specific questions or GitHub repo links you want the mentor to review in advance.
+
+5. **Track Your Booking**:
+   * Go to **My Sessions** (\`/app/sessions\`) to view your confirmation, meeting links, and calendar invites.
+   * Need to change plans? You can cancel or reschedule anytime from the **My Sessions** page with a single click.
+
+Would you like tips on how to prepare for your first mentorship session?`;
+}
+
+function getPlatformBecomeMentorGuide(isFollowUp, userName) {
+  const intro = formatHeader('🎓 How to Become a Mentor on CareerForge AI', isFollowUp, userName);
+  return `${intro}Experienced developers, engineering leads, and technical architects can guide the next generation of engineers while earning on CareerForge AI:
+
+---
+
+### 📝 3-Step Mentor Registration:
+
+1. **Start Application**:
+   * Click **Become a Mentor** in the sidebar or visit \`/app/become-mentor\`.
+
+2. **Step 1: Professional Background**:
+   * Provide your **Current Company** (e.g. Google, Microsoft, Startup), **Job Title**, **Industry**, and **Years of Experience**.
+
+3. **Step 2: Education & Credentials**:
+   * Add your degree, alma mater, and graduation year to build credibility with mentees.
+
+4. **Step 3: Mentorship Details & Hourly Rate**:
+   * Specify your areas of expertise (e.g., Spring Boot, Distributed Systems, Machine Learning, React).
+   * Set your preferred **hourly rate** ($) and write a short bio explaining how you help mentees succeed.
+
+5. **Verification & Activation**:
+   * Once submitted, the admin team reviews your profile. Upon approval, you can switch to **Mentor Mode** from the top header to manage your availability calendar, accept mentee bookings, and track session payouts!
+
+Would you like advice on writing a high-converting mentor bio?`;
+}
+
+function getPlatformQuizGuide(isFollowUp, userName) {
+  const intro = formatHeader('🧠 CareerForge Adaptive Career Quiz & Assessment Guide', isFollowUp, userName);
+  return `${intro}The **Career Quiz** (\`/app/quiz\`) is an adaptive diagnostic assessment engine engineered to benchmark your real-world technical skills and pinpoint exact skill gaps:
+
+---
+
+### 🎯 The 5 Adaptive Stages:
+
+1. **Stage 1: Syntax & Core Fundamentals**: Tests primary language idioms, data structures, and foundational algorithms.
+2. **Stage 2: Technical Depth & Frameworks**: Evaluates deep framework knowledge (e.g. Spring Boot, PyTorch, React, SQL optimization).
+3. **Stage 3: System Design & Architecture**: Assesses scalability concepts, database modeling, caching strategies, and API security.
+4. **Stage 4: Problem Solving & Debugging**: Evaluates how you analyze edge cases, diagnose race conditions, and optimize latency.
+5. **Stage 5: Real-World Industry Scenarios**: Tests incident triage, architectural trade-offs, and production engineering hygiene.
+
+---
+
+### 📊 Results & Next Steps:
+* **Instant Radar Chart**: Visual breakdown of your strengths across each competency.
+* **Skill-Gap Analysis**: Identifies exact topics you need to master before interviewing.
+* **Personalized Trajectory**: Links directly into your **Career Trajectory** (\`/app/trajectory\`) with tailored learning sprints.
+
+Ready to test your skills? Head over to **Career Quiz** in the sidebar to begin!`;
+}
+
+function getPlatformTrajectoryGuide(isFollowUp, userName) {
+  const intro = formatHeader('📈 Understanding the Career Trajectory Dashboard', isFollowUp, userName);
+  return `${intro}The **Career Trajectory** dashboard (\`/app/trajectory\`) is your personal growth roadmap on CareerForge AI:
+
+---
+
+### 🗺️ Key Features:
+
+1. **Target Role Benchmarking**:
+   * Compares your current skill baseline against industry standards for roles like Senior Full-Stack Engineer, AI Engineer, or Cloud Architect.
+2. **Milestone Tracking**:
+   * Breaks your growth into verifiable 30-day and 60-day sprints.
+3. **Job-Readiness Index**:
+   * Calculates your interview-readiness score based on completed quizzes, projects, and mentor feedback.
+4. **Salary & Market Insights**:
+   * Displays realistic compensation ranges for your target role and experience level.
+
+Would you like me to generate a personalized learning roadmap right now?`;
+}
+
+function getPlatformRoleSwitcherGuide(isFollowUp, userName) {
+  const intro = formatHeader('🎭 Multi-Role Experience: Student, Mentor & Admin', isFollowUp, userName);
+  return `${intro}CareerForge AI supports 3 distinct user roles with seamless switching directly from the top navigation bar:
+
+---
+
+### 🔄 How to Switch Roles:
+1. Locate the **Role Switcher pill** in the top-right header (e.g., \`🎓 Student Mode ▾\`).
+2. Click to open the dropdown and select your active mode:
+
+* **🎓 Student Mode**:
+  * Take adaptive quizzes, view career trajectories, search mentors, and book 1-on-1 sessions.
+* **💼 Mentor Mode**:
+  * Access the Mentor Dashboard, manage mentee requests, configure availability slots, and track earnings.
+* **🛡️ Admin Mode**:
+  * Platform analytics, user account management, and mentor verification approvals.
+
+You can switch between modes at any time without losing your active session!`;
+}
+
+function getPlatformTechStackGuide(isFollowUp, userName) {
+  const intro = formatHeader('🛠️ CareerForge AI Technology Stack & Architecture', isFollowUp, userName);
+  return `${intro}CareerForge AI is built using modern full-stack web and AI engineering standards:
+
+---
+
+### 💻 Technology Architecture:
+
+1. **Frontend**:
+   * **Framework**: React 19 with TypeScript
+   * **Build Tool**: Vite (sub-second HMR & optimized chunking)
+   * **Styling**: Tailwind CSS with dark & light theme support
+   * **State Management**: Zustand
+   * **Icons**: Lucide React
+   * **Markdown & Code**: React Markdown with Prism syntax highlighting
+
+2. **Backend**:
+   * **Runtime**: Node.js & Express REST API
+   * **Database & ORM**: PostgreSQL / SQLite with Prisma ORM
+   * **Security**: JWT Authentication, Argon2/Bcrypt password hashing, and Role-Based Access Control (RBAC)
+   * **Real-Time Communication**: WebSocket channels for instant messaging & notifications
+
+3. **AI & Intelligence Engine**:
+   * Multi-provider LLM orchestration supporting **OpenAI (GPT-4o)**, **Groq (Llama 3)**, **Google Gemini**, **OpenRouter**, and our autonomous zero-downtime **CareerForge Knowledge Service**.
+
+4. **Creators**:
+   * Designed and developed by **Vamsi Kiran** and the CareerForge AI team.`;
+}
+
+function getPlatformThemeGuide(isFollowUp, userName) {
+  const intro = formatHeader('🌓 Dark & Light Theme Customization', isFollowUp, userName);
+  return `${intro}CareerForge AI features a native theme engine designed for high-contrast accessibility:
+
+* **Toggle Theme**: Click the **Sun / Moon icon** in the top-right header (next to the role switcher).
+* **Dark Mode**: Features deep blue-gray palettes (\`#0b1120\`, \`#1e293b\`), neon purple accents, and high-contrast typography optimized for developer focus.
+* **Light Mode**: Clean, crisp modern interface with balanced contrast and accessible color schemes.
+* Your theme preference is automatically remembered across browser sessions!`;
+}
+
+function getPlatformSessionsGuide(isFollowUp, userName) {
+  const intro = formatHeader('📅 Managing Your Mentorship Sessions', isFollowUp, userName);
+  return `${intro}You can manage all your booked sessions in one place:
+
+* **Access**: Click **My Sessions** in the sidebar (\`/app/sessions\`).
+* **Session Tabs**: Filter between **Upcoming**, **Completed**, and **Cancelled** sessions.
+* **Meeting Info**: Each upcoming session displays the scheduled date, time, mentor name, agenda, and direct meeting launch link.
+* **Cancellation**: If you cannot attend, click **Cancel Session**. A confirmation dialog will appear allowing you to provide an optional cancellation reason. Your mentor is notified instantly and the slot is freed.`;
+}
+
+function getPlatformMessagesGuide(isFollowUp, userName) {
+  const intro = formatHeader('💬 Direct Messaging with Mentors', isFollowUp, userName);
+  return `${intro}CareerForge AI includes a built-in real-time messaging hub:
+
+* **Access**: Click **Messages** in the sidebar (\`/app/messages\`).
+* **Conversations**: Browse all your active chats with mentors and mentees.
+* **Search**: Quickly find specific conversations by typing a contact's name in the search bar.
+* **Live Status**: See connected status and receive messages in real time.
+* Use direct messages to ask quick technical questions, align on session agendas, or share GitHub repository links before meeting!`;
+}
+
+/**
+ * 8. Main Career Advisor Routing Engine
  */
 function generateCareerAdvisorResponse(userMessage = '', messageHistory = [], options = {}) {
   const query = (userMessage || '').trim().toLowerCase();
   const userName = options.userName || 'there';
   const isFollowUp = Array.isArray(messageHistory) && messageHistory.length > 0;
+
+  // -------------------------------------------------------------
+  // Platform & Application Knowledge Queries
+  // -------------------------------------------------------------
+  // General Platform / "About CareerForge AI" / "How to use this app"
+  if (
+    /\b(careerforge|career forge|this app|this application|this platform|this website|about app|about application|about platform|what is this|what can you do|features of|how does this work|how to use this|app overview|system overview)\b/i.test(query) &&
+    !/mentor|quiz|trajectory|stack|theme|session/i.test(query)
+  ) {
+    return getPlatformOverview(isFollowUp, userName);
+  }
+
+  // Mentor Booking & Finding Mentors
+  if (
+    /\b(book(ing)?\s*(a\s*)?mentor|book(ing)?\s*(a\s*)?session|find\s*mentor|search\s*mentor|mentor\s*booking|how\s*(do\s*i|to)\s*book|schedule\s*session)\b/i.test(query)
+  ) {
+    return getPlatformMentorBookingGuide(isFollowUp, userName);
+  }
+
+  // Become a Mentor
+  if (
+    /\b(become\s*(a\s*)?mentor|apply\s*as\s*mentor|register\s*as\s*mentor|how\s*to\s*mentor|mentor\s*registration|mentor\s*onboarding)\b/i.test(query)
+  ) {
+    return getPlatformBecomeMentorGuide(isFollowUp, userName);
+  }
+
+  // Career Quiz & Assessments
+  if (
+    /\b(quiz|assessment|adaptive quiz|career quiz|how\s*does\s*the\s*quiz\s*work|quiz\s*stages|take\s*(the\s*)?quiz|diagnostic)\b/i.test(query)
+  ) {
+    return getPlatformQuizGuide(isFollowUp, userName);
+  }
+
+  // Career Trajectory
+  if (
+    /\b(trajectory|career trajectory|track\s*progress|progress\s*dashboard|job readiness|readiness\s*score)\b/i.test(query)
+  ) {
+    return getPlatformTrajectoryGuide(isFollowUp, userName);
+  }
+
+  // Role Switcher / Multi-Role
+  if (
+    /\b(switch\s*role|role\s*switch|student\s*mode|mentor\s*mode|admin\s*mode|change\s*role|roles\s*in\s*this\s*app)\b/i.test(query)
+  ) {
+    return getPlatformRoleSwitcherGuide(isFollowUp, userName);
+  }
+
+  // Tech Stack & Architecture & Creator
+  if (
+    /\b(tech\s*stack|technology\s*stack|how\s*was\s*this\s*built|built\s*with|technologies\s*used|who\s*created|who\s*built|architecture\s*of\s*this\s*app|vamsi|creator)\b/i.test(query)
+  ) {
+    return getPlatformTechStackGuide(isFollowUp, userName);
+  }
+
+  // Theme / Dark Mode / Light Mode
+  if (
+    /\b(dark\s*mode|light\s*mode|change\s*theme|switch\s*theme|toggle\s*theme|theme\s*toggle)\b/i.test(query)
+  ) {
+    return getPlatformThemeGuide(isFollowUp, userName);
+  }
+
+  // My Sessions & Cancellation
+  if (
+    /\b(my\s*sessions?|cancel\s*session|cancellation|reschedule\s*session|upcoming\s*sessions?)\b/i.test(query)
+  ) {
+    return getPlatformSessionsGuide(isFollowUp, userName);
+  }
+
+  // Messages / Chat with Mentors
+  if (
+    /\b(messages?|chat\s*with\s*mentor|direct\s*message|dm\s*mentor|inbox)\b/i.test(query)
+  ) {
+    return getPlatformMessagesGuide(isFollowUp, userName);
+  }
 
   // -------------------------------------------------------------
   // Context Extraction from Previous Message History
