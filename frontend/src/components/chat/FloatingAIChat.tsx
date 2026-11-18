@@ -9,7 +9,9 @@ import {
   Bot, 
   Copy, 
   Check, 
-  ArrowRight
+  ArrowRight,
+  History,
+  MessageSquare
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useChatStore } from '@/store/chat';
@@ -43,6 +45,7 @@ const SUGGESTED_PROMPTS = [
 export const FloatingAIChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -51,11 +54,13 @@ export const FloatingAIChat: React.FC = () => {
   const { user } = useAuthStore();
   const { 
     currentSession, 
+    sessions,
     isLoading, 
     isTyping, 
     sendMessage, 
     createNewSession, 
-    loadSessions 
+    loadSessions,
+    loadSession
   } = useChatStore();
 
   // Listen for custom trigger events from top navbar or anywhere in the app
@@ -72,9 +77,14 @@ export const FloatingAIChat: React.FC = () => {
     };
   }, []);
 
-  // Load chat sessions on mount
+  // Load chat sessions on mount and select the latest session if available
   useEffect(() => {
-    loadSessions();
+    loadSessions().then(() => {
+      const state = useChatStore.getState();
+      if (!state.currentSession && state.sessions.length > 0) {
+        state.loadSession(state.sessions[0].id);
+      }
+    });
   }, [loadSessions]);
 
   // Auto-scroll to bottom of messages
@@ -102,7 +112,11 @@ export const FloatingAIChat: React.FC = () => {
     }
 
     try {
-      await sendMessage(message);
+      if (!currentSession) {
+        await createNewSession(message);
+      } else {
+        await sendMessage(message);
+      }
     } catch (err) {
       console.error('Failed to send message:', err);
     }
@@ -180,6 +194,16 @@ export const FloatingAIChat: React.FC = () => {
             {/* Header Controls */}
             <div className="flex items-center gap-1">
               <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={cn(
+                  "p-1.5 rounded-lg text-purple-200 hover:text-white hover:bg-white/10 transition-colors",
+                  showHistory && "bg-white/20 text-white"
+                )}
+                title="View Chat History"
+              >
+                <History className="w-4 h-4" />
+              </button>
+              <button
                 onClick={handleNewChat}
                 className="p-1.5 rounded-lg text-purple-200 hover:text-white hover:bg-white/10 transition-colors"
                 title="Start New Conversation"
@@ -201,6 +225,61 @@ export const FloatingAIChat: React.FC = () => {
                 <ChevronDown className="w-5 h-5" />
               </button>
             </div>
+          </div>
+
+          {/* Chat History Dropdown / Panel */}
+          {showHistory && (
+            <div className="bg-purple-950/95 text-white border-b border-purple-800 p-3 max-h-56 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-purple-700">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-purple-300 uppercase tracking-wider px-1 mb-1">
+                <span>Recent Conversations ({sessions.length})</span>
+                <button
+                  onClick={() => {
+                    handleNewChat();
+                    setShowHistory(false);
+                  }}
+                  className="flex items-center gap-1 text-purple-200 hover:text-white"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>New</span>
+                </button>
+              </div>
+              {sessions.length === 0 ? (
+                <p className="text-xs text-purple-400 py-2 text-center">No previous conversations</p>
+              ) : (
+                sessions.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      loadSession(s.id);
+                      setShowHistory(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-2.5 py-1.5 rounded-lg text-xs truncate flex items-center gap-2 transition-colors",
+                      currentSession?.id === s.id
+                        ? "bg-purple-800 text-white font-medium"
+                        : "text-purple-200 hover:bg-purple-900/60"
+                    )}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 text-purple-400" />
+                    <span className="truncate">{s.title || 'Untitled Session'}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Active Session Indicator Bar */}
+          <div className="flex items-center justify-between px-4 py-1.5 bg-purple-50 dark:bg-gray-800/90 border-b border-gray-200/60 dark:border-gray-800 text-[11px] text-gray-600 dark:text-gray-400">
+            <span className="truncate font-medium flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+              <span className="truncate">{currentSession?.title || 'New Conversation'}</span>
+            </span>
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="text-purple-600 dark:text-purple-400 hover:underline flex-shrink-0 font-medium ml-2"
+            >
+              {showHistory ? 'Hide history' : 'Switch chat'}
+            </button>
           </div>
 
           {/* Messages Container */}
